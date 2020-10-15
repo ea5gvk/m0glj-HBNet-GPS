@@ -1,8 +1,8 @@
 ---
 
-# In this fork, APRS beaconing of peers is set on a per master configuration.
+# In this fork, APRS beaconing of peers is set on a per master configuration. Also, private-call-dev has been merged with master.
 
-This is my "flavor" of HBLink3 that I use in production.
+This is my "flavor" of HBLink3 that I use in production. 
 
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
