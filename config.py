@@ -26,6 +26,9 @@ updated if the items in the main configuraiton file (usually hblink.cfg)
 change.
 '''
 
+# Added config option for APRS in the master config section
+# Modified by KF7EEL - 10-15-2020
+
 import configparser
 import sys
 import const
@@ -259,6 +262,7 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
+                        'APRS_ENABLED': config.getboolean(section, 'APRS_ENABLED'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),
@@ -331,3 +335,4 @@ if __name__ == '__main__':
         return not _acl[0]
         
     print(acl_check(b'\x00\x01\x37', CONFIG['GLOBAL']['TG1_ACL']))
+

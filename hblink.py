@@ -27,6 +27,9 @@ works stand-alone before troubleshooting any applications that use it. It has
 sufficient logging to be used standalone as a troubleshooting application.
 '''
 
+# Added config option for APRS in the master config section. Will only send packets to APRS-IS if each master is enabled.
+# Modified by KF7EEL - 10-15-2020
+
 # Specifig functions from modules we need
 from binascii import b2a_hex as ahex
 from binascii import a2b_hex as bhex
@@ -482,7 +485,8 @@ class HBSYSTEM(DatagramProtocol):
                             and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
                     logger.info('(%s) Peer is closing down: %s (%s)', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id))
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
-                    if self._CONFIG['APRS']['ENABLED']:
+                    #if self._CONFIG['APRS']['ENABLED']:
+                    if self._config['APRS_ENABLED'] == True:
                         fn = 'nom_aprs'
                         f = open(fn)
                         output = []
@@ -523,7 +527,9 @@ class HBSYSTEM(DatagramProtocol):
             #APRS IMPLEMENTATION
                     conta = 0
                     lista_blocco=['ysf', 'xlx', 'nxdn', 'dstar', 'echolink','p25', 'svx']
-                    if self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
+                    #if self._CONFIG['SYSTEMS']['APRS_ENABLED']['ENABLED']  and self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
+                    # Check if master has APRS enabled instead of global. 
+                    if self._config['APRS_ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
                         file = open("nom_aprs","r")
                         linee = file.readlines()
                         file.close()
@@ -624,9 +630,10 @@ class HBSYSTEM(DatagramProtocol):
                                     rx_utile = dati[2][0:3]+'.'+dati[2][3:]
                                     tx_utile = dati[3][0:3]+'.'+dati[3][3:]
                                     
-                                    
-                                    AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
-                        logging.info('APRS INVIATO')
+                                    # Modified latitude and longitude strings from original, kept getting "uncompressed location" error from aprs.fi. Also will add Color Code to status, not yet working.
+                                    AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8'))
+                                    #logging.info(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8] + ' CC:' + str(_this_peer['COLORCODE']))
+                        logging.info('APRS INVIATO / APRS Packet Sent')
                                     
                     if conta == 0:                
                         if self._CONFIG['APRS']['REPORT_INTERVAL'] > 3:
@@ -958,8 +965,10 @@ if __name__ == '__main__':
                 systems[system] = OPENBRIDGE(system, CONFIG, report_server)
             else:
                 systems[system] = HBSYSTEM(system, CONFIG, report_server)
+                logger.info(CONFIG['SYSTEMS'][system]['APRS_ENABLED'])
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
 
     reactor.run()
+
 
