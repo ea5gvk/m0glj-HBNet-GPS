@@ -1,4 +1,10 @@
 ---
+
+# In this fork, APRS beaconing of peers is set on a per master configuration.
+
+This is my "flavor" of HBLink3 that I use in production.
+
+---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 
 Please join the DVSwitch group at groups.io for online forum support, discussion, and to become part of the development team.
