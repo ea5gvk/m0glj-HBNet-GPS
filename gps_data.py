@@ -67,19 +67,22 @@ __status__     = 'pre-alpha'
 
 # Known to work with: AT-D878
 
+# Must have the following at line 1054 in bridge.py to forward group vcsbk, also there is a typo there:
+# self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+
 ############################# Configuration Variables - Change these #############################
 # DMR ID for GPS and data
-data_id = 310999
+data_id = 9099
 
 # Group call or Unit (private) call
-data_type = 'unit'
+call_type = 'unit'
 # APRS-IS login information
-aprs_callsign = 'CALLSIGN'
-aprs_passcode = *****
+aprs_callsign = 'N0CALL'
+aprs_passcode = 12345
 aprs_server = 'rotate.aprs2.net'
 aprs_port = 14580
 user_ssid = '15'
-aprs_comment = 'HBLink GPS decode - '
+aprs_comment = 'HBLink3 GPS decode - '
 
 
 ##################################################################################################
@@ -134,8 +137,13 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly
         #logger.info(_dtype_vseq)
         if int_id(_dst_id) == data_id:
-            if _call_type == data_type:
-                if _dtype_vseq == 6:
+            #logger.info(type(_seq))
+            if type(_seq) is bytes:
+                pckt_seq = int.from_bytes(_seq, 'big')
+            else:
+                pckt_seq = _seq
+            if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
+                if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf
                     logger.info('Header from ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
