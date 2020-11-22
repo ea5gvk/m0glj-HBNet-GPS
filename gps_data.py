@@ -148,7 +148,7 @@ class DATA_SYSTEM(HBSYSTEM):
             if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf
-                    logger.info('Header from ' + str(int_id(_rf_src)))
+                    logger.info('Header from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
                     btf = ba2num(bptc_decode(_data)[65:72])
@@ -158,7 +158,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     logger.info('Block #: ' + str(btf))
                     #logger.info(_seq)
                     global packet_assembly
-                    logger.info('Data block from ' + str(int_id(_rf_src)))
+                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     if _seq == 0:
                         n_packet_assembly = 0
@@ -183,10 +183,11 @@ class DATA_SYSTEM(HBSYSTEM):
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
-##                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-##                                AIS.connect()
-##                                AIS.sendall(aprs_loc_packet)
-##                                AIS.close()
+                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+                                AIS.connect()
+                                AIS.sendall(aprs_loc_packet)
+                                AIS.close()
+                                logger.info('Sent APRS packet')
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
