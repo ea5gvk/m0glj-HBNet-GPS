@@ -56,6 +56,9 @@ import aprslib
 import datetime
 from bitarray.util import ba2int as ba2num
 
+#Needed for working with NMEA
+import pynmea2
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS; Eric Craw, KF7EEL'
 __copyright__  = 'Copyright (c) 2020 Cortney T. Buffington'
@@ -167,20 +170,23 @@ class DATA_SYSTEM(HBSYSTEM):
                     # Use block 0 as trigger. $GPRMC must also be in string to indicate NMEA.
                     # This triggers the APRS upload
                     if btf == 0: #_seq == 12:
-                        final_packet = bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore')
+                        final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
+                        nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
+                        loc = pynmea2.parse(nmea_parse, check=False)
                         if '$GPRMC' in final_packet:
                             logger.info(final_packet + '\n')
-                            logger.info('Latitude: ' + re.sub(',', '', final_packet[29:40]) + ' Longitude: ' + re.sub(',', '', final_packet[41:53]) + ' Direction: ' + re.sub(',', '', final_packet[58:62]) + ' Speed: ' + re.sub(',', '', final_packet[53:58]))
+                            logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd))
                             # Begin APRS format and upload
-                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+#                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             logger.info(aprs_loc_packet)
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
-                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-                                AIS.connect()
-                                AIS.sendall(aprs_loc_packet)
-                                AIS.close()
+##                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+##                                AIS.connect()
+##                                AIS.sendall(aprs_loc_packet)
+##                                AIS.close()
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
