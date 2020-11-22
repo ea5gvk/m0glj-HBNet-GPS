@@ -1,8 +1,13 @@
 ---
+# "Fully Featuredd" HBLink3
 
-# In this fork, APRS beaconing of peers is set on a per master configuration. Also, private-call-dev has been merged with master. Now with GPS decoding and APRS location reports for Anytone radios.
+This is my version of HBLink3 that I use in "production." I have merged the private-call branch here. I have also merged a modified implementation of uploading APRS locations for connected peers here (modified to "per master" configuration. APRS peer implementation originally by **IU7IGU**). Finally, I have included the GPS/Data Application here to support APRS position reports from some GPS enabled radios. All of this leads to the following features:
 
-This is my "flavor" of HBLink3 that I use in production. 
+* Working Unit calls (private calls)
+* APRS position upload for connected repeaters and hotspots
+* APRS position upload from some GPS enabled radios
+
+
 
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
