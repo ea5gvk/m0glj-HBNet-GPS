@@ -1,4 +1,10 @@
 ---
+
+# In this fork, APRS beaconing of peers is set on a per master configuration. Also, private-call-dev has been merged with master. Now with GPS decoding and APRS location reports for Anytone radios.
+
+This is my "flavor" of HBLink3 that I use in production. 
+
+---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 
 Please join the DVSwitch group at groups.io for online forum support, discussion, and to become part of the development team.

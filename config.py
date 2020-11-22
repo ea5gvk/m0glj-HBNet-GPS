@@ -26,6 +26,9 @@ updated if the items in the main configuraiton file (usually hblink.cfg)
 change.
 '''
 
+# Added config option for APRS in the master config section
+# Modified by KF7EEL - 10-15-2020
+
 import configparser
 import sys
 import const
@@ -104,6 +107,7 @@ def build_config(_config_file):
 
     CONFIG = {}
     CONFIG['GLOBAL'] = {}
+    CONFIG['APRS'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
     CONFIG['ALIASES'] = {}
@@ -121,6 +125,15 @@ def build_config(_config_file):
                     'SUB_ACL': config.get(section, 'SUB_ACL'),
                     'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
                     'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+                })
+                
+            elif section == 'APRS':
+                CONFIG['APRS'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'CALLSIGN': config.get(section, 'CALLSIGN'),
+                    'REPORT_INTERVAL': config.getint(section, 'REPORT_INTERVAL'),
+                    'SERVER': config.get(section, 'SERVER'),
+                    'MESSAGE': config.get(section, 'MESSAGE')
                 })
 
             elif section == 'REPORTS':
@@ -182,7 +195,7 @@ def build_config(_config_file):
                         'SOFTWARE_ID': bytes(config.get(section, 'SOFTWARE_ID').ljust(40)[:40], 'utf-8'),
                         'PACKAGE_ID': bytes(config.get(section, 'PACKAGE_ID').ljust(40)[:40], 'utf-8'),
                         'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
-                        'OPTIONS': b''.join([b'Type=HBlink;', bytes(config.get(section, 'OPTIONS'), 'utf-8')]),
+                        'OPTIONS': bytes(config.get(section, 'OPTIONS'), 'utf-8'),
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
@@ -249,6 +262,7 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
+                        'APRS_ENABLED': config.getboolean(section, 'APRS_ENABLED'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),
@@ -322,3 +336,4 @@ if __name__ == '__main__':
         return not _acl[0]
         
     print(acl_check(b'\x00\x01\x37', CONFIG['GLOBAL']['TG1_ACL']))
+
