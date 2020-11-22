@@ -183,10 +183,10 @@ class DATA_SYSTEM(HBSYSTEM):
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
-##                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-##                                AIS.connect()
-##                                AIS.sendall(aprs_loc_packet)
-##                                AIS.close()
+                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+                                AIS.connect()
+                                AIS.sendall(aprs_loc_packet)
+                                AIS.close()
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
