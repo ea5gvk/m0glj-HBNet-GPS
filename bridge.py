@@ -1050,8 +1050,9 @@ class routerHBP(HBSYSTEM):
                 logger.error('(%s) *UNIT CALL NOT FORWARDED* UNIT calling is disabled for this system (INGRESS)', self._system)
             else:
                 self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
-        elif _call_type == 'vscsbk':
-            logger.debug('CSBK recieved, but HBlink does not process them currently')
+        elif _call_type == 'vcsbk':
+            logger.debug('CSBK recieved, but HBlink does not process them currently. By default, CSBK packet will be forwarded to the talkgroup.')
+            self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         else:
             logger.error('Unknown call type recieved -- not processed')
 
