@@ -1,5 +1,5 @@
----
-# "Fully Featuredd" HBLink3
+
+# "Fully Featured" HBLink3
 
 This is my version of HBLink3 that I use in "production." I have merged the private-call branch here. I have also merged a modified implementation of uploading APRS locations for connected peers here (modified to "per master" configuration. APRS peer implementation originally by **IU7IGU**). Finally, I have included the GPS/Data Application here to support APRS position reports from some GPS enabled radios. All of this leads to the following features:
 
