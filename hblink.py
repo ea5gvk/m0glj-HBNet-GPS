@@ -529,7 +529,7 @@ class HBSYSTEM(DatagramProtocol):
                     lista_blocco=['ysf', 'xlx', 'nxdn', 'dstar', 'echolink','p25', 'svx']
                     #if self._CONFIG['SYSTEMS']['APRS_ENABLED']['ENABLED']  and self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
                     # Check if master has APRS enabled instead of global. 
-                    if self._config['APRS_ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
+                    if self._config['APRS_ENABLED'] and self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
                         file = open("nom_aprs","r")
                         linee = file.readlines()
                         file.close()
@@ -567,7 +567,7 @@ class HBSYSTEM(DatagramProtocol):
                                 
                     def sendAprs():
                         AIS = aprslib.IS(str(self._CONFIG['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(self._CONFIG['APRS']['CALLSIGN'])), host=str(self._CONFIG['APRS']['SERVER']), port=14580)
-                        AIS.connect()
+                        #AIS.connect()
                         f = open('nom_aprs', 'r')
                         lines = f.readlines()
                         if lines:
@@ -631,10 +631,16 @@ class HBSYSTEM(DatagramProtocol):
                                     tx_utile = dati[3][0:3]+'.'+dati[3][3:]
                                     
                                     # Modified latitude and longitude strings from original, kept getting "uncompressed location" error from aprs.fi. Also will add Color Code to status, not yet working.
-                                    AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8'))
+                                    #AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8'))
+                                    if self._config['APRS_ENABLED']:
+                                        AIS.connect() 
+                                        AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8')
+                                        logging.info('APRS INVIATO / APRS Packet Sent')
+                                    else:
+                                        pass
                                     #logging.info(str(dati[0])+">APRS,TCPIP*,qAC,"+str(self._CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(self._CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8] + ' CC:' + str(_this_peer['COLORCODE']))
-                        logging.info('APRS INVIATO / APRS Packet Sent')
-                                    
+                        #logging.info('APRS INVIATO / APRS Packet Sent')
+                                                                        
                     if conta == 0:                
                         if self._CONFIG['APRS']['REPORT_INTERVAL'] > 3:
                             l=task.LoopingCall(sendAprs)
