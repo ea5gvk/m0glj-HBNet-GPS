@@ -176,7 +176,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
                         #NMEA GPS sentence
                         if '$GPRMC' in final_packet:
-                            #logger.info(final_packet + '\n')
+                            logger.info(final_packet + '\n')
                             nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
                             loc = pynmea2.parse(nmea_parse, check=False)
                             logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
@@ -187,6 +187,9 @@ class DATA_SYSTEM(HBSYSTEM):
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
+                                # Float values of lat and lon. Anything that is not a number will cause it to fail.
+                                float(loc.lat)
+                                float(loc.lon)
                                 AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
                                 AIS.connect()
                                 AIS.sendall(aprs_loc_packet)
