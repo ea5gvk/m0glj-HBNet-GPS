@@ -1,4 +1,38 @@
 ---
+
+# GPS/Data Application
+
+This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call.
+
+Files modified from original master branch of HBLink3:
+
+* bridge.py
+* config.py 
+
+The pynmea2 module is required.
+
+This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
+
+## Confirmed working:
+
+* Anytone D878
+
+## Most likely to work:
+
+* Anytone D868
+* Anytone D578
+* BTech DMR-6x2
+
+
+## How it works
+
+A user should configure their radio for the DMR ID of the application and private or group call. When a position is received by the application, it will extract the coordinates and create an APRS position packet. The application will find the callsign of the user based on the sending radio's DMR ID. It is essential to have an up to date subscriber_ids file for this to work. A predefined APRS SSID is appended to the callsign. The APRS location packet is then uploaded to APRS-IS. No setup is required beforehand on the part of the user. This is pretty much "plug and play."
+
+For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to the application. The application will query the subscriber_ids file for DMR ID 1234567. The result will be N0CALL. An APRS location pack is created and uploaded to APRS-IS.
+
+
+
+---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 
 Please join the DVSwitch group at groups.io for online forum support, discussion, and to become part of the development team.
