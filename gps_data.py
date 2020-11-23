@@ -87,7 +87,7 @@ aprs_passcode = 12345
 aprs_server = 'rotate.aprs2.net'
 aprs_port = 14580
 user_ssid = '15'
-aprs_comment = 'HBLink3 GPS Decoder - ''
+aprs_comment = 'HBLink3 GPS Decoder - '
 
 
 ##################################################################################################
