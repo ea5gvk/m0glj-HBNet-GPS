@@ -55,6 +55,8 @@ import re
 import aprslib
 import datetime
 from bitarray.util import ba2int as ba2num
+from bitarray.util import ba2hex as ba2hx
+import codecs
 
 #Needed for working with NMEA
 import pynmea2
@@ -85,7 +87,7 @@ aprs_passcode = 12345
 aprs_server = 'rotate.aprs2.net'
 aprs_port = 14580
 user_ssid = '15'
-aprs_comment = 'HBLink3 GPS decode - '
+aprs_comment = 'HBLink3 GPS Decoder - '
 
 
 ##################################################################################################
@@ -171,13 +173,15 @@ class DATA_SYSTEM(HBSYSTEM):
                     # This triggers the APRS upload
                     if btf == 0: #_seq == 12:
                         final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
-                        nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
-                        loc = pynmea2.parse(nmea_parse, check=False)
+                        sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
+                        #NMEA GPS sentence
                         if '$GPRMC' in final_packet:
                             logger.info(final_packet + '\n')
+                            nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
+                            loc = pynmea2.parse(nmea_parse, check=False)
                             logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd))
                             # Begin APRS format and upload
-#                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+##                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             logger.info(aprs_loc_packet)
                             try:
@@ -187,14 +191,16 @@ class DATA_SYSTEM(HBSYSTEM):
                                 AIS.connect()
                                 AIS.sendall(aprs_loc_packet)
                                 AIS.close()
-                                logger.info('Sent APRS packet')
+                                logger.info('Dent APRS packet')
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
-                            #logger.info(get_alias(int_id(_rf_src), subscriber_ids))
                             # End APRS-IS upload
-                        else:
+                        # Assume this is an SMS message
+                        if '$GPRMC' not in final_packet:
                             logger.info(final_packet)
+                            sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
+                            logger.info('Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms))
                         packet_assembly = ''
                     logger.info(_seq)
                     #logger.info(_dtype_vseq)
