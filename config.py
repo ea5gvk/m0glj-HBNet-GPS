@@ -106,6 +106,7 @@ def build_config(_config_file):
     CONFIG['GLOBAL'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
+    CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
 
@@ -137,6 +138,20 @@ def build_config(_config_file):
                     'LOG_HANDLERS': config.get(section, 'LOG_HANDLERS'),
                     'LOG_LEVEL': config.get(section, 'LOG_LEVEL'),
                     'LOG_NAME': config.get(section, 'LOG_NAME')
+                })
+                if not CONFIG['LOGGER']['LOG_FILE']:
+                    CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
+
+            elif section == 'GPS_DATA':
+                CONFIG['GPS_DATA'].update({
+                    'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
+                    'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
+                    'CALL_TYPE': config.get(section, 'CALL_TYPE'),
+                    'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
+                    'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
+                    'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
+                    'APRS_SERVER': config.get(section, 'APRS_SERVER'),
+                    'APRS_PORT': config.get(section, 'APRS_PORT'),
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
                     CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
@@ -182,7 +197,7 @@ def build_config(_config_file):
                         'SOFTWARE_ID': bytes(config.get(section, 'SOFTWARE_ID').ljust(40)[:40], 'utf-8'),
                         'PACKAGE_ID': bytes(config.get(section, 'PACKAGE_ID').ljust(40)[:40], 'utf-8'),
                         'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
-                        'OPTIONS': b''.join([b'Type=HBlink;', bytes(config.get(section, 'OPTIONS'), 'utf-8')]),
+                        'OPTIONS': bytes(config.get(section, 'OPTIONS'), 'utf-8'),
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
