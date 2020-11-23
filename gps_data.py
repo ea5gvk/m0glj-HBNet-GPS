@@ -87,7 +87,7 @@ aprs_passcode = 12345
 aprs_server = 'rotate.aprs2.net'
 aprs_port = 14580
 user_ssid = '15'
-aprs_comment = 'HBLink3 GPS Decoder - '
+aprs_comment = 'HBLink3 GPS Decoder - ''
 
 
 ##################################################################################################
@@ -116,6 +116,8 @@ def decode_full(_data):
 n_packet_assembly = 0
 
 packet_assembly = ''
+
+final_packet = ''
 
 #Convert DMR packet to binary from MMDVM packet and remove Slot Type and EMB Sync stuff to allow for BPTC 196,96 decoding
 def bptc_decode(_data):
@@ -171,7 +173,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         packet_assembly = packet_assembly + str(bptc_decode(_data)) #str((decode_full_lc(b_packet)).strip('bitarray('))
                     # Use block 0 as trigger. $GPRMC must also be in string to indicate NMEA.
                     # This triggers the APRS upload
-                    if btf == 0: #_seq == 12:
+                    if btf == 0:#_seq == 12:
                         final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
                         #NMEA GPS sentence
@@ -187,11 +189,11 @@ class DATA_SYSTEM(HBSYSTEM):
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
-                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-                                AIS.connect()
-                                AIS.sendall(aprs_loc_packet)
-                                AIS.close()
-                                logger.info('Dent APRS packet')
+##                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+##                                AIS.connect()
+##                                AIS.sendall(aprs_loc_packet)
+##                                AIS.close()
+##                                logger.info('Sent APRS packet')
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
@@ -201,8 +203,9 @@ class DATA_SYSTEM(HBSYSTEM):
                             logger.info(final_packet)
                             sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                             logger.info('Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms))
-                        packet_assembly = ''
-                    logger.info(_seq)
+                        # Reset the packet assembly to prevent old data from returning.
+                        packet_assembly = ''    
+                    #logger.info(_seq)
                     #logger.info(_dtype_vseq)
                 logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
