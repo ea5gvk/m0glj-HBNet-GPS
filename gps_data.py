@@ -109,11 +109,22 @@ def bptc_decode(_data):
         binary_packet = bitarray(decode.to_bits(_data[20:]))
         del binary_packet[98:166]
         return decode_full(binary_packet)
-
-def header_info(_data):
-    bptc_decode(_data)
+# Placeholder for future header id
+def header_ID(_data):
+    hex_hdr = str(ahex(bptc_decode(_data)))
+    return hex_hdr[2:6]
     # Work in progress, used to determine data format
-    pass
+##    pass
+
+# Process SMS, do something bases on message
+
+def process_sms(from_id, sms):
+    if sms == 'ID':
+        logger.info(str(get_alias(int_id(from_id), subscriber_ids)) + ' - ' + str(int_id(from_id)))
+    if sms == 'TEST':
+        logger.info('This is a really cool function.')
+    else:
+        pass
 
 ###########
 
@@ -134,9 +145,11 @@ class DATA_SYSTEM(HBSYSTEM):
                 pckt_seq = int.from_bytes(_seq, 'big')
             else:
                 pckt_seq = _seq
+            # Try to classify header
             if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
-                    global btf
+                    global btf, hdr_start
+                    hdr_start = str(header_ID(_data))
                     logger.info('Header from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
@@ -185,11 +198,21 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
-                            #logger.info(final_packet)
-                            sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
-                            logger.info('\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+                            # Motorola type SMS header
+                            if '024' in hdr_start:
+                                logger.info('\nMotorola type SMS')
+                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
+                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+                                process_sms(_rf_src, sms)
+                            else:
+                                logger.info('Unknown tpye SMS')
+                                logger.info(final_packet)
+                                pass
+                                #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
+                            #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                         # Reset the packet assembly to prevent old data from returning.
-                        packet_assembly = ''    
+                        packet_assembly = ''
+                        hdr_start = ''
                     #logger.info(_seq)
                     #logger.info(_dtype_vseq)
                 #logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
