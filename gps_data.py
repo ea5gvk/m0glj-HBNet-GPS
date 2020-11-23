@@ -75,21 +75,6 @@ __status__     = 'pre-alpha'
 # Must have the following at line 1054 in bridge.py to forward group vcsbk, also there is a typo there:
 # self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
 
-############################# Configuration Variables - Change these #############################
-# DMR ID for GPS and data
-data_id = 9099
-
-# Group call or Unit (private) call
-call_type = 'unit'
-# APRS-IS login information
-aprs_callsign = 'N0CALL'
-aprs_passcode = 12345
-aprs_server = 'rotate.aprs2.net'
-aprs_port = 14580
-user_ssid = '15'
-aprs_comment = 'HBLink3 GPS Decoder - '
-
-
 ##################################################################################################
 
 # Headers for GPS by model of radio:
@@ -124,11 +109,22 @@ def bptc_decode(_data):
         binary_packet = bitarray(decode.to_bits(_data[20:]))
         del binary_packet[98:166]
         return decode_full(binary_packet)
-
-def header_info(_data):
-    bptc_decode(_data)
+# Placeholder for future header id
+def header_ID(_data):
+    hex_hdr = str(ahex(bptc_decode(_data)))
+    return hex_hdr[2:6]
     # Work in progress, used to determine data format
-    pass
+##    pass
+
+# Process SMS, do something bases on message
+
+def process_sms(from_id, sms):
+    if sms == 'ID':
+        logger.info(str(get_alias(int_id(from_id), subscriber_ids)) + ' - ' + str(int_id(from_id)))
+    if sms == 'TEST':
+        logger.info('This is a really cool function.')
+    else:
+        pass
 
 ###########
 
@@ -149,9 +145,11 @@ class DATA_SYSTEM(HBSYSTEM):
                 pckt_seq = int.from_bytes(_seq, 'big')
             else:
                 pckt_seq = _seq
+            # Try to classify header
             if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
-                    global btf
+                    global btf, hdr_start
+                    hdr_start = str(header_ID(_data))
                     logger.info('Header from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
@@ -181,7 +179,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             logger.info(final_packet + '\n')
                             nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
                             loc = pynmea2.parse(nmea_parse, check=False)
-                            logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd))
+                            logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
                             # Begin APRS format and upload
 ##                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
@@ -189,6 +187,9 @@ class DATA_SYSTEM(HBSYSTEM):
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
+                                # Float values of lat and lon. Anything that is not a number will cause it to fail.
+                                float(loc.lat)
+                                float(loc.lon)
                                 AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
                                 AIS.connect()
                                 AIS.sendall(aprs_loc_packet)
@@ -200,14 +201,24 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
-                            logger.info(final_packet)
-                            sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
-                            logger.info('Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms))
+                            # Motorola type SMS header
+                            if '024' in hdr_start:
+                                logger.info('\nMotorola type SMS')
+                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
+                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+                                process_sms(_rf_src, sms)
+                            else:
+                                logger.info('Unknown tpye SMS')
+                                logger.info(final_packet)
+                                pass
+                                #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
+                            #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                         # Reset the packet assembly to prevent old data from returning.
-                        packet_assembly = ''    
+                        packet_assembly = ''
+                        hdr_start = ''
                     #logger.info(_seq)
                     #logger.info(_dtype_vseq)
-                logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
+                #logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
 
         else:
@@ -219,6 +230,7 @@ class DATA_SYSTEM(HBSYSTEM):
 #************************************************
 
 if __name__ == '__main__':
+    #global aprs_callsign, aprs_passcode, aprs_server, aprs_port, user_ssid, aprs_comment, call_type, data_id
     import argparse
     import sys
     import os
@@ -240,6 +252,18 @@ if __name__ == '__main__':
 
     # Call the external routine to build the configuration dictionary
     CONFIG = config.build_config(cli_args.CONFIG_FILE)
+
+    data_id = int(CONFIG['GPS_DATA']['DATA_DMR_ID'])
+
+    # Group call or Unit (private) call
+    call_type = CONFIG['GPS_DATA']['CALL_TYPE']
+    # APRS-IS login information
+    aprs_callsign = CONFIG['GPS_DATA']['APRS_LOGIN_CALL']
+    aprs_passcode = int(CONFIG['GPS_DATA']['APRS_LOGIN_PASSCODE'])
+    aprs_server = CONFIG['GPS_DATA']['APRS_SERVER']
+    aprs_port = int(CONFIG['GPS_DATA']['APRS_PORT'])
+    user_ssid = CONFIG['GPS_DATA']['USER_APRS_SSID']
+    aprs_comment = CONFIG['GPS_DATA']['USER_APRS_COMMENT']
 
     # Start the system logger
     if cli_args.LOG_LEVEL:

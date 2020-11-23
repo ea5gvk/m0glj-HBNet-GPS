@@ -108,6 +108,7 @@ def build_config(_config_file):
     CONFIG = {}
     CONFIG['GLOBAL'] = {}
     CONFIG['APRS'] = {}
+    CONFIG['GPS_DATA'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
     CONFIG['ALIASES'] = {}
@@ -134,6 +135,18 @@ def build_config(_config_file):
                     'REPORT_INTERVAL': config.getint(section, 'REPORT_INTERVAL'),
                     'SERVER': config.get(section, 'SERVER'),
                     'MESSAGE': config.get(section, 'MESSAGE')
+                })
+
+            elif section == 'GPS_DATA':
+                CONFIG['GPS_DATA'].update({
+                    'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
+                    'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
+                    'CALL_TYPE': config.get(section, 'CALL_TYPE'),
+                    'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
+                    'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
+                    'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
+                    'APRS_SERVER': config.get(section, 'APRS_SERVER'),
+                    'APRS_PORT': config.get(section, 'APRS_PORT'),
                 })
 
             elif section == 'REPORTS':
