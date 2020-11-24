@@ -12,10 +12,12 @@ The pynmea2 module is required.
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
 ## Confirmed working:
+Actually tested
 
 * Anytone D878
 
 ## Most likely to work:
+Not tested yet
 
 * Anytone D868
 * Anytone D578
