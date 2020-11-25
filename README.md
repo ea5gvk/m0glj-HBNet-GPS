@@ -11,6 +11,11 @@ The pynmea2 module is required.
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
+### Differences in branches
+
+* **GPS**: Contains the GPS/Data Application.
+* **aprs_features**: Contains the GPS/Data Application and a modified version of the APRS implementation for repeaters and hotspots by **IU7IGU**. (See [https://github.com/iu7igu/hblink3-aprs](https://github.com/iu7igu/hblink3-aprs) for his work). I combined these for convenience.
+
 ## Confirmed working:
 Actually tested
 
@@ -29,6 +34,10 @@ Not tested yet
 A user should configure their radio for the DMR ID of the application and private or group call. When a position is received by the application, it will extract the coordinates and create an APRS position packet. The application will find the callsign of the user based on the sending radio's DMR ID. It is essential to have an up to date subscriber_ids file for this to work. A predefined APRS SSID is appended to the callsign. The APRS location packet is then uploaded to APRS-IS. No setup is required beforehand on the part of the user. This is pretty much "plug and play."
 
 For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to the application. The application will query the subscriber_ids file for DMR ID 1234567. The result will be N0CALL. An APRS location pack is created and uploaded to APRS-IS.
+
+## Configuration
+
+See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 
 
 
