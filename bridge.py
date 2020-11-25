@@ -57,7 +57,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import UNIT time from rules.py
-from rules import UNIT_TIME
+from rules import UNIT_TIME, STATIC_UNIT
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
@@ -76,6 +76,12 @@ __email__      = 'n0mjs@me.com'
 # format 'unit_id': ('SYSTEM', time)
 UNIT_MAP = {} 
 
+# UNIX time for end of year 2060. This is used to keep subscribers in UNIT_MAP indefinitely to accomplish static routes for unit calls
+time_2060 = 2871763199.0000000
+
+# Build a UNIT_MAP based on values in STATIC_MAP.
+for i in STATIC_UNIT:
+	UNIT_MAP[i[0]] = i[1], time_2060
 
 # Timed loop used for reporting HBP status
 #
@@ -157,6 +163,7 @@ def rule_timer_loop():
 
     _then = _now - 60 * UNIT_TIME
     remove_list = []
+    #logger.info(UNIT_MAP)
     for unit in UNIT_MAP:
        if UNIT_MAP[unit][1] < (_then):
            remove_list.append(unit)
