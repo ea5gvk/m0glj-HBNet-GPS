@@ -59,6 +59,9 @@ The amount of time to keep sending private calls to a system before flooding aga
 UNIT_TIME = 15
 
 '''
+'''
+#UNIT_STATIC = {b'0\x1e\xb7': ('HOTSPOT', 1924991999)}
+'''
 This is for testing the syntax of the file. It won't eliminate all errors, but running this file
 like it were a Python program itself will tell you if the syntax is correct!
 '''
