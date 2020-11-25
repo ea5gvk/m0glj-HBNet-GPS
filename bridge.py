@@ -56,6 +56,9 @@ import pickle
 import logging
 logger = logging.getLogger(__name__)
 
+# Import UNIT time from rules.py
+from rules import UNIT_TIME
+
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
@@ -152,11 +155,11 @@ def rule_timer_loop():
             else:
                 logger.debug('(ROUTER) Conference Bridge NO ACTION: System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
 
-    _then = _now - 60
+    _then = _now - 60 * UNIT_TIME
     remove_list = []
     for unit in UNIT_MAP:
-        if UNIT_MAP[unit][1] < (_then):
-            remove_list.append(unit)
+       if UNIT_MAP[unit][1] < (_then):
+           remove_list.append(unit)
 
     for unit in remove_list:
         del UNIT_MAP[unit]
@@ -575,8 +578,12 @@ class routerOBP(OPENBRIDGE):
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'unit':
             self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
-        elif _call_type == 'vscsbk':
+        elif _call_type == 'vcsbk':
+            # Route CSBK packets to destination TG. Necessary for group data to work with GPS/Data decoder.
             logger.debug('CSBK recieved, but HBlink does not process them currently')
+            self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+            logger.debug('CSBK recieved, but HBlink does not process them currently. Packets routed to talkgroup.')
+
         else:
             logger.error('Unknown call type recieved -- not processed')
 
@@ -1052,6 +1059,7 @@ class routerHBP(HBSYSTEM):
                 self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'vcsbk':
             # Route CSBK packets to destination TG. Necessary for group data to work with GPS/Data decoder.
+            logger.debug('CSBK recieved, but HBlink does not process them currently')
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             logger.debug('CSBK recieved, but HBlink does not process them currently. Packets routed to talkgroup.')
         else:
