@@ -81,7 +81,7 @@ time_2060 = 2871763199.0000000
 
 # Build a UNIT_MAP based on values in STATIC_MAP.
 for i in STATIC_UNIT:
-	UNIT_MAP[i[0]] = i[1], time_2060
+	UNIT_MAP[bytes_3(i[0])] = i[1], time_2060
 
 # Timed loop used for reporting HBP status
 #
