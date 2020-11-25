@@ -7,7 +7,10 @@ Files modified from original master branch of HBLink3:
 * bridge.py
 * config.py 
 
-The pynmea2 module is required.
+#### Required modules
+
+* pynmea2
+* aprslib
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
@@ -40,6 +43,31 @@ For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to 
 See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 
 
+## Resources for DMR data
+
+I spent many hours looking at the following for this project. You may find these links useful.
+
+https://github.com/travisgoodspeed/md380tools/issues/160
+
+https://jpronans.github.io/ei7ig/dmr.html
+
+http://cloud.dstar.su/files/G4KLX/MMDVM/MMDVM%20Specification%2020150922.pdf
+
+https://wiki.brandmeister.network/index.php/NMEA_Location_Reporting
+
+https://forums.radioreference.com/threads/motorola-lrrp-protocol.370081/
+
+https://forums.radioreference.com/threads/lrrp-decoding.359575/
+
+https://github.com/polkabana/go-dmr
+
+https://github.com/nonoo/dmrshark
+
+https://wiki.brandmeister.network/index.php/Compressed_Location_Reporting
+
+All of the ETSI DMR documents (ETSI 102 361-1 through 361-4).
+
+The Shark RF forums.
 
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
