@@ -61,6 +61,10 @@ import codecs
 #Needed for working with NMEA
 import pynmea2
 
+# Modules for executing commands/scripts
+import os
+from gps_functions import cmd_list
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS; Eric Craw, KF7EEL'
 __copyright__  = 'Copyright (c) 2020 Cortney T. Buffington'
@@ -122,7 +126,14 @@ def process_sms(from_id, sms):
     if sms == 'ID':
         logger.info(str(get_alias(int_id(from_id), subscriber_ids)) + ' - ' + str(int_id(from_id)))
     if sms == 'TEST':
-        logger.info('This is a really cool function.')
+        logger.info('It works!')
+    try:
+        if sms in cmd_list:
+            logger.info('Executing command/script.')
+            os.popen(cmd_list[sms]).read()
+    except:
+        logger.info('Exception. Command possibly not in list, or other error.')
+    
     else:
         pass
 
