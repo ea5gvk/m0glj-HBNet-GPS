@@ -59,8 +59,15 @@ The amount of time to keep sending private calls to a system before flooding aga
 UNIT_TIME = 15
 
 '''
+Input the DMR ID and SYSTEM of a subscriber that you would like to have always have private calls routed. This will not flood all systems.
 '''
-#UNIT_STATIC = {b'0\x1e\xb7': ('HOTSPOT', 1924991999)}
+STATIC_UNIT = [
+    [ 123, 'CLIENT-1'],
+    [ 456 'CLIENT-1'],
+    [ 789, 'MASTER-1']
+    ]
+
+
 '''
 This is for testing the syntax of the file. It won't eliminate all errors, but running this file
 like it were a Python program itself will tell you if the syntax is correct!
