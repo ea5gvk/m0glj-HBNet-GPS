@@ -77,11 +77,13 @@ __email__      = 'n0mjs@me.com'
 UNIT_MAP = {} 
 
 # UNIX time for end of year 2060. This is used to keep subscribers in UNIT_MAP indefinitely to accomplish static routes for unit calls
-time_2060 = 2871763199.0000000
+#time_2060 = 2871763199.0000000
+# 20 years in seconds. added to current at time of start to keep static units from being trimmed.
+time_20 = 630720000
 
 # Build a UNIT_MAP based on values in STATIC_MAP.
 for i in STATIC_UNIT:
-	UNIT_MAP[bytes_3(i[0])] = i[1], time_2060
+	UNIT_MAP[bytes_3(i[0])] = i[1], time() + time_20
 
 # Timed loop used for reporting HBP status
 #
@@ -163,7 +165,7 @@ def rule_timer_loop():
 
     _then = _now - 60 * UNIT_TIME
     remove_list = []
-    #logger.info(UNIT_MAP)
+    logger.info(UNIT_MAP)
     for unit in UNIT_MAP:
        if UNIT_MAP[unit][1] < (_then):
            remove_list.append(unit)
@@ -437,9 +439,14 @@ class routerOBP(OPENBRIDGE):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
- 
-        # Make/update this unit in the UNIT_MAP cache
-        UNIT_MAP[_rf_src] = (self.name, pkt_time)
+
+        if time_20 == UNIT_MAP[_rf_src][1]:
+            logger.info('Static Unit, no change in UNIT_MAP')
+            pass
+        else:
+            # Make/update this unit in the UNIT_MAP cache
+            logger.ingo('Updated subscriber system')
+            UNIT_MAP[_rf_src] = (self.name, pkt_time)
         
         
         # Is this a new call stream?
@@ -587,7 +594,6 @@ class routerOBP(OPENBRIDGE):
             self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'vcsbk':
             # Route CSBK packets to destination TG. Necessary for group data to work with GPS/Data decoder.
-            logger.debug('CSBK recieved, but HBlink does not process them currently')
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             logger.debug('CSBK recieved, but HBlink does not process them currently. Packets routed to talkgroup.')
 
@@ -920,9 +926,15 @@ class routerHBP(HBSYSTEM):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
- 
-        # Make/update this unit in the UNIT_MAP cache
-        UNIT_MAP[_rf_src] = (self.name, pkt_time)
+
+        # If time matches time in static units, do not update.
+        if time_20 == UNIT_MAP[_rf_src][1]:
+            logger.info('Static Unit, no change in UNIT_MAP')
+            pass
+        else:
+            # Make/update this unit in the UNIT_MAP cache
+            logger.ingo('Updated subscriber system')
+            UNIT_MAP[_rf_src] = (self.name, pkt_time)
         
         
         # Is this a new call stream?
@@ -1066,7 +1078,6 @@ class routerHBP(HBSYSTEM):
                 self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'vcsbk':
             # Route CSBK packets to destination TG. Necessary for group data to work with GPS/Data decoder.
-            logger.debug('CSBK recieved, but HBlink does not process them currently')
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             logger.debug('CSBK recieved, but HBlink does not process them currently. Packets routed to talkgroup.')
         else:
