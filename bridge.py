@@ -165,7 +165,7 @@ def rule_timer_loop():
 
     _then = _now - 60 * UNIT_TIME
     remove_list = []
-    logger.info(UNIT_MAP)
+    #logger.info(UNIT_MAP)
     for unit in UNIT_MAP:
        if UNIT_MAP[unit][1] < (_then):
            remove_list.append(unit)
@@ -439,14 +439,9 @@ class routerOBP(OPENBRIDGE):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
-
-        if time_20 == UNIT_MAP[_rf_src][1]:
-            logger.info('Static Unit, no change in UNIT_MAP')
-            pass
-        else:
-            # Make/update this unit in the UNIT_MAP cache
-            logger.ingo('Updated subscriber system')
-            UNIT_MAP[_rf_src] = (self.name, pkt_time)
+        
+        # Make/update this unit in the UNIT_MAP cache
+        UNIT_MAP[_rf_src] = (self.name, pkt_time)
         
         
         # Is this a new call stream?
@@ -926,15 +921,9 @@ class routerHBP(HBSYSTEM):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
-
-        # If time matches time in static units, do not update.
-        if time_20 == UNIT_MAP[_rf_src][1]:
-            logger.info('Static Unit, no change in UNIT_MAP')
-            pass
-        else:
-            # Make/update this unit in the UNIT_MAP cache
-            logger.ingo('Updated subscriber system')
-            UNIT_MAP[_rf_src] = (self.name, pkt_time)
+        
+        # Make/update this unit in the UNIT_MAP cache
+        UNIT_MAP[_rf_src] = (self.name, pkt_time)
         
         
         # Is this a new call stream?
