@@ -63,7 +63,7 @@ Input the DMR ID and SYSTEM of a subscriber that you would like to have always h
 '''
 STATIC_UNIT = [
     [ 123, 'CLIENT-1'],
-    [ 456 'CLIENT-1'],
+    [ 456, 'CLIENT-1'],
     [ 789, 'MASTER-1']
     ]
 
