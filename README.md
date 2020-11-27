@@ -34,6 +34,7 @@ Not tested yet
 ## Features
 
 * Decode GPS locations and upload APRS position packets
+* Each user/DMR ID can customize APRS position
 * Ability to receive data as a private call or group call
 * Trigger a command or script via DMR SMS
 
