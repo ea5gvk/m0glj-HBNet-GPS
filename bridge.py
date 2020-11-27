@@ -445,10 +445,10 @@ class routerOBP(OPENBRIDGE):
             # Subscriber is static. Add 20 years of time.
             if i[0] == int_id(_rf_src):
                 map_time = pkt_time + time_20
+                logger.debug('Static Unit, update time.')
             # Proceed as normal
             else:
-                map_time = pkt_time
-        
+                map_time = pkt_time        
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, map_time)
         
@@ -936,13 +936,14 @@ class routerHBP(HBSYSTEM):
             # Subscriber is static. Add 20 years of time.
             if i[0] == int_id(_rf_src):
                 map_time = pkt_time + time_20
+                logger.debug('Static Unit, update time.')
             # Proceed as normal
             else:
                 map_time = pkt_time
  
 
         # Make/update this unit in the UNIT_MAP cache
-        UNIT_MAP[_rf_src] = (self.name, pkt_time)
+        UNIT_MAP[_rf_src] = (self.name, map_time)
         
         
         # Is this a new call stream?
