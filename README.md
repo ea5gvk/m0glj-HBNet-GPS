@@ -44,6 +44,25 @@ A user should configure their radio for the DMR ID of the application and privat
 
 For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to the application. The application will query the subscriber_ids file for DMR ID 1234567. The result will be N0CALL. An APRS location pack is created and uploaded to APRS-IS.
 
+## Individual user/DMR ID APRS settings
+
+By default, all APRS positions will have an SSID of 15, a default comment, and the callsign of the DMR user. These default settings can be changed. 
+
+The comment, SSID, and icon can be set for each individual user/DMR ID the application sees. The application stores all the setting in a file. You may have different SSIDs, icons, and comments for different DMR IDs. This is done via DMR SMS using the following commands:
+
+* `
+@SSID` - Change SSID of user callsign.
+
+* `
+@ICON` - Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.
+*
+* `
+@COM` - Change the comment of the APRS
+
+Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment.
+
+To remove any of the stored values, just send the appropriate command without any input. `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
+
 ## Configuration
 
 See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.

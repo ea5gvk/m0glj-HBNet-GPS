@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
 ###############################################################################
-#   Copyright (C) 2020 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   HBLink - Copyright (C) 2020 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   GPS/Data - Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -65,6 +66,11 @@ import pynmea2
 import os
 from gps_functions import cmd_list
 
+#Modules for APRS settings
+import ast
+from pathlib import Path
+
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS; Eric Craw, KF7EEL'
 __copyright__  = 'Copyright (c) 2020 Cortney T. Buffington'
@@ -97,6 +103,7 @@ def decode_full(_data):
     binlc.extend([_data[36], _data[21], _data[6],  _data[187],_data[172],_data[157],_data[142],_data[127],_data[112],_data[97], _data[82] ])
     binlc.extend([_data[7],  _data[188],_data[173],_data[158],_data[143],_data[128],_data[113],_data[98], _data[83]])
     #This is the rest of the Full LC data -- the RS1293 FEC that we don't need
+    # This is extremely important for SMS and GPS though.
     binlc.extend([_data[68],_data[53],_data[174],_data[159],_data[144],_data[129],_data[114],_data[99],_data[84],_data[69],_data[54],_data[39]])
     binlc.extend([_data[24],_data[145],_data[130],_data[115],_data[100],_data[85],_data[70],_data[55],_data[40],_data[25],_data[10],_data[191]])
     return binlc
@@ -120,6 +127,32 @@ def header_ID(_data):
     # Work in progress, used to determine data format
 ##    pass
 
+def user_setting_write(dmr_id, setting, value):
+##    try:
+    # Open file and load as dict for modification
+        with open("./user_settings.txt", 'r') as f:
+##            if f.read() == '{}':
+##                user_dict = {}
+            user_dict = ast.literal_eval(f.read())
+            if dmr_id not in user_dict:
+                user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
+
+            if setting.upper() == 'ICON':
+                user_dict[dmr_id][2]['icon'] = value
+            if setting.upper() == 'SSID':
+                user_dict[dmr_id][1]['ssid'] = value  
+            if setting.upper() == 'COM':
+                user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
+    # Write modified dict to file
+        with open("./user_settings.txt", 'w') as user_dict_file:
+            user_dict_file.write(str(user_dict))
+            user_dict_file.close()
+##    except:
+##        logger.info('No data file found, creating one.')
+##        #Path('./user_settings.txt').mkdir(parents=True, exist_ok=True)
+##        Path('./user_settings.txt').touch()
+        
+
 # Process SMS, do something bases on message
 
 def process_sms(from_id, sms):
@@ -127,6 +160,12 @@ def process_sms(from_id, sms):
         logger.info(str(get_alias(int_id(from_id), subscriber_ids)) + ' - ' + str(int_id(from_id)))
     if sms == 'TEST':
         logger.info('It works!')
+    if '@ICON' in sms:
+        user_setting_write(int_id(from_id), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms))
+    if '@SSID' in sms:
+        user_setting_write(int_id(from_id), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
+    if '@COM' in sms:
+        user_setting_write(int_id(from_id), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -193,8 +232,33 @@ class DATA_SYSTEM(HBSYSTEM):
                             logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
                             # Begin APRS format and upload
 ##                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                            logger.info(aprs_loc_packet)
+                            try:
+                                with open("./user_settings.txt", 'r') as f:
+                                    user_settings = ast.literal_eval(f.read())
+                                    if int_id(_rf_src) not in user_settings:
+                                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                    else:
+                                        if user_settings[int_id(_rf_src)][1]['ssid'] == '':
+                                            ssid = user_ssid
+                                        if user_settings[int_id(_rf_src)][3]['comment'] == '':
+                                            comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                        if user_settings[int_id(_rf_src)][2]['icon'] == '':
+                                            icon_table = '/'
+                                            icon_icon = '['
+                                        if user_settings[int_id(_rf_src)][2]['icon'] != '':
+                                            icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]
+                                            icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]
+                                        if user_settings[int_id(_rf_src)][1]['ssid'] != '':
+                                            ssid = user_settings[int_id(_rf_src)][1]['ssid']
+                                        if user_settings[int_id(_rf_src)][3]['comment'] != '':
+                                            comment = user_settings[int_id(_rf_src)][3]['comment']
+                                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
+                                logger.info(aprs_loc_packet)
+                                logger.info(comment)
+                                f.close()
+                            except:
+                                logger.info('Error or user settings file not found, proceeding with default settings.')
+                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
@@ -250,6 +314,15 @@ if __name__ == '__main__':
 
     # Change the current directory to the location of the application
     os.chdir(os.path.dirname(os.path.realpath(sys.argv[0])))
+
+    # Check if user_settings (for APRS settings of users) exists. Creat it if not.
+    if Path('./user_settings.txt').is_file():
+        pass
+    else:
+        Path('./user_settings.txt').touch()
+        with open("./user_settings.txt", 'w') as user_dict_file:
+            user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
+            user_dict_file.close()
 
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
