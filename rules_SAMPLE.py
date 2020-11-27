@@ -54,12 +54,19 @@ list the names of each system that should bridge unit to unit (individual) calls
 UNIT = ['ONE', 'TWO']
 
 '''
-The amount of time to keep sending private calls to a system before flooding again
+Unit Call flood timeout:
+The amount of time to keep sending private calls to a single system before
+flooding all systems with the call. A higher value should be set for systems where subscribers
+are not moving between systems often. A lower value should be set for systems that have subscribers
+moving between systems often.
+
+Time is in minutes.
 '''
-UNIT_TIME = 15
+UNIT_TIME = 1
 
 '''
-Input the DMR ID and SYSTEM of a subscriber that you would like to have always have private calls routed. This will not flood all systems.
+Input the DMR ID and SYSTEM of a subscriber that you would like to have always have private calls routed.
+This will not flood all systems.
 '''
 STATIC_UNIT = [
     [ 123, 'CLIENT-1'],

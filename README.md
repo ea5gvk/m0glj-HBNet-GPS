@@ -31,6 +31,12 @@ Not tested yet
 * Anytone D578
 * BTech DMR-6x2
 
+## Features
+
+* Decode GPS locations and upload APRS position packets
+* Ability to receive data as a private call or group call
+* Trigger a command or script via DMR SMS
+
 
 ## How it works
 
