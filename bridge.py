@@ -439,9 +439,18 @@ class routerOBP(OPENBRIDGE):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
+
+        # Check if subscriber is in STATIC_UNIT
+        for i in STATIC_UNIT:
+            # Subscriber is static. Add 20 years of time.
+            if i[0] == int_id(_rf_src):
+                map_time = pkt_time + time_20
+            # Proceed as normal
+            else:
+                map_time = pkt_time
         
         # Make/update this unit in the UNIT_MAP cache
-        UNIT_MAP[_rf_src] = (self.name, pkt_time)
+        UNIT_MAP[_rf_src] = (self.name, map_time)
         
         
         # Is this a new call stream?
@@ -921,6 +930,16 @@ class routerHBP(HBSYSTEM):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
+
+        # Check if subscriber is in STATIC_UNIT
+        for i in STATIC_UNIT:
+            # Subscriber is static. Add 20 years of time.
+            if i[0] == int_id(_rf_src):
+                map_time = pkt_time + time_20
+            # Proceed as normal
+            else:
+                map_time = pkt_time
+ 
 
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
