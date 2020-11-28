@@ -147,6 +147,8 @@ def user_setting_write(dmr_id, setting, value):
         with open("./user_settings.txt", 'w') as user_dict_file:
             user_dict_file.write(str(user_dict))
             user_dict_file.close()
+            logger.info('User setting saved')
+            packet_assembly = ''
 ##    except:
 ##        logger.info('No data file found, creating one.')
 ##        #Path('./user_settings.txt').mkdir(parents=True, exist_ok=True)
@@ -254,7 +256,9 @@ class DATA_SYSTEM(HBSYSTEM):
                                             comment = user_settings[int_id(_rf_src)][3]['comment']
                                         aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
                                 logger.info(aprs_loc_packet)
-                                logger.info(comment)
+                                logger.info('User comment: ' + comment)
+                                logger.info('User SSID: ' + ssid)
+                                logger.info('User icon: ' + icon_table + icon_icon)
                                 f.close()
                             except:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
