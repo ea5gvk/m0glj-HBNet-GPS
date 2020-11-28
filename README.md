@@ -25,7 +25,7 @@ Actually tested
 * Anytone D878
 
 ## Most likely to work:
-Not tested yet
+Not tested yet, but utilizes NMEA sentence.
 
 * Anytone D868
 * Anytone D578
