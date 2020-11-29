@@ -174,7 +174,7 @@ def process_sms(from_id, sms):
             os.popen(cmd_list[sms]).read()
     except:
         logger.info('Exception. Command possibly not in list, or other error.')
-    
+    packet_assembly = ''
     else:
         pass
 
@@ -286,9 +286,11 @@ class DATA_SYSTEM(HBSYSTEM):
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                                 process_sms(_rf_src, sms)
+                                packet_assembly = ''
                             else:
                                 logger.info('Unknown tpye SMS')
                                 logger.info(final_packet)
+                                packet_assembly = ''
                                 pass
                                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
                             #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
