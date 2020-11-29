@@ -23,14 +23,19 @@ This should work for DMR radios that send location data as a UTF-8 NMEA sentence
 Actually tested
 
 * Anytone D878
+* Anytone D578
+
 
 ## Highly suspected to work:
 Not tested yet, but appears to utilize NMEA sentence.
 
 * Anytone D868
-* Anytone D578
 * BTech DMR-6x2
 * Alinco DJ-MD5TGP
+
+## Would like to test:
+
+* AIlunce HD1
 
 ## Features
 
