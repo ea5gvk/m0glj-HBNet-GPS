@@ -282,7 +282,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
                             # Motorola type SMS header
-                            if '024' in hdr_start:
+                            if '824' in hdr_start or '024' in hdr_start:
                                 logger.info('\nMotorola type SMS')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
