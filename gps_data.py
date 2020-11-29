@@ -172,9 +172,10 @@ def process_sms(from_id, sms):
         if sms in cmd_list:
             logger.info('Executing command/script.')
             os.popen(cmd_list[sms]).read()
+            packet_assembly = ''
     except:
         logger.info('Exception. Command possibly not in list, or other error.')
-    packet_assembly = ''
+        packet_assembly = ''
     else:
         pass
 
