@@ -172,9 +172,10 @@ def process_sms(from_id, sms):
         if sms in cmd_list:
             logger.info('Executing command/script.')
             os.popen(cmd_list[sms]).read()
+            packet_assembly = ''
     except:
         logger.info('Exception. Command possibly not in list, or other error.')
-    packet_assembly = ''
+        packet_assembly = ''
     else:
         pass
 
@@ -281,14 +282,14 @@ class DATA_SYSTEM(HBSYSTEM):
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
                             # Motorola type SMS header
-                            if '024' in hdr_start:
+                            if '824' in hdr_start or '024' in hdr_start:
                                 logger.info('\nMotorola type SMS')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                                 process_sms(_rf_src, sms)
                                 packet_assembly = ''
                             else:
-                                logger.info('Unknown tpye SMS')
+                                logger.info('Unknown type SMS')
                                 logger.info(final_packet)
                                 packet_assembly = ''
                                 pass
