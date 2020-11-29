@@ -24,12 +24,13 @@ Actually tested
 
 * Anytone D878
 
-## Most likely to work:
-Not tested yet, but utilizes NMEA sentence.
+## Highly suspected to work:
+Not tested yet, but appears to utilize NMEA sentence.
 
 * Anytone D868
 * Anytone D578
 * BTech DMR-6x2
+* Alinco DJ-MD5TGP
 
 ## Features
 
@@ -56,7 +57,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 
 * `
 @ICON` - Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.
-*
+
 * `
 @COM` - Change the comment of the APRS
 
