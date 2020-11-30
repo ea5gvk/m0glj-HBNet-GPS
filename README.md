@@ -11,6 +11,7 @@ Files modified from original master branch of HBLink3:
 
 * pynmea2
 * aprslib
+* maidenhead
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
