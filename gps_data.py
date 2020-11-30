@@ -66,6 +66,9 @@ import pynmea2
 import os
 from gps_functions import cmd_list
 
+# Module for maidenhead grids
+import maidenhead as mh
+
 #Modules for APRS settings
 import ast
 from pathlib import Path
@@ -127,6 +130,12 @@ def header_ID(_data):
     # Work in progress, used to determine data format
 ##    pass
 
+def aprs_send(packet):
+    AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+    AIS.connect()
+    AIS.sendall(packet)
+    AIS.close()
+
 def user_setting_write(dmr_id, setting, value):
 ##    try:
     # Open file and load as dict for modification
@@ -168,6 +177,8 @@ def process_sms(from_id, sms):
         user_setting_write(int_id(from_id), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
     if '@COM' in sms:
         user_setting_write(int_id(from_id), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+    if '@MH' in sms:
+        pass
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -200,6 +211,7 @@ class DATA_SYSTEM(HBSYSTEM):
                 pckt_seq = _seq
             # Try to classify header
             if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
+                global packet_assembly
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf, hdr_start
                     hdr_start = str(header_ID(_data))
@@ -207,12 +219,13 @@ class DATA_SYSTEM(HBSYSTEM):
                     logger.info(ahex(bptc_decode(_data)))
                     logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
                     btf = ba2num(bptc_decode(_data)[65:72])
+                    # Try resetting packet_assembly
+                    packet_assembly = ''
                 # Data blocks at 1/2 rate, see https://github.com/g4klx/MMDVM/blob/master/DMRDefines.h for data types. _dtype_seq defined here also
                 if _dtype_vseq == 7:
                     btf = btf - 1
                     logger.info('Block #: ' + str(btf))
                     #logger.info(_seq)
-                    global packet_assembly
                     logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     if _seq == 0:
@@ -236,31 +249,33 @@ class DATA_SYSTEM(HBSYSTEM):
                             # Begin APRS format and upload
 ##                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(final_packet[29:36]) + str(final_packet[39]) + '/' + str(re.sub(',', '', final_packet[41:49])) + str(final_packet[52]) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             try:
-                                with open("./user_settings.txt", 'r') as f:
-                                    user_settings = ast.literal_eval(f.read())
-                                    if int_id(_rf_src) not in user_settings:
-                                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                                    else:
-                                        if user_settings[int_id(_rf_src)][1]['ssid'] == '':
-                                            ssid = user_ssid
-                                        if user_settings[int_id(_rf_src)][3]['comment'] == '':
-                                            comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                                        if user_settings[int_id(_rf_src)][2]['icon'] == '':
-                                            icon_table = '/'
-                                            icon_icon = '['
-                                        if user_settings[int_id(_rf_src)][2]['icon'] != '':
-                                            icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]
-                                            icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]
-                                        if user_settings[int_id(_rf_src)][1]['ssid'] != '':
-                                            ssid = user_settings[int_id(_rf_src)][1]['ssid']
-                                        if user_settings[int_id(_rf_src)][3]['comment'] != '':
-                                            comment = user_settings[int_id(_rf_src)][3]['comment']
-                                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
+                                # Disable opening file for reading to reduce "collision" or reading and writing at same time.
+##                                with open("./user_settings.txt", 'r') as f:
+##                                    user_settings = ast.literal_eval(f.read())
+                                user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+                                if int_id(_rf_src) not in user_settings:
+                                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                else:
+                                    if user_settings[int_id(_rf_src)][1]['ssid'] == '':
+                                        ssid = user_ssid
+                                    if user_settings[int_id(_rf_src)][3]['comment'] == '':
+                                        comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                    if user_settings[int_id(_rf_src)][2]['icon'] == '':
+                                        icon_table = '/'
+                                        icon_icon = '['
+                                    if user_settings[int_id(_rf_src)][2]['icon'] != '':
+                                        icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]
+                                        icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]
+                                    if user_settings[int_id(_rf_src)][1]['ssid'] != '':
+                                        ssid = user_settings[int_id(_rf_src)][1]['ssid']
+                                    if user_settings[int_id(_rf_src)][3]['comment'] != '':
+                                        comment = user_settings[int_id(_rf_src)][3]['comment']
+                                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
                                 logger.info(aprs_loc_packet)
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
                                 logger.info('User icon: ' + icon_table + icon_icon)
-                                f.close()
+##                                f.close()
                             except:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
@@ -270,11 +285,7 @@ class DATA_SYSTEM(HBSYSTEM):
                                 # Float values of lat and lon. Anything that is not a number will cause it to fail.
                                 float(loc.lat)
                                 float(loc.lon)
-                                AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-                                AIS.connect()
-                                AIS.sendall(aprs_loc_packet)
-                                AIS.close()
-                                logger.info('Sent APRS packet')
+                                aprs_send(aprs_loc_packet)
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
