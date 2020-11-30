@@ -153,6 +153,7 @@ def user_setting_write(dmr_id, setting, value):
 ##            if f.read() == '{}':
 ##                user_dict = {}
             user_dict = ast.literal_eval(f.read())
+            logger.info('Current settings: ' + str(user_dict))
             if dmr_id not in user_dict:
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
 
@@ -162,11 +163,14 @@ def user_setting_write(dmr_id, setting, value):
                 user_dict[dmr_id][1]['ssid'] = value  
             if setting.upper() == 'COM':
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
+            f.close()
+            logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
         with open("./user_settings.txt", 'w') as user_dict_file:
             user_dict_file.write(str(user_dict))
             user_dict_file.close()
             logger.info('User setting saved')
+            f.close()
             packet_assembly = ''
 ##    except:
 ##        logger.info('No data file found, creating one.')
