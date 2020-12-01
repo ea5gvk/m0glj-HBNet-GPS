@@ -1,6 +1,6 @@
 # GPS/Data Application
 
-This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call.
+This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call. It is designed to work in a multi system/user network.
 
 Files modified from original master branch of HBLink3:
 
@@ -23,16 +23,20 @@ This should work for DMR radios that send location data as a UTF-8 NMEA sentence
 ## Confirmed working:
 Actually tested
 
-* Anytone D878
-* Anytone D578
-
+ | Radio | GPS | SMS |
+ |-------|:---:|:---:|
+ | Anytone D878| YES | YES |
+ | Anytone D578| YES | YES |
+ | MD-380 (MD380tools, no GPS) | - | YES |
 
 ## Highly suspected to work:
 Not tested yet, but appears to utilize NMEA sentence.
 
-* Anytone D868
-* BTech DMR-6x2
-* Alinco DJ-MD5TGP
+ | Radio | GPS | SMS |
+ |-------|:---:|:---:|
+ | Anytone D868 | Most likely | Most likely |
+ | BTech DMR-6x2 | Most likely | Most likely |
+ | Alinco DJ-MD5TGP | Most likely | Most likely |
 
 ## Would like to test:
 
