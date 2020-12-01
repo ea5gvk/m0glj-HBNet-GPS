@@ -64,10 +64,10 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 
  | Command | Description | Example |
  |-------|:---:|:---:|
-|@SSID|Change SSID of user callsign.|`@SSID 7`|
-|@ICON|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`@icon /p`|
-|@COM|Change the comment of the APRS.|`@COM This is a test comment.`|
-|@MH|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
+|**@SSID**|Change SSID of user callsign.|`@SSID 7`|
+|**@ICON**|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`@icon /p`|
+|**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
+|**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment.
 
