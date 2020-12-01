@@ -379,6 +379,8 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
+
+                            # Revisit below later.
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
 ##                                logger.info('\nMotorola type SMS')
@@ -397,10 +399,10 @@ class DATA_SYSTEM(HBSYSTEM):
 ##                                packet_assembly = ''
 ####                                
 ##                            else:
-                                logger.info('\nUnknown type SMS')
+                                logger.info('\nSMS detected. Attempting to parse.')
                                 #logger.info(final_packet)
                                 logger.info(sms_hex)
-                                logger.info(type(sms_hex))
+##                                logger.info(type(sms_hex))
                                 logger.info('Attempting to find command...')
 ##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
