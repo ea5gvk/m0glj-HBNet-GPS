@@ -62,18 +62,16 @@ By default, all APRS positions will have an SSID of 15, a default comment, and t
 
 The comment, SSID, and icon can be set for each individual user/DMR ID the application sees. The application stores all the setting in a file. You may have different SSIDs, icons, and comments for different DMR IDs. This is done via DMR SMS using the following commands:
 
-* `
-@SSID` - Change SSID of user callsign.
-
-* `
-@ICON` - Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.
-
-* `
-@COM` - Change the comment of the APRS
+ | Command | Description | Example |
+ |-------|:---:|:---:|
+|@SSID|Change SSID of user callsign.|`@SSID 7`|
+|@ICON|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`@icon /p`|
+|@COM|Change the comment of the APRS.|`@COM This is a test comment.`|
+|@MH|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment.
 
-To remove any of the stored values, just send the appropriate command without any input. `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
+**To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
 
 ## Configuration
 
