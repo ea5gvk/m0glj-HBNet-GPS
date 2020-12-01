@@ -378,26 +378,32 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
-                            # Motorola type SMS header
+##                            # Motorola type SMS header
                             if '824a' in hdr_start or '024a' in hdr_start:
                                 logger.info('\nMotorola type SMS')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                                 process_sms(_rf_src, sms)
                                 packet_assembly = ''
-                                
+                            # ETSI? type SMS header    
                             if '0244' in hdr_start or '8244' in hdr_start:
                                 logger.info('ETSI? type SMS')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[64:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                                 #logger.info(final_packet)
                                 #logger.info(sms_hex[64:-8])
+                                process_sms(_rf_src, sms)
                                 packet_assembly = ''
-                                
+##                                
                             else:
-                                logger.info('Unknown type SMS')
+                                logger.info('\nUnknown type SMS')
                                 #logger.info(final_packet)
                                 logger.info(sms_hex)
+                                logger.info('Attempting to find command...')
+                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
+                                msg_found = re.sub('.*\n', '', sms)
+                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
+                                process_sms(_rf_src, msg_found)
                                 packet_assembly = ''
                                 pass
                                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
@@ -439,13 +445,13 @@ if __name__ == '__main__':
 
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hblink.cfg)')
+    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
     parser.add_argument('-l', '--logging', action='store', dest='LOG_LEVEL', help='Override config file logging level.')
     cli_args = parser.parse_args()
 
     # Ensure we have a path for the config file, if one wasn't specified, then use the default (top of file)
     if not cli_args.CONFIG_FILE:
-        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hblink.cfg'
+        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/gps_data.cfg'
 
     # Call the external routine to build the configuration dictionary
     CONFIG = config.build_config(cli_args.CONFIG_FILE)
