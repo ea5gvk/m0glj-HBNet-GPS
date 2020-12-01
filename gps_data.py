@@ -204,15 +204,15 @@ def user_setting_write(dmr_id, setting, value):
 def process_sms(_rf_src, sms):
     if sms == 'ID':
         logger.info(str(get_alias(int_id(from_id), subscriber_ids)) + ' - ' + str(int_id(from_id)))
-    if sms == 'TEST':
+    elif sms == 'TEST':
         logger.info('It works!')
-    if '@ICON' in sms:
+    elif '@ICON' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms))
-    if '@SSID' in sms:
+    elif '@SSID' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
-    if '@COM' in sms:
+    elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
-    if '@MH' in sms:
+    elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
             pass
@@ -325,6 +325,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     if btf == 0:#_seq == 12:
                         final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
+                        sms_hex_string = re.sub("b'|'", '', str(sms_hex))
                         #NMEA GPS sentence
                         if '$GPRMC' in final_packet:
                             logger.info(final_packet + '\n')
@@ -378,29 +379,31 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
-##                            # Motorola type SMS header
-                            if '824a' in hdr_start or '024a' in hdr_start:
-                                logger.info('\nMotorola type SMS')
-                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
-                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
-                                process_sms(_rf_src, sms)
-                                packet_assembly = ''
-                            # ETSI? type SMS header    
-                            if '0244' in hdr_start or '8244' in hdr_start:
-                                logger.info('ETSI? type SMS')
-                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[64:-8].split('00'))), 'utf-8')
-                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
-                                #logger.info(final_packet)
-                                #logger.info(sms_hex[64:-8])
-                                process_sms(_rf_src, sms)
-                                packet_assembly = ''
-##                                
-                            else:
+####                            # Motorola type SMS header
+##                            if '824a' in hdr_start or '024a' in hdr_start:
+##                                logger.info('\nMotorola type SMS')
+##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
+##                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+##                                process_sms(_rf_src, sms)
+##                                packet_assembly = ''
+##                            # ETSI? type SMS header    
+##                            elif '0244' in hdr_start or '8244' in hdr_start:
+##                                logger.info('ETSI? type SMS')
+##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[64:-8].split('00'))), 'utf-8')
+##                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+##                                #logger.info(final_packet)
+##                                #logger.info(sms_hex[64:-8])
+##                                process_sms(_rf_src, sms)
+##                                packet_assembly = ''
+####                                
+##                            else:
                                 logger.info('\nUnknown type SMS')
                                 #logger.info(final_packet)
                                 logger.info(sms_hex)
+                                logger.info(type(sms_hex))
                                 logger.info('Attempting to find command...')
-                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
+##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
+                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
                                 msg_found = re.sub('.*\n', '', sms)
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
                                 process_sms(_rf_src, msg_found)
