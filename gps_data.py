@@ -379,24 +379,33 @@ class DATA_SYSTEM(HBSYSTEM):
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
                             # Motorola type SMS header
-                            if '824' in hdr_start or '024' in hdr_start:
+                            if '824a' in hdr_start or '024a' in hdr_start:
                                 logger.info('\nMotorola type SMS')
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex[74:-8].split('00'))), 'utf-8')
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                                 process_sms(_rf_src, sms)
                                 packet_assembly = ''
+                                
+                            if '0244' in hdr_start or '8244' in hdr_start:
+                                logger.info('ETSI? type SMS')
+                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[64:-8].split('00'))), 'utf-8')
+                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+                                #logger.info(final_packet)
+                                #logger.info(sms_hex[64:-8])
+                                packet_assembly = ''
+                                
                             else:
                                 logger.info('Unknown type SMS')
-                                logger.info(final_packet)
+                                #logger.info(final_packet)
+                                logger.info(sms_hex)
                                 packet_assembly = ''
                                 pass
                                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
                             #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
                         # Reset the packet assembly to prevent old data from returning.
-                        packet_assembly = ''
                         hdr_start = ''
                     #logger.info(_seq)
-                    #logger.info(_dtype_vseq)
+                    #packet_assembly = '' #logger.info(_dtype_vseq)
                 #logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
 
