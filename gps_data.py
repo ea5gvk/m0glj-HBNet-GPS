@@ -238,7 +238,7 @@ def process_sms(_rf_src, sms):
         logger.info('Longitude: ' + str(aprs_lon))
         user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
         if int_id(_rf_src) not in user_settings:
-            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + '/' + str(aprs_lon) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + '/' + str(aprs_lon) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
         else:
             if user_settings[int_id(_rf_src)][1]['ssid'] == '':
                 ssid = user_ssid
@@ -254,7 +254,7 @@ def process_sms(_rf_src, sms):
                 ssid = user_settings[int_id(_rf_src)][1]['ssid']
             if user_settings[int_id(_rf_src)][3]['comment'] != '':
                 comment = user_settings[int_id(_rf_src)][3]['comment']
-            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
         logger.info(aprs_loc_packet)
         try:
             aprslib.parse(aprs_loc_packet)
@@ -288,6 +288,7 @@ class DATA_SYSTEM(HBSYSTEM):
         # Capture data headers
         global n_packet_assembly
         #logger.info(_dtype_vseq)
+        logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
         if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
             if type(_seq) is bytes:
@@ -340,7 +341,7 @@ class DATA_SYSTEM(HBSYSTEM):
                                     user_settings = ast.literal_eval(f.read())
                                 user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
                                 if int_id(_rf_src) not in user_settings:
-                                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                                 else:
                                     if user_settings[int_id(_rf_src)][1]['ssid'] == '':
                                         ssid = user_ssid
@@ -357,7 +358,7 @@ class DATA_SYSTEM(HBSYSTEM):
                                     if user_settings[int_id(_rf_src)][3]['comment'] != '':
                                         comment = user_settings[int_id(_rf_src)][3]['comment']
                                     #logger.info(retrieve_aprs_settings(_rf_src))
-                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
+                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
                                 logger.info(aprs_loc_packet)
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
@@ -365,7 +366,7 @@ class DATA_SYSTEM(HBSYSTEM):
 ##                                f.close()
                             except:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
-                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APRS,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             try:
                                 # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
@@ -379,6 +380,8 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
+                            if '0005' in hdr_start:
+                                logger('This may be an NMEA coded packet from an MD-380 type radio!')
 
                             # Revisit below later.
 ####                            # Motorola type SMS header
