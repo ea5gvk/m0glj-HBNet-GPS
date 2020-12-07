@@ -58,7 +58,7 @@ import datetime
 from bitarray.util import ba2int as ba2num
 from bitarray.util import ba2hex as ba2hx
 import codecs
-
+import time
 #Needed for working with NMEA
 import pynmea2
 
