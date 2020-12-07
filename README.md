@@ -7,7 +7,7 @@ This is my version of HBLink3 that I use in "production." I have merged the priv
 * APRS position upload for connected repeaters and hotspots
 * APRS position upload from some GPS enabled radios
 
-
+**The same stuff (commands, settings, etc.) in the gps branch apply here as well.**
 
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
