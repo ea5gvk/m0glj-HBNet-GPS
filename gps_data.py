@@ -382,7 +382,6 @@ class DATA_SYSTEM(HBSYSTEM):
                         if '$GPRMC' not in final_packet:
                             if '0005' in hdr_start:
                                 logger('This may be an NMEA coded packet from an MD-380 type radio!')
-
                             # Revisit below later.
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:

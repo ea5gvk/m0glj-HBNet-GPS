@@ -26,9 +26,6 @@ updated if the items in the main configuraiton file (usually hblink.cfg)
 change.
 '''
 
-# Added config option for APRS in the master config section
-# Modified by KF7EEL - 10-15-2020
-
 import configparser
 import sys
 import const
@@ -107,10 +104,9 @@ def build_config(_config_file):
 
     CONFIG = {}
     CONFIG['GLOBAL'] = {}
-    CONFIG['APRS'] = {}
-    CONFIG['GPS_DATA'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
+    CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
 
@@ -127,27 +123,6 @@ def build_config(_config_file):
                     'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
                     'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
                 })
-                
-            elif section == 'APRS':
-                CONFIG['APRS'].update({
-                    'ENABLED': config.getboolean(section, 'ENABLED'),
-                    'CALLSIGN': config.get(section, 'CALLSIGN'),
-                    'REPORT_INTERVAL': config.getint(section, 'REPORT_INTERVAL'),
-                    'SERVER': config.get(section, 'SERVER'),
-                    'MESSAGE': config.get(section, 'MESSAGE')
-                })
-
-            elif section == 'GPS_DATA':
-                CONFIG['GPS_DATA'].update({
-                    'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
-                    'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
-                    'CALL_TYPE': config.get(section, 'CALL_TYPE'),
-                    'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
-                    'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
-                    'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
-                    'APRS_SERVER': config.get(section, 'APRS_SERVER'),
-                    'APRS_PORT': config.get(section, 'APRS_PORT'),
-                })
 
             elif section == 'REPORTS':
                 CONFIG['REPORTS'].update({
@@ -163,6 +138,26 @@ def build_config(_config_file):
                     'LOG_HANDLERS': config.get(section, 'LOG_HANDLERS'),
                     'LOG_LEVEL': config.get(section, 'LOG_LEVEL'),
                     'LOG_NAME': config.get(section, 'LOG_NAME')
+                })
+                if not CONFIG['LOGGER']['LOG_FILE']:
+                    CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
+
+            elif section == 'GPS_DATA':
+                CONFIG['GPS_DATA'].update({
+                    'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
+                    'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
+                    'CALL_TYPE': config.get(section, 'CALL_TYPE'),
+                    'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
+                    'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
+                    'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
+                    'APRS_SERVER': config.get(section, 'APRS_SERVER'),
+                    'APRS_PORT': config.get(section, 'APRS_PORT'),
+                    'IGATE_BEACON_TIME': config.get(section, 'IGATE_BEACON_TIME'),
+                    'IGATE_BEACON_ICON': config.get(section, 'IGATE_BEACON_ICON'),
+                    'IGATE_BEACON_COMMENT': config.get(section, 'IGATE_BEACON_COMMENT'),
+                    'IGATE_LATITUDE': config.get(section, 'IGATE_LATITUDE'),
+                    'IGATE_LONGITUDE': config.get(section, 'IGATE_LONGITUDE'),
+
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
                     CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
@@ -275,7 +270,6 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
-                        'APRS_ENABLED': config.getboolean(section, 'APRS_ENABLED'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),
@@ -349,4 +343,3 @@ if __name__ == '__main__':
         return not _acl[0]
         
     print(acl_check(b'\x00\x01\x37', CONFIG['GLOBAL']['TG1_ACL']))
-
