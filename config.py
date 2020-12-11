@@ -106,6 +106,7 @@ def build_config(_config_file):
     CONFIG['GLOBAL'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
+    CONFIG['APRS'] = {}
     CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
@@ -172,6 +173,15 @@ def build_config(_config_file):
                     'PEER_URL': config.get(section, 'PEER_URL'),
                     'SUBSCRIBER_URL': config.get(section, 'SUBSCRIBER_URL'),
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
+                })
+
+            elif section == 'APRS':
+                CONFIG['APRS'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'CALLSIGN': config.get(section, 'CALLSIGN'),
+                    'REPORT_INTERVAL': config.getint(section, 'REPORT_INTERVAL'),
+                    'SERVER': config.get(section, 'SERVER'),
+                    'MESSAGE': config.get(section, 'MESSAGE')
                 })
 
             elif config.getboolean(section, 'ENABLED'):
