@@ -57,4 +57,4 @@ while int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME']) > 15:
     AIS.sendall(beacon_packet)
     print(beacon_packet)
     AIS.close()
-    time.sleep(int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME']))
+    time.sleep(int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME'])*60)
