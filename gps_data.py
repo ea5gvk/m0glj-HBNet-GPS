@@ -379,6 +379,8 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
+                            if '0005' in hdr_start:
+                                logger('This may be an NMEA coded packet from an MD-380!')
 
                             # Revisit below later.
 ####                            # Motorola type SMS header

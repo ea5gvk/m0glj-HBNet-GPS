@@ -152,6 +152,12 @@ def build_config(_config_file):
                     'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
                     'APRS_SERVER': config.get(section, 'APRS_SERVER'),
                     'APRS_PORT': config.get(section, 'APRS_PORT'),
+                    'IGATE_BEACON_TIME': config.get(section, 'IGATE_BEACON_TIME'),
+                    'IGATE_BEACON_ICON': config.get(section, 'IGATE_BEACON_ICON'),
+                    'IGATE_BEACON_COMMENT': config.get(section, 'IGATE_BEACON_COMMENT'),
+                    'IGATE_LATITUDE': config.get(section, 'IGATE_LATITUDE'),
+                    'IGATE_LONGITUDE': config.get(section, 'IGATE_LONGITUDE'),
+
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
                     CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
