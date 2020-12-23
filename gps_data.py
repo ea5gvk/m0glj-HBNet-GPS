@@ -289,6 +289,8 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
+        #logger.info('Special debug for developement:')
+        #logger.info(ahex(bptc_decode(_data)))
         if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
             if type(_seq) is bytes:
@@ -296,7 +298,77 @@ class DATA_SYSTEM(HBSYSTEM):
             else:
                 pckt_seq = _seq
             # Try to classify header
-            if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
+            # UDT header has DPF of 0101, which is 5.
+            # If 5 is at position 3, then this should be a UDT header for MD-380 type radios.
+            # Coordinates are usually in the very next block after the header, we will discard the rest.
+            #logger.info(ahex(bptc_decode(_data)[0:10]))
+            if _call_type == call_type and header_ID(_data)[3] == '5' or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5'):
+                global udt_block, hdr_type
+                logger.info('MD-380 type UDT header detected. Very next packet should be location.')
+                hdr_type = '380'
+            if _dtype_vseq == 6 and hdr_type == '380' or _dtype_vseq == 'group' and hdr_type == '380':
+                udt_block = 1
+            if _dtype_vseq == 7 and hdr_type == '380':
+                udt_block = udt_block - 1
+                if udt_block == 0:
+                    logger.info('MD-380 type packet. This should contain the GPS location.')
+                    if ba2num(bptc_decode(_data)[1:2]) == 1:
+                        lat_dir = 'N'
+                    if ba2num(bptc_decode(_data)[1:2]) == 0:
+                        lat_dir = 'S'
+                    if ba2num(bptc_decode(_data)[2:3]) == 1:
+                        lon_dir = 'E'
+                    if ba2num(bptc_decode(_data)[2:3]) == 0:
+                        lon_dir = 'W'
+                    lat_deg = ba2num(bptc_decode(_data)[11:18])
+                    lon_deg = ba2num(bptc_decode(_data)[38:46])
+                    lat_min = ba2num(bptc_decode(_data)[18:24])
+                    lon_min = ba2num(bptc_decode(_data)[46:52])
+                    lat_min_dec = ba2num(bptc_decode(_data)[24:38])
+                    lon_min_dec = ba2num(bptc_decode(_data)[52:66])
+                    aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
+                    aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+                    # Form APRS packet
+                    # For future use below
+                    #aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+                    
+                    #logger.info(aprs_loc_packet)
+                    logger.info('Lat: ' + str(lat) + ' Lon: ' + lon)
+                    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+                    if int_id(_rf_src) not in user_settings:
+                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + '/' + str(aprs_lon) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                    else:
+                        if user_settings[int_id(_rf_src)][1]['ssid'] == '':
+                            ssid = user_ssid
+                        if user_settings[int_id(_rf_src)][3]['comment'] == '':
+                            comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                        if user_settings[int_id(_rf_src)][2]['icon'] == '':
+                            icon_table = '/'
+                            icon_icon = '['
+                        if user_settings[int_id(_rf_src)][2]['icon'] != '':
+                            icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]
+                            icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]
+                        if user_settings[int_id(_rf_src)][1]['ssid'] != '':
+                            ssid = user_settings[int_id(_rf_src)][1]['ssid']
+                        if user_settings[int_id(_rf_src)][3]['comment'] != '':
+                            comment = user_settings[int_id(_rf_src)][3]['comment']
+                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+                    logger.info(aprs_loc_packet)
+                    # Attempt to prevent malformed packets from being uploaded.
+                    try:
+                        aprslib.parse(aprs_loc_packet)
+                        float(lat) < 91
+                        float(lon) < 121
+                        aprs_send(aprs_loc_packet)
+                        logger.info('Sent APRS packet')
+                    except:
+                        loggr.info('Error. Failed to send packet. Packet may be malformed.')
+                    udt_block = 1
+                    hdr_type = ''
+                else:
+                      pass
+            #NMEA type packets for Anytone like radios.
+            elif _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 global packet_assembly
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf, hdr_start
@@ -380,9 +452,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             # End APRS-IS upload
                         # Assume this is an SMS message
                         if '$GPRMC' not in final_packet:
-                            if '0005' in hdr_start:
-                                logger('This may be an NMEA coded packet from an MD-380 type radio!')
-                            # Revisit below later.
+                            
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
 ##                                logger.info('\nMotorola type SMS')
