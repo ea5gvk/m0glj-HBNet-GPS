@@ -74,9 +74,9 @@ systems = {}
 
 open("nom_aprs","w").close
 
-#file_config=config.build_config('hblink.cfg')
+file_config=config.build_config('hblink.cfg')
 
-CONFIG = ''
+#CONFIG = ''
 
 def sendAprs():
     AIS = aprslib.IS(str(CONFIG['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(CONFIG['APRS']['CALLSIGN'])), host=str(CONFIG['APRS']['SERVER']), port=14580)
