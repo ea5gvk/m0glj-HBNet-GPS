@@ -148,13 +148,13 @@ def sendAprs():
 
 def aprs_upload():                                                  
     if  CONFIG['APRS']['ENABLED']:                                                
-	if int(CONFIG['APRS']['REPORT_INTERVAL']) >= 10:
-		l=task.LoopingCall(sendAprs)
-		l.start(int(CONFIG['APRS']['REPORT_INTERVAL'])*60)
-	else:
-		l=task.LoopingCall(sendAprs)
-		l.start(15*60)
-		logger.info('Report Time APRS to short')
+        if int(CONFIG['APRS']['REPORT_INTERVAL']) >= 10:
+            l=task.LoopingCall(sendAprs)
+            l.start(int(CONFIG['APRS']['REPORT_INTERVAL'])*60)
+        else:
+            l=task.LoopingCall(sendAprs)
+            l.start(15*60)
+            logger.info('Report Time APRS to short')
 
 
 # Timed loop used for reporting HBP status
