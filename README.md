@@ -83,7 +83,7 @@ See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 
 ## Special thanks to:
 
-**N0JMS** - For creating HBLink and dmr_utils. This project not possible without him.
+**N0MJS** - For creating HBLink and dmr_utils. This project not possible without him.
 
 **IU7IGU** - For creating APRS position beaconing for PEER connections.
 
