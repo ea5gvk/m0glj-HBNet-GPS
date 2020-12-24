@@ -74,10 +74,12 @@ systems = {}
 
 open("nom_aprs","w").close
 
-file_config=config.build_config('hblink.cfg')
+#file_config=config.build_config('hblink.cfg')
+
+CONFIG = ''
 
 def sendAprs():
-    AIS = aprslib.IS(str(file_config['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(file_config['APRS']['CALLSIGN'])), host=str(file_config['APRS']['SERVER']), port=14580)
+    AIS = aprslib.IS(str(CONFIG['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(CONFIG['APRS']['CALLSIGN'])), host=str(CONFIG['APRS']['SERVER']), port=14580)
     AIS.connect()
     f = open('nom_aprs', 'r')
     lines = f.readlines()
@@ -141,16 +143,14 @@ def sendAprs():
                 rx_utile = dati[2][0:3]+'.'+dati[2][3:]
                 tx_utile = dati[3][0:3]+'.'+dati[3][3:]
                                     
-                if self._config['APRS']['ENABLED']:                    
-                    AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
-                    logging.info('APRS INVIATO/APRS Sent')
-                else:
-                    pass
-                                                  
-if  file_config['APRS']['ENABLED']:                                                
-	if int(file_config['APRS']['REPORT_INTERVAL']) >= 10:
+                AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
+                logging.info('APRS INVIATO/APRS Sent')
+
+def aprs_upload():                                                  
+    if  CONFIG['APRS']['ENABLED']:                                                
+	if int(CONFIG['APRS']['REPORT_INTERVAL']) >= 10:
 		l=task.LoopingCall(sendAprs)
-		l.start(int(file_config['APRS']['REPORT_INTERVAL'])*60)
+		l.start(int(CONFIG['APRS']['REPORT_INTERVAL'])*60)
 	else:
 		l=task.LoopingCall(sendAprs)
 		l.start(15*60)
@@ -568,7 +568,7 @@ class HBSYSTEM(DatagramProtocol):
                             and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
                     logger.info('(%s) Peer is closing down: %s (%s)', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id))
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
-                    if self._CONFIG['APRS']['ENABLED']:
+                    if self._CONFIG['SYSTEMS'][self._system]['APRS']:
                     #if self._config['APRS_ENABLED'] == True:
                         fn = 'nom_aprs'
                         f = open(fn)
@@ -612,7 +612,7 @@ class HBSYSTEM(DatagramProtocol):
                     lista_blocco=['ysf', 'xlx', 'nxdn', 'dstar', 'echolink','p25', 'svx', 'l1nk']
                     #if self._CONFIG['SYSTEMS']['APRS_ENABLED']['ENABLED']  and self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
                     # Check if master has APRS enabled instead of global. 
-                    if self._CONFIG['APRS']['ENABLED'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
+                    if self._CONFIG['SYSTEMS'][self._system]['APRS'] and not str(_this_peer['CALLSIGN'].decode('UTF-8')).replace(' ', '').isalpha() :
                         file = open("nom_aprs","r")
                         linee = file.readlines()
                         file.close()
@@ -962,6 +962,8 @@ if __name__ == '__main__':
         logger.info('(REPORT) TCP Socket reporting not configured')
 
     # HBlink instance creation
+    # Run aprs_upload loop
+    aprs_upload()
     logger.info('(GLOBAL) HBlink \'HBlink.py\' -- SYSTEM STARTING...')
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
