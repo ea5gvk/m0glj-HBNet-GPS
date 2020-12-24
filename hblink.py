@@ -79,7 +79,7 @@ file_config=config.build_config('hblink.cfg')
 #CONFIG = ''
 
 def sendAprs():
-    AIS = aprslib.IS(str(CONFIG['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(CONFIG['APRS']['CALLSIGN'])), host=str(CONFIG['APRS']['SERVER']), port=14580)
+    AIS = aprslib.IS(str(file_config['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(file_config['APRS']['CALLSIGN'])), host=str(file_config['APRS']['SERVER']), port=14580)
     AIS.connect()
     f = open('nom_aprs', 'r')
     lines = f.readlines()
@@ -143,7 +143,7 @@ def sendAprs():
                 rx_utile = dati[2][0:3]+'.'+dati[2][3:]
                 tx_utile = dati[3][0:3]+'.'+dati[3][3:]
                                     
-                AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
+                AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
                 logging.info('APRS INVIATO/APRS Sent')
 
 def aprs_upload(config):                                                  
