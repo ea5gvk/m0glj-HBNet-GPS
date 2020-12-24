@@ -971,7 +971,6 @@ if __name__ == '__main__':
                 systems[system] = OPENBRIDGE(system, CONFIG, report_server)
             else:
                 systems[system] = HBSYSTEM(system, CONFIG, report_server)
-                logger.info(CONFIG['SYSTEMS'][system]['APRS_ENABLED'])
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
 
