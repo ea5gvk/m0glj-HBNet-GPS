@@ -333,7 +333,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     #aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
                     
                     #logger.info(aprs_loc_packet)
-                    logger.info('Lat: ' + str(lat) + ' Lon: ' + lon)
+                    logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
                     user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
                     if int_id(_rf_src) not in user_settings:
                         aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + '/' + str(aprs_lon) + '[/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
