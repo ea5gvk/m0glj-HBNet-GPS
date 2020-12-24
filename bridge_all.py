@@ -282,7 +282,7 @@ if __name__ == '__main__':
 
     # HBlink instance creation
     # Run aprs_upload loop
-    aprs_upload()
+    aprs_upload(CONFIG)
     logger.info('HBlink \'bridge_all.py\' -- SYSTEM STARTING...')
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
