@@ -143,14 +143,16 @@ def sendAprs():
                 rx_utile = dati[2][0:3]+'.'+dati[2][3:]
                 tx_utile = dati[3][0:3]+'.'+dati[3][3:]
                                     
-                AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
+                #AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
+                AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8'))
                 logging.info('APRS INVIATO/APRS Sent')
 
 def aprs_upload(config):                                                  
     if  config['APRS']['ENABLED']:                                                
         if int(config['APRS']['REPORT_INTERVAL']) >= 10:
             l=task.LoopingCall(sendAprs)
-            l.start(int(config['APRS']['REPORT_INTERVAL'])*60)
+            interval_time = int(config['APRS']['REPORT_INTERVAL'])*60
+            l.start(interval_time)
         else:
             l=task.LoopingCall(sendAprs)
             l.start(15*60)
