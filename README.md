@@ -30,17 +30,21 @@ Actually tested
  | MD-380 (MD380tools, no GPS) | - | YES |
 
 ## Highly suspected to work:
-Not tested yet, but appears to utilize NMEA sentence.
+Not tested yet, but will most likely work.
 
  | Radio | GPS | SMS |
  |-------|:---:|:---:|
  | Anytone D868 | Most likely | Most likely |
  | BTech DMR-6x2 | Most likely | Most likely |
  | Alinco DJ-MD5TGP | Most likely | Most likely |
+ | TYT MD-380 | Most likely | Likely |
+ | TYT MD-390 | Most likely | Likely |
+ | TYT MD-2017 | Most likely | Likely |
+ | Retevis RT8 | Most likely | Likely |
 
 ## Would like to test:
 
-* AIlunce HD1
+* Ailunce HD1
 
 ## Features
 
@@ -77,6 +81,19 @@ Send a DMR SMS to the configured dmr_data_id in the application with the desired
 
 See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 
+## Special thanks to:
+
+**N0JMS** - For creating HBLink and dmr_utils. This project not possible without him.
+
+**IU7IGU** - For creating APRS position beaconing for PEER connections.
+
+**IV3JDV** - For helping debug SMS in Anytone radios.
+
+**KD7LMN** - For pointing out a critical bug.
+
+**KB5PBM** - For helping implement support for MD-380 type radios.
+
+**EI7IG** - For writing the page explaining MD-380 type GPS packets.
 
 ## Resources for DMR data
 
