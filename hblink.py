@@ -151,7 +151,7 @@ def aprs_upload(config):
     if  config['APRS']['ENABLED']:                                                
         if int(config['APRS']['REPORT_INTERVAL']) >= 10:
             l=task.LoopingCall(sendAprs)
-            interval_time = int(config['APRS']['REPORT_INTERVAL'])*60
+            interval_time = int(int(config['APRS']['REPORT_INTERVAL'])*60)
             l.start(interval_time)
         else:
             l=task.LoopingCall(sendAprs)
