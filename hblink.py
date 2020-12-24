@@ -146,11 +146,11 @@ def sendAprs():
                 AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(CONFIG['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(CONFIG['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
                 logging.info('APRS INVIATO/APRS Sent')
 
-def aprs_upload():                                                  
-    if  CONFIG['APRS']['ENABLED']:                                                
-        if int(CONFIG['APRS']['REPORT_INTERVAL']) >= 10:
+def aprs_upload(config):                                                  
+    if  config['APRS']['ENABLED']:                                                
+        if int(config['APRS']['REPORT_INTERVAL']) >= 10:
             l=task.LoopingCall(sendAprs)
-            l.start(int(CONFIG['APRS']['REPORT_INTERVAL'])*60)
+            l.start(int(config['APRS']['REPORT_INTERVAL'])*60)
         else:
             l=task.LoopingCall(sendAprs)
             l.start(15*60)
