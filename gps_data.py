@@ -94,6 +94,7 @@ __status__     = 'pre-alpha'
 # AT-D878 - Compressed UDP
 # MD-380 - Unified Data Transport
 hdr_type = ''
+btf = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
 def decode_full(_data):
@@ -286,11 +287,13 @@ class DATA_SYSTEM(HBSYSTEM):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         # Capture data headers
-        global n_packet_assembly
+        global n_packet_assembly, hdr_type
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
         logger.info('Special debug for developement:')
         logger.info(ahex(bptc_decode(_data)))
+        #logger.info(hdr_type)
+        #logger.info(type(ba2num(bptc_decode(_data)[69:72])))
         if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
             if type(_seq) is bytes:
@@ -302,8 +305,8 @@ class DATA_SYSTEM(HBSYSTEM):
             # If 5 is at position 3, then this should be a UDT header for MD-380 type radios.
             # Coordinates are usually in the very next block after the header, we will discard the rest.
             #logger.info(ahex(bptc_decode(_data)[0:10]))
-            if _call_type == call_type and header_ID(_data)[3] == '5' or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5'):
-                global udt_block, hdr_type
+            if _call_type == call_type and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0):
+                global udt_block
                 logger.info('MD-380 type UDT header detected. Very next packet should be location.')
                 hdr_type = '380'
             if _dtype_vseq == 6 and hdr_type == '380' or _dtype_vseq == 'group' and hdr_type == '380':
@@ -312,6 +315,7 @@ class DATA_SYSTEM(HBSYSTEM):
                 udt_block = udt_block - 1
                 if udt_block == 0:
                     logger.info('MD-380 type packet. This should contain the GPS location.')
+                    logger.info('Packet: ' + str(ahex(bptc_decode(_data))))
                     if ba2num(bptc_decode(_data)[1:2]) == 1:
                         lat_dir = 'N'
                     if ba2num(bptc_decode(_data)[1:2]) == 0:
@@ -355,21 +359,21 @@ class DATA_SYSTEM(HBSYSTEM):
                         aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
                     logger.info(aprs_loc_packet)
                     # Attempt to prevent malformed packets from being uploaded.
-                    #try:
-                    aprslib.parse(aprs_loc_packet)
-                    float(lat_deg) < 91
-                    float(lon_deg) < 121
-                    aprs_send(aprs_loc_packet)
-                    logger.info('Sent APRS packet')
-                #except:
-                    logger.info('Error. Failed to send packet. Packet may be malformed.')
-                udt_block = 1
-                hdr_type = ''
-               # else:
-                #      pass
+                    try:
+                        aprslib.parse(aprs_loc_packet)
+                        float(lat_deg) < 91
+                        float(lon_deg) < 121
+                        aprs_send(aprs_loc_packet)
+                        logger.info('Sent APRS packet')
+                    except:
+                        logger.info('Error. Failed to send packet. Packet may be malformed.')
+                    udt_block = 1
+                    hdr_type = ''
+                else:
+                      pass
             #NMEA type packets for Anytone like radios.
             elif _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
-                global packet_assembly
+                global packet_assembly, btf
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf, hdr_start
                     hdr_start = str(header_ID(_data))
