@@ -28,6 +28,7 @@ Actually tested
  | Anytone D878| YES | YES |
  | Anytone D578| YES | YES |
  | MD-380 (MD380tools, no GPS) | - | YES |
+ | MD-380 (stock firmware, GPS) | YES | Most likely |
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
@@ -37,7 +38,6 @@ Not tested yet, but will most likely work.
  | Anytone D868 | Most likely | Most likely |
  | BTech DMR-6x2 | Most likely | Most likely |
  | Alinco DJ-MD5TGP | Most likely | Most likely |
- | TYT MD-380 | Most likely | Likely |
  | TYT MD-390 | Most likely | Likely |
  | TYT MD-2017 | Most likely | Likely |
  | Retevis RT8 | Most likely | Likely |
