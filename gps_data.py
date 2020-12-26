@@ -290,10 +290,10 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly, hdr_type
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
-        logger.info('Special debug for developement:')
-        logger.info(ahex(bptc_decode(_data)))
+        #logger.info('Special debug for developement:')
+        #logger.info(ahex(bptc_decode(_data)))
         #logger.info(hdr_type)
-        #logger.info(type(ba2num(bptc_decode(_data)[69:72])))
+        #logger.info((ba2num(bptc_decode(_data)[8:12])))
         if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
             if type(_seq) is bytes:
@@ -305,7 +305,7 @@ class DATA_SYSTEM(HBSYSTEM):
             # If 5 is at position 3, then this should be a UDT header for MD-380 type radios.
             # Coordinates are usually in the very next block after the header, we will discard the rest.
             #logger.info(ahex(bptc_decode(_data)[0:10]))
-            if _call_type == call_type and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0):
+            if _call_type == call_type and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0 or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0):
                 global udt_block
                 logger.info('MD-380 type UDT header detected. Very next packet should be location.')
                 hdr_type = '380'
