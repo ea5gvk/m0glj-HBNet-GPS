@@ -289,8 +289,8 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
-        #logger.info('Special debug for developement:')
-        #logger.info(ahex(bptc_decode(_data)))
+        logger.info('Special debug for developement:')
+        logger.info(ahex(bptc_decode(_data)))
         if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
             if type(_seq) is bytes:
@@ -355,18 +355,18 @@ class DATA_SYSTEM(HBSYSTEM):
                         aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
                     logger.info(aprs_loc_packet)
                     # Attempt to prevent malformed packets from being uploaded.
-                    try:
-                        aprslib.parse(aprs_loc_packet)
-                        float(lat) < 91
-                        float(lon) < 121
-                        aprs_send(aprs_loc_packet)
-                        logger.info('Sent APRS packet')
-                    except:
-                        logger.info('Error. Failed to send packet. Packet may be malformed.')
-                    udt_block = 1
-                    hdr_type = ''
-                else:
-                      pass
+                    #try:
+                    aprslib.parse(aprs_loc_packet)
+                    float(lat_deg) < 91
+                    float(lon_deg) < 121
+                    aprs_send(aprs_loc_packet)
+                    logger.info('Sent APRS packet')
+                #except:
+                    logger.info('Error. Failed to send packet. Packet may be malformed.')
+                udt_block = 1
+                hdr_type = ''
+               # else:
+                #      pass
             #NMEA type packets for Anytone like radios.
             elif _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 global packet_assembly
