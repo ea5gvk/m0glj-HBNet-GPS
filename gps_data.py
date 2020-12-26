@@ -93,7 +93,7 @@ __status__     = 'pre-alpha'
 # Headers for GPS by model of radio:
 # AT-D878 - Compressed UDP
 # MD-380 - Unified Data Transport
-
+hdr_type = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
 def decode_full(_data):
