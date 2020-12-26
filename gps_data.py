@@ -362,7 +362,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         aprs_send(aprs_loc_packet)
                         logger.info('Sent APRS packet')
                     except:
-                        loggr.info('Error. Failed to send packet. Packet may be malformed.')
+                        logger.info('Error. Failed to send packet. Packet may be malformed.')
                     udt_block = 1
                     hdr_type = ''
                 else:
