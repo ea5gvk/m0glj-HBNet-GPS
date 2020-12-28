@@ -27,7 +27,7 @@ Actually tested
  |-------|:---:|:---:|
  | Anytone D878| YES | YES |
  | Anytone D578| YES | YES |
- | BTech DMR-6x2 | Yes | Most likely |
+ | BTech DMR-6x2 | YES | Most likely |
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
 
@@ -41,10 +41,17 @@ Not tested yet, but will most likely work.
  | TYT MD-390 | Most likely | Likely |
  | TYT MD-2017 | Most likely | Likely |
  | Retevis RT8 | Most likely | Likely |
+ 
+ ## Tested, but with issues
+ Tested, but with bugs present.
+ 
+  | Radio | GPS | SMS |
+ |-------|:---:|:---:|
+ | Ailunce HD1 | YES | Not tested yet |
 
 ## Would like to test:
 
-* Ailunce HD1
+Retevis RT73
 
 ## Features
 
