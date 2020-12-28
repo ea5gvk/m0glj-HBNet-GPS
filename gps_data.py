@@ -137,6 +137,31 @@ def aprs_send(packet):
     AIS.sendall(packet)
     AIS.close()
 
+def dashboard_loc_write(call, lat, lon, time):
+    #try:
+    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+   # except:
+    #    dash_entries = []
+    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
+    with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
+            user_loc_file.write(str(dash_entries[:15]))
+            user_loc_file.close()
+    logger.info('User location saved for dashboard')
+    #logger.info(dash_entries)
+
+def dashboard_bb_write(call, dmr_id, time, bulletin):
+    #try:
+    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+   # except:
+    #    dash_entries = []
+    dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulliten':bulletin})
+    with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
+            user_bb_file.write(str(dash_bb[:5]))
+            user_bb_file.close()
+    logger.info('User bulletin entry saved.')
+    #logger.info(dash_bb)
+
+
 # Thanks for this forum post for this - https://stackoverflow.com/questions/2579535/convert-dd-decimal-degrees-to-dms-degrees-minutes-seconds-in-python
 
 def decdeg2dms(dd):
@@ -213,6 +238,8 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+    elif '@BB' in sms:
+        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB| ','',sms))
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -260,6 +287,8 @@ def process_sms(_rf_src, sms):
         try:
             aprslib.parse(aprs_loc_packet)
             aprs_send(aprs_loc_packet)
+            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
+            logger.info('Sent manual position to APRS')
         except:
             logger.info('Exception. Not uploaded')
         packet_assembly = ''
@@ -364,6 +393,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         float(lat_deg) < 91
                         float(lon_deg) < 121
                         aprs_send(aprs_loc_packet)
+                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
                         logger.info('Sent APRS packet')
                     except:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
@@ -444,12 +474,13 @@ class DATA_SYSTEM(HBSYSTEM):
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                             try:
-                                # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
+                            # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
-                                # Float values of lat and lon. Anything that is not a number will cause it to fail.
+                            # Float values of lat and lon. Anything that is not a number will cause it to fail.
                                 float(loc.lat)
                                 float(loc.lon)
                                 aprs_send(aprs_loc_packet)
+                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time.strftime('%H:%M:%S - %m/%d/%y'))
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                             # Get callsign based on DMR ID
@@ -523,7 +554,21 @@ if __name__ == '__main__':
         with open("./user_settings.txt", 'w') as user_dict_file:
             user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
             user_dict_file.close()
-
+    # Check to see if dashboard files exist
+    if Path('/tmp/hblink3_gps_data/user_loc.txt').is_file():
+        pass
+    else:
+        Path('/tmp/gps_data_user_loc.txt').touch()
+        with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
+            user_loc_file.write("[]")
+            user_loc_file.close()
+    if Path('/tmp/gps_data_user_bb.txt').is_file():
+        pass
+    else:
+        Path('/tmp/gps_data_user_bb.txt').touch()
+        with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
+            user_bb_file.write("[]")
+            user_bb_file.close()
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
