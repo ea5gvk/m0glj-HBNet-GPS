@@ -114,3 +114,6 @@ def dash_bb():
 def dash_loc():
     return get_loc_data()
     #return render_template('index.html', data = str(get_data()))
+
+if __name__ == '__main__':
+    app.run(debug = True, port=dash_port)
