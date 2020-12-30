@@ -25,3 +25,5 @@ Settings for web dashboard.
 dashboard_title = 'HBLink3 D-APRS Dashboard'
 # Logo used on dashboard page
 logo = 'https://raw.githubusercontent.com/kf7eel/hblink3/gps/HBlink.png'
+# Port to run server
+dash_port = 8092
