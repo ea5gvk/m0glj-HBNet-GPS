@@ -27,3 +27,5 @@ dashboard_title = 'HBLink3 D-APRS Dashboard'
 logo = 'https://raw.githubusercontent.com/kf7eel/hblink3/gps/HBlink.png'
 # Port to run server
 dash_port = 8092
+# IP to run server on
+dash_host = '127.0.0.1'
