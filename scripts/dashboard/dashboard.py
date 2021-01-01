@@ -105,7 +105,7 @@ def get_bb_data():
 @app.route('/')
 def index():
     #return get_data()
-    return render_template('index.html', title = dashboard_title, logo = logo, description = description)
+    return render_template('index.html', title = dashboard_title, logo = logo)
 @app.route('/bulletin_board')
 def dash_bb():
     return get_bb_data()
@@ -116,7 +116,7 @@ def dash_loc():
     #return render_template('index.html', data = str(get_data()))
 @app.route('/<string:page_name>/')
 def render_static(page_name):
-    return render_template('%s.html' % page_name, title = dashboard_title, logo = logo)
+    return render_template('%s.html' % page_name, title = dashboard_title, logo = logo, description = description)
 
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
