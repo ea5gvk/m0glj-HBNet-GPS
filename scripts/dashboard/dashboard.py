@@ -105,7 +105,7 @@ def get_bb_data():
 @app.route('/')
 def index():
     #return get_data()
-    return render_template('index.html', title = dashboard_title, logo = logo)
+    return render_template('index.html', title = dashboard_title, logo = logo, description = description)
 @app.route('/bulletin_board')
 def dash_bb():
     return get_bb_data()

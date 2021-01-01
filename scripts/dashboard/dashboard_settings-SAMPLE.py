@@ -29,3 +29,7 @@ logo = 'https://raw.githubusercontent.com/kf7eel/hblink3/gps/HBlink.png'
 dash_port = 8092
 # IP to run server on
 dash_host = '127.0.0.1'
+#Description of dashboard to show on main page
+description = '''
+Welcome to the ''' + dashboard_title + '''.
+'''
