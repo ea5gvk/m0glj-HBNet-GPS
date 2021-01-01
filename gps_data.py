@@ -239,7 +239,7 @@ def process_sms(_rf_src, sms):
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
     elif '@BB' in sms:
-        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB| ','',sms))
+        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
