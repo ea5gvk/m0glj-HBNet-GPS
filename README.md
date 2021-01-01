@@ -59,6 +59,8 @@ Retevis RT73
 * Each user/DMR ID can customize APRS position
 * Ability to receive data as a private call or group call
 * Trigger a command or script via DMR SMS
+* Optional web dashboard to show APRS packets uploaded
+* Display bulletins sent via SMS on web dashboard
 
 
 ## How it works
@@ -79,8 +81,12 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@ICON**|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`@icon /p`|
 |**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
 |**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
+|**@CBB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
 
-Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment.
+
+Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
+
+Sending `@BB Test` will result in a post to the bulletin board with the messaage of "Test".
 
 **To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
 
