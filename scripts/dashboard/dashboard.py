@@ -116,7 +116,7 @@ def dash_loc():
     #return render_template('index.html', data = str(get_data()))
 @app.route('/<string:page_name>/')
 def render_static(page_name):
-    return render_template('%s.html' % page_name)
+    return render_template('%s.html' % page_name, title = dashboard_title, logo = logo)
 
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
