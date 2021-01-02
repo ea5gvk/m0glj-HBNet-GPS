@@ -124,5 +124,7 @@ def help():
 @app.route('/about')
 def about():
     #return get_data()
-    return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)_name__ == '__main__':
+    return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+
+if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
