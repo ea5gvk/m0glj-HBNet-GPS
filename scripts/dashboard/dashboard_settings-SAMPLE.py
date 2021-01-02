@@ -33,3 +33,15 @@ dash_host = '127.0.0.1'
 description = '''
 Welcome to the ''' + dashboard_title + '''.
 '''
+# The following will generate a help page for your users.
+
+# Data call type
+data_call_type = 'Private Call'
+# DMR ID of GPS/Data application
+data_call_id = '9099'
+
+# Gateway contact info displayed on about page.
+contact_name = 'your name'
+contact_call = 'N0CALL'
+contact_email = 'email@example.org'
+contact_website = 'https://hbl.ink'

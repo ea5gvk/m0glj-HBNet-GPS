@@ -15,5 +15,67 @@ p {
 </head>
 <body>
 {% include 'header.html' %}
-Help info here.
+<p>{{description}}</p>
+<p>Configure your radio to send GPS positions with the following settings:</p>
+<table style="margin-left: auto; margin-right: auto;" border="black">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Data Call Type</strong></td>
+<td style="text-align: center;"><strong>DMR ID</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">&nbsp;{{data_call_type}}</td>
+<td style="text-align: center;">&nbsp;{{data_call_id}}</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>When a position is received by this gateway, it will extract the coordinates and create an APRS position packet. The this gateway will find your callsign based your radio's DMR ID. It is essential to have your information up to date with <a href="https://radioid.net/">RadioID.net</a>. A predefined APRS SSID of {{aprs_ssid}} is appended your callsign. The APRS location packet is then uploaded to APRS-IS. No setup or account creation is required beforehand. This is pretty much "plug and play."</p>
+<p>For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to this gateway with the settings above. This gateway will query the <a href="https://radioid.net/">RadioID.net</a> database for DMR ID 1234567. The result will be an APRS location packet with APRS SSID&nbsp;{{aprs_ssid}}. </p>
+<p>You can change the default APRS settings for your radio via SMS.</p>
+<h2 style="text-align: center;">Commands</h2>
+<table style="margin-left: auto; margin-right: auto;" border="black">
+<tbody>
+<tr>
+<td style="text-align: center;">
+<h4><strong>Command</strong></h4>
+</td>
+<td style="text-align: center;">
+<h4><strong>Description</strong></h4>
+</td>
+<td style="text-align: center;">
+<h4><strong>Example</strong></h4>
+</td>
+</tr>
+<tr>
+<td><strong>@COM</strong></td>
+<td>Change the comment of the APRS.</td>
+<td><em><code>@COM This is a test comment.</code></em></td>
+</tr>
+<tr>
+<td><strong>@ICON</strong></td>
+<td>Change the icon of the APRS position. *See <a href="http://aprs.net/vm/DOS/SYMBOLS.HTM" rel="nofollow">http://aprs.net/vm/DOS/SYMBOLS.HTM</a> for icon list.</td>
+<td><em><code>@icon /p</code></em></td>
+</tr>
+<tr>
+<td><strong>@SSID</strong></td>
+<td>Change SSID of your callsign.</td>
+<td><em><code>@SSID 7</code></em></td>
+</tr>
+<tr>
+<td><strong>@MH</strong></td>
+<td>Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.</td>
+<td><em><code>@MH DN97uk</code></em></td>
+</tr>
+<tr>
+<td><strong>@BB</strong></td>
+<td>Post a bulliten to the web dashboard.</td>
+<td><em><code>@BB This is a test bulletin.</code></em></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
+<p>Sending <code>@BB Test</code> will result in a post to the bulletin board with the messaage of "Test".</p>
+<p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@COM</code> will remove the strored comment. Any position now reports sent will have the default settings.</p>
 {% include 'footer.html' %}
