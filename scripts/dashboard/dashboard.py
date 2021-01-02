@@ -117,11 +117,11 @@ def dash_loc():
 ##@app.route('/<string:page_name>/')
 ##def render_static(page_name):
 ##    return render_template('%s.html' % page_name, title = dashboard_title, logo = logo, description = description)
-@app.route('/help')
+@app.route('/help/')
 def help():
     #return get_data()
     return render_template('help.html', title = dashboard_title, logo = logo, description = description, data_call_type = data_call_type, data_call_id = data_call_id)
-@app.route('/about')
+@app.route('/about/')
 def about():
     #return get_data()
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
