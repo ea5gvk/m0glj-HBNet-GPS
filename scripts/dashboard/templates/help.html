@@ -1,20 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{title}}</title>
-    <style>
-body {background-color: D3D3D3;}
-h1   {color: green;}
-p {
-  padding: 10px;
-  margin: 20px;
-
-}
-</style>
-</head>
-<body>
+{% include 'page.html' %}
 {% include 'header.html' %}
+<h2 style="text-align: center;">Attention:</h2>
+<p><span style="color: #ff0000;"><strong>Please be aware that many (if not all) DMR radios DO NOT transmit your callsign when sending a GPS position. It is your responsibility to identify your station per the regulations of your country.</strong></span></p>
+<p>&nbsp;</p>
 <p>{{description}}</p>
 <p>Configure your radio to send GPS positions with the following settings:</p>
 <table style="margin-left: auto; margin-right: auto;" border="black">
