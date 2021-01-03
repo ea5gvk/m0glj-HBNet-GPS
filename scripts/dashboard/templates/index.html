@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="120" > 
+    <title>{{title}}</title>
+    <style>
+body {background-color: D3D3D3;}
+h1   {color: green;}
+p {
+  padding: 10px;
+  margin: 20px;
+
+}
+</style>
+</head>
+<body>
+{% include 'header.html' %}
+<p style="text-align: center;"><em>Page automatically reloads every 2 minutes.</em></p>
+<table>
+<tbody>
+<tr>
+<td><div><p align="center"><iframe style="border: none;" title="Bulletin Board" src="bulletin_board" width="480" height="950"></iframe></p></div></td>
+<td><div>
+<p align="center"><iframe style="border: none;" title="Positions Received" src="positions" width="620" height="950"></iframe></p>
+</div></td>
+</tr>
+</tbody>
+</table>
+ {% include 'footer.html' %}
+
