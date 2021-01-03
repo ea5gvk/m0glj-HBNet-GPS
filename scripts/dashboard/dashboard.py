@@ -120,7 +120,7 @@ def dash_loc():
 @app.route('/help/')
 def help():
     #return get_data()
-    return render_template('help.html', title = dashboard_title, logo = logo, description = description, data_call_type = data_call_type, data_call_id = data_call_id)
+    return render_template('help.html', title = dashboard_title, logo = logo, description = description, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
 @app.route('/about/')
 def about():
     #return get_data()
