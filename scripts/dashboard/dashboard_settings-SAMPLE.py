@@ -39,6 +39,8 @@ Welcome to the ''' + dashboard_title + '''.
 data_call_type = 'Private Call'
 # DMR ID of GPS/Data application
 data_call_id = '9099'
+# Default APRS ssid
+aprs_ssid = '15'
 
 # Gateway contact info displayed on about page.
 contact_name = 'your name'

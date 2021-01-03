@@ -18,7 +18,7 @@
 </tbody>
 </table>
 <p>&nbsp;</p>
-<p>When a position is received by this gateway, it will extract the coordinates and create an APRS position packet. The this gateway will find your callsign based your radio's DMR ID. It is essential to have your information up to date with <a href="https://radioid.net/">RadioID.net</a>. A predefined APRS SSID of {{aprs_ssid}} is appended your callsign. The APRS location packet is then uploaded to APRS-IS. No setup or account creation is required beforehand. This is pretty much "plug and play."</p>
+<p>When a position is received by this gateway, it will extract the coordinates and create an APRS position packet. The this gateway will find your callsign based your radio's DMR ID. It is essential to have your information up to date with <a href="https://radioid.net/">RadioID.net</a>. A predefined APRS SSID of <strong>{{aprs_ssid}}</strong> is appended your callsign. The APRS location packet is then uploaded to APRS-IS. No setup or account creation is required beforehand. This is pretty much "plug and play."</p>
 <p>For example, N0CALL has a DMR ID of 1234567. N0CALL's radio sends a position to this gateway with the settings above. This gateway will query the <a href="https://radioid.net/">RadioID.net</a> database for DMR ID 1234567. The result will be an APRS location packet with APRS SSID&nbsp;{{aprs_ssid}}. </p>
 <p>You can change the default APRS settings for your radio via SMS.</p>
 <h2 style="text-align: center;">Commands</h2>
@@ -65,5 +65,5 @@
 <p>&nbsp;</p>
 <p>Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
 <p>Sending <code>@BB Test</code> will result in a post to the bulletin board with the messaage of "Test".</p>
-<p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@COM</code> will remove the strored comment. Any position now reports sent will have the default settings.</p>
+<p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@ICON</code> will remove the strored icon. Any position reports sent will have the default settings.</p>
 {% include 'footer.html' %}
