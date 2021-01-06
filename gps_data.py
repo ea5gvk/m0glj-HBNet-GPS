@@ -555,7 +555,7 @@ if __name__ == '__main__':
             user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
             user_dict_file.close()
     # Check to see if dashboard files exist
-    if Path('/tmp/hblink3_gps_data/user_loc.txt').is_file():
+    if Path('/tmp/gps_data_user_loc.txt').is_file():
         pass
     else:
         Path('/tmp/gps_data_user_loc.txt').touch()
