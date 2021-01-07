@@ -33,17 +33,17 @@ configuration file.
 '''
 
 BRIDGES = {
-    'WORLDWIDE': [
-            {'SYSTEM': 'MASTER-1',    'TS': 1, 'TGID': 1,    'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [2,], 'OFF': [9,10], 'RESET': []},
-            {'SYSTEM': 'CLIENT-1',    'TS': 1, 'TGID': 3100, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [2,], 'OFF': [9,10], 'RESET': []},
-        ],
-    'ENGLISH': [
-            {'SYSTEM': 'MASTER-1',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
-            {'SYSTEM': 'CLIENT-2',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
-        ],
-    'STATEWIDE': [
-            {'SYSTEM': 'MASTER-1',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
-            {'SYSTEM': 'CLIENT-2',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
+##    'ENGLISH': [
+##            {'SYSTEM': 'CHANGE_ME-1',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
+##            {'SYSTEM': 'CHANGE_ME-2',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
+##        ],
+##    'STATEWIDE': [
+##            {'SYSTEM': 'CHANGE_ME-1',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
+##            {'SYSTEM': 'CHANGE_ME-2',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
+##        ],
+    'ECHO': [
+            {'SYSTEM': 'MASTER-1',    'TS': 2, 'TGID': 9999,    'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [9999,], 'OFF': [9,10], 'RESET': []},
+            {'SYSTEM': 'ECHO',    'TS': 2, 'TGID': 9999, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [9999,], 'OFF': [9,10], 'RESET': []},
         ]
 }
 
@@ -51,7 +51,7 @@ BRIDGES = {
 list the names of each system that should bridge unit to unit (individual) calls.
 '''
 
-UNIT = ['ONE', 'TWO']
+UNIT = ['MASTER-1', 'CHANGE_ME']
 
 '''
 Unit Call flood timeout:
@@ -62,16 +62,16 @@ moving between systems often.
 
 Time is in minutes.
 '''
-UNIT_TIME = 15
+UNIT_TIME = 1
 
 '''
 Input the DMR ID and SYSTEM of a subscriber that you would like to have always have private calls routed.
 This will not flood all systems.
 '''
 STATIC_UNIT = [
-    [ 123, 'CLIENT-1'],
-    [ 456, 'CLIENT-1'],
-    [ 789, 'MASTER-1']
+#    [ 456, 'CLIENT-1'],
+#    [ 123, 'MASTER-1'],
+     [ 9099, 'D-APRS']
     ]
 
 
@@ -84,3 +84,4 @@ if __name__ == '__main__':
     from pprint import pprint
     pprint(BRIDGES)
     print(UNIT)
+    print(STATIC_UNIT)
