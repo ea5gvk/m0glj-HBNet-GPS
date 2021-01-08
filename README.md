@@ -12,6 +12,7 @@ Files modified from original master branch of HBLink3:
 * pynmea2
 * aprslib
 * maidenhead
+* Flask
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
@@ -30,6 +31,8 @@ Actually tested
  | BTech DMR-6x2 | YES | Most likely |
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
+ | Motorola DP4801| WIP | Yes |
+
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
@@ -40,6 +43,7 @@ Not tested yet, but will most likely work.
  | Alinco DJ-MD5TGP | Most likely | Most likely |
  | TYT MD-390 | Most likely | Likely |
  | TYT MD-2017 | Most likely | Likely |
+ | TYT MD-9600 | Most likely | Likely |
  | Retevis RT8 | Most likely | Likely |
  
  ## Tested, but with issues
@@ -113,6 +117,8 @@ See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 **KB5PBM** - For helping implement support for MD-380 type radios.
 
 **EI7IG** - For writing the page explaining MD-380 type GPS packets.
+
+**M0GLJ** - For assisting with Motorola testing.
 
 ## Resources for DMR data
 
