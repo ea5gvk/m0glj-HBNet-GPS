@@ -95,6 +95,7 @@ __status__     = 'pre-alpha'
 # MD-380 - Unified Data Transport
 hdr_type = ''
 btf = ''
+ssid = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
 def decode_full(_data):
@@ -294,6 +295,24 @@ def process_sms(_rf_src, sms):
         packet_assembly = ''
           
             
+    elif 'A-' in sms and '@' in sms:
+        #Example SMS text: @ARMDS A-This is a test.
+        aprs_dest = re.sub('@| A-.*','',sms)
+        aprs_msg = re.sub('@.* A-|','',sms)
+        logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
+        user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+        if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
+            ssid = user_settings[int_id(_rf_src)][1]['ssid']
+        else:
+            ssid = user_ssid
+        aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
+        logger.info(aprs_msg_pkt)
+        try:
+            aprslib.parse(aprs_msg_pkt)
+            aprs_send(aprs_msg_pkt)
+            logger.info('Packet sent.')
+        except:
+            logger.info('Error uploading MSG packet.')
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -486,7 +505,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
                         # Assume this is an SMS message
-                        if '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
+                        elif '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
                             
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
