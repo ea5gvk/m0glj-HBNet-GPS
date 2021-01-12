@@ -434,7 +434,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
                         sms_hex_string = re.sub("b'|'", '', str(sms_hex))
                         #NMEA GPS sentence
-                        if '$GPRMC' in final_packet:
+                        if '$GPRMC' in final_packet or if '$GNRMC' in final_packet:
                             logger.info(final_packet + '\n')
                             nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
                             loc = pynmea2.parse(nmea_parse, check=False)
@@ -486,7 +486,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
                         # Assume this is an SMS message
-                        if '$GPRMC' not in final_packet:
+                        if '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
                             
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
