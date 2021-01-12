@@ -31,8 +31,8 @@ Actually tested
  | BTech DMR-6x2 | YES | Most likely |
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
- | Motorola DP3601| WIP | Yes |
-
+ | Motorola DP3601| WIP | WIP |
+ | Retevis RT73 | WIP | Likely |
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
@@ -55,7 +55,6 @@ Not tested yet, but will most likely work.
 
 ## Would like to test:
 
-Retevis RT73
 
 ## Features
 
@@ -86,6 +85,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
 |**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 |**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
+|**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`N0CALL-15 A-This is a test.`|
 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
@@ -99,6 +99,10 @@ Sending `@BB Test` will result in a post to the bulletin board with the messaage
 ## Web Dashboard
 
 The web dashboard is completely optional. Python module flask is required for this to work. The web dashboard will display the last 15 positions of radios sent to APRS-IS. The dashboard will also sh user bulletin. A bulletin is a message sent via SMS that will display on the web dashboard. There are several uses for this, including: testing SMS functionality of radio, announcements, and moire. It is a novel feature. The page will automatically reload every 2 minutes. Setup is rather simple. Just modify the example config in the dashboard directory and rename it to dashboard_settings.py. Then start dashboard.py. 
+
+## APRS messaging
+
+**At this time, only sending of messages from DMR SMS to APRS-IS is supported.** I find this feature very pointless because it will only go one way, but someone else may find it important. **Messages from sent from APRS-IS to DMR SMS will not work.** I have not written the code for this yet. It will likley be a long time before this is a possibility.
 
 ## Configuration
 
