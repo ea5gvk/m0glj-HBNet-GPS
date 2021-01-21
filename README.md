@@ -32,7 +32,7 @@ Actually tested
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
  | Motorola DP3601| WIP | WIP |
- | Retevis RT73 | WIP | Likely |
+ | Retevis RT73 | YES | Likely |
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
