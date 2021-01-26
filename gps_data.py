@@ -157,7 +157,7 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
     #    dash_entries = []
     dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulliten':bulletin})
     with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
-            user_bb_file.write(str(dash_bb[:5]))
+            user_bb_file.write(str(dash_bb[:10]))
             user_bb_file.close()
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
@@ -259,8 +259,8 @@ def process_sms(_rf_src, sms):
                 lat_dir = 'N'
             #logger.info(lat)
             #logger.info(lat_dir)
-            aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.').ljust(5) + lat_dir)
-            aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.').ljust(5) + lon_dir)
+            aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.').zfill(4).ljust(5) + lat_dir)
+            aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.').zfill(5).ljust(5) + lon_dir)
         #logger.info(mh.to_location(grid_square))
         #logger.info(str(lat) + ', ' + str(lon))
         logger.info('Latitude: ' + str(aprs_lat))
@@ -376,8 +376,8 @@ class DATA_SYSTEM(HBSYSTEM):
                     lon_deg = ba2num(bptc_decode(_data)[38:46])
                     lat_min = ba2num(bptc_decode(_data)[18:24])
                     lon_min = ba2num(bptc_decode(_data)[46:52])
-                    lat_min_dec = ba2num(bptc_decode(_data)[24:38])
-                    lon_min_dec = ba2num(bptc_decode(_data)[52:66])
+                    lat_min_dec = str(ba2num(bptc_decode(_data)[24:38])).zfill(4)
+                    lon_min_dec = str(ba2num(bptc_decode(_data)[52:66])).zfill(4)
                     aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
                     aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
                     # Form APRS packet
