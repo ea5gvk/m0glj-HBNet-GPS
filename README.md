@@ -12,7 +12,9 @@ Files modified from original master branch of HBLink3:
 * pynmea2
 * aprslib
 * maidenhead
-* Flask
+
+#### Optional Modules
+* Flask - required for dashboard
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
@@ -33,6 +35,7 @@ Actually tested
  | MD-380 (stock firmware, GPS) | YES | Most likely |
  | Motorola DP3601| WIP | WIP |
  | Retevis RT73 | YES | Likely |
+  | Ailunce HD1 | YES | Likely |
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
@@ -40,21 +43,22 @@ Not tested yet, but will most likely work.
  | Radio | GPS | SMS |
  |-------|:---:|:---:|
  | Anytone D868 | Most likely | Most likely |
- | Alinco DJ-MD5TGP | Most likely | Most likely |
  | TYT MD-390 | Most likely | Likely |
  | TYT MD-2017 | Most likely | Likely |
  | TYT MD-9600 | Most likely | Likely |
  | Retevis RT8 | Most likely | Likely |
  
- ## Tested, but with issues
- Tested, but with bugs present.
  
-  | Radio | GPS | SMS |
+## Tested, but with issues.
+  Tested, but with bugs present.
+  
+ | Radio | GPS | SMS |
  |-------|:---:|:---:|
- | Ailunce HD1 | YES | Not tested yet |
+ | Alinco DJ-MD5TGP | Most likely | Most likely |
 
 ## Would like to test:
 
+Connect Systems GPS enabled radios
 
 ## Features
 
