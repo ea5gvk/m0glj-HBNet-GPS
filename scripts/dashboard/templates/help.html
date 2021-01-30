@@ -43,7 +43,7 @@
 <tr>
 <td><strong>@ICON</strong></td>
 <td>Change the icon of the APRS position. *See <a href="http://aprs.net/vm/DOS/SYMBOLS.HTM" rel="nofollow">http://aprs.net/vm/DOS/SYMBOLS.HTM</a> for icon list.</td>
-<td><em><code>@icon /p</code></em></td>
+<td><em><code>@ICON /p</code></em></td>
 </tr>
 <tr>
 <td><strong>@SSID</strong></td>
@@ -63,7 +63,7 @@
 </tbody>
 </table>
 <p>&nbsp;</p>
-<p>Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
+<p><strong>Commands should be sent in upper case.</strong> Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
 <p>Sending <code>@BB Test</code> will result in a post to the bulletin board with the messaage of "Test".</p>
 <p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@ICON</code> will remove the strored icon. Any position reports sent will have the default settings.</p>
 {% include 'footer.html' %}
