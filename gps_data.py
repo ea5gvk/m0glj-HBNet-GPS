@@ -421,7 +421,7 @@ class DATA_SYSTEM(HBSYSTEM):
                 else:
                       pass
             #NMEA type packets for Anytone like radios.
-            elif _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
+            if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
                 global packet_assembly, btf
                 if _dtype_vseq == 6 or _dtype_vseq == 'group':
                     global btf, hdr_start
@@ -505,7 +505,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
                         # Assume this is an SMS message
-                        elif '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
+                        if '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
                             
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
