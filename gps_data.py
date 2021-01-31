@@ -367,8 +367,8 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly, hdr_type
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
-        logger.info('Special debug for developement:')
-        logger.info(ahex(bptc_decode(_data)))
+        #logger.info('Special debug for developement:')
+        #logger.info(ahex(bptc_decode(_data)))
         #logger.info(hdr_type)
         #logger.info((ba2num(bptc_decode(_data)[8:12])))
         if int_id(_dst_id) == data_id:
