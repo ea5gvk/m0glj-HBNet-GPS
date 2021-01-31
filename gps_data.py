@@ -67,7 +67,15 @@ import os
 from gps_functions import cmd_list
 
 # Module for maidenhead grids
-import maidenhead as mh
+try:
+    import maidenhead as mh
+except:
+    logger.info('Error importing maidenhead module, make sure it is installed.')
+# Module for sending email
+try:
+    import smtplib
+except:
+    logger.info('Error importing smtplib module, make sure it is installed.')
 
 #Modules for APRS settings
 import ast
@@ -162,6 +170,16 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
 
+# Send email via SMTP function
+def send_email(to_email, email_subject, email_message):
+    global smtp_server
+    sender_address = email_sender
+    account_password = email_password
+    smtp_server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
+    smtp_server.login(sender_address, account_password)
+    message = "From: " + aprs_callsign + " D-APRS Gateway\nTo: " + to_email + "\nContent-type: text/html\nSubject: " + email_subject + "\n\n" + '<strong>' + email_subject + '</strong><p>&nbsp;</p><h3>' + email_message + '</h3><p>&nbsp;</p><p>This message was sent to you from a D-APRS gateway operated by <strong>' + aprs_callsign + '</strong>. Do not reply as this gateway is only one way at this time.</p>'
+    smtp_server.sendmail(sender_address, to_email, message)
+    smtp_server.close()
 
 # Thanks for this forum post for this - https://stackoverflow.com/questions/2579535/convert-dd-decimal-degrees-to-dms-degrees-minutes-seconds-in-python
 
@@ -241,6 +259,14 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
+    elif '@@' and 'E-' in sms:
+        to_email = re.sub('@@| .*', '', sms)
+        email_message = re.sub('@@.*@.*E-', '', sms)
+        email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
+        logger.info(to_email)
+        logger.info(email_message)
+        logger.info(email_subject)
+        send_email(to_email, email_subject, email_message)
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -615,7 +641,12 @@ if __name__ == '__main__':
     aprs_port = int(CONFIG['GPS_DATA']['APRS_PORT'])
     user_ssid = CONFIG['GPS_DATA']['USER_APRS_SSID']
     aprs_comment = CONFIG['GPS_DATA']['USER_APRS_COMMENT']
-
+    # EMAIL variables
+    email_sender = CONFIG['GPS_DATA']['EMAIL_SENDER']
+    email_password = CONFIG['GPS_DATA']['EMAIL_PASSWORD']
+    smtp_server = CONFIG['GPS_DATA']['SMTP_SERVER']
+    smtp_port = CONFIG['GPS_DATA']['SMTP_PORT']
+    
     # Start the system logger
     if cli_args.LOG_LEVEL:
         CONFIG['LOGGER']['LOG_LEVEL'] = cli_args.LOG_LEVEL

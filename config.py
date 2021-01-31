@@ -158,6 +158,10 @@ def build_config(_config_file):
                     'IGATE_BEACON_COMMENT': config.get(section, 'IGATE_BEACON_COMMENT'),
                     'IGATE_LATITUDE': config.get(section, 'IGATE_LATITUDE'),
                     'IGATE_LONGITUDE': config.get(section, 'IGATE_LONGITUDE'),
+                    'EMAIL_SENDER': config.get(section, 'EMAIL_SENDER'),
+                    'EMAIL_PASSWORD': config.get(section, 'EMAIL_PASSWORD'),
+                    'SMTP_SERVER': config.get(section, 'SMTP_SERVER'),
+                    'SMTP_PORT': config.get(section, 'SMTP_PORT'),
 
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
