@@ -177,7 +177,7 @@ def send_email(to_email, email_subject, email_message):
     account_password = email_password
     smtp_server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
     smtp_server.login(sender_address, account_password)
-    message = "From: Radio Gateway\nTo: " + to_email + "\nContent-type: text/html\nSubject: " + email_subject + "\n\n" + '<strong>' + email_subject + '</strong><p>&nbsp;</p><h3>' + email_message + '</h3><p>&nbsp;</p><p>This message was sent to you from a D-APRS gateway operated by <strong>' + aprs_callsign + '</strong>. Do not reply as this gateway is only one way at this time.</p>'
+    message = "From: " + aprs_callsign + " D-APRS Gateway\nTo: " + to_email + "\nContent-type: text/html\nSubject: " + email_subject + "\n\n" + '<strong>' + email_subject + '</strong><p>&nbsp;</p><h3>' + email_message + '</h3><p>&nbsp;</p><p>This message was sent to you from a D-APRS gateway operated by <strong>' + aprs_callsign + '</strong>. Do not reply as this gateway is only one way at this time.</p>'
     smtp_server.sendmail(sender_address, to_email, message)
     smtp_server.close()
 
@@ -367,8 +367,8 @@ class DATA_SYSTEM(HBSYSTEM):
         global n_packet_assembly, hdr_type
         #logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
-        #logger.info('Special debug for developement:')
-        #logger.info(ahex(bptc_decode(_data)))
+        logger.info('Special debug for developement:')
+        logger.info(ahex(bptc_decode(_data)))
         #logger.info(hdr_type)
         #logger.info((ba2num(bptc_decode(_data)[8:12])))
         if int_id(_dst_id) == data_id:
