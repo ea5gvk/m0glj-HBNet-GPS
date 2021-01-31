@@ -15,6 +15,7 @@ Files modified from original master branch of HBLink3:
 
 #### Optional Modules
 * Flask - required for dashboard
+* smtplib - required for sending email
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
