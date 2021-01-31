@@ -7,3 +7,4 @@ aprslib
 pynmea2
 maidenhead
 flask
+smtplib
