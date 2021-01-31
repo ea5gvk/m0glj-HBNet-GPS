@@ -15,6 +15,7 @@ Files modified from original master branch of HBLink3:
 
 #### Optional Modules
 * Flask - required for dashboard
+* smtplib - required for sending email
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
@@ -90,6 +91,8 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 |**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
 |**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`N0CALL-15 A-This is a test.`|
+|**@@[EMAIL ADDRESS] E- [MESSAGE]**|Send an email to an email address.|`@@test@example.org E-This is a test.`| 
+
 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
