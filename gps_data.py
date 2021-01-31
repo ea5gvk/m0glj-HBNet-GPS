@@ -259,8 +259,11 @@ def process_sms(_rf_src, sms):
                 lat_dir = 'N'
             #logger.info(lat)
             #logger.info(lat_dir)
-            aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.').zfill(4).ljust(5) + lat_dir)
-            aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.').zfill(5).ljust(5) + lon_dir)
+            #aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.').ljust(5) + lat_dir)
+            #aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.').ljust(5) + lon_dir)
+
+            aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.')).zfill(5) + '  ' + lat_dir
+            aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.')).zfill(6) + '  ' + lon_dir
         #logger.info(mh.to_location(grid_square))
         #logger.info(str(lat) + ', ' + str(lon))
         logger.info('Latitude: ' + str(aprs_lat))
