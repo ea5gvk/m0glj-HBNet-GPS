@@ -34,9 +34,9 @@ Actually tested
  | BTech DMR-6x2 | YES | Most likely |
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
- | Motorola DP3601| WIP | WIP |
+ | MD-390 (stock firmware) | YES | YES |
  | Retevis RT73 | YES | Likely |
-  | Ailunce HD1 | YES | Likely |
+ | Ailunce HD1 | YES | Likely |
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
@@ -44,7 +44,6 @@ Not tested yet, but will most likely work.
  | Radio | GPS | SMS |
  |-------|:---:|:---:|
  | Anytone D868 | Most likely | Most likely |
- | TYT MD-390 | Most likely | Likely |
  | TYT MD-2017 | Most likely | Likely |
  | TYT MD-9600 | Most likely | Likely |
  | Retevis RT8 | Most likely | Likely |
@@ -55,7 +54,9 @@ Not tested yet, but will most likely work.
   
  | Radio | GPS | SMS |
  |-------|:---:|:---:|
- | Alinco DJ-MD5TGP | Most likely | Most likely |
+ | Alinco DJ-MD5TGP | WIP | Most likely |
+ | Motorola DP3601| WIP | WIP |
+
 
 ## Would like to test:
 
