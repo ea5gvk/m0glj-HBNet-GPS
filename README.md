@@ -14,8 +14,9 @@ Files modified from original master branch of HBLink3:
 * maidenhead
 
 #### Optional Modules
-* Flask - required for dashboard
-* smtplib - required for sending email
+* Flask - Required for dashboard
+* smtplib - Required for sending email. If pip fails to install module, it may already be installed as most Linux distrobutions have this module by default.
+* slixmpp - Required for upcoming XMPP gateway.
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 
@@ -35,8 +36,10 @@ Actually tested
  | MD-380 (MD380tools, no GPS) | - | YES |
  | MD-380 (stock firmware, GPS) | YES | Most likely |
  | MD-390 (stock firmware) | YES | YES |
- | Retevis RT73 | YES | Likely |
- | Ailunce HD1 | YES | Likely |
+ | Retevis RT73* | YES | YES |
+ | Ailunce HD1 | YES | YES |
+ 
+ *RT73 must have unconfirmed data setting enabled.
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
