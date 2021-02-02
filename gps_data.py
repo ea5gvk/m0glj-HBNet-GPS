@@ -259,14 +259,17 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
-    elif '@@' and 'E-' in sms:
-        to_email = re.sub('@@| .*', '', sms)
-        email_message = re.sub('@@.*@.*E-', '', sms)
+    elif '@' and ' E-' in sms:
+        email_message = re.sub('.*@|.* E-', '', sms)
+        to_email = re.sub(' E-.*', '', sms)
         email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
-        logger.info(to_email)
-        logger.info(email_message)
-        logger.info(email_subject)
-        send_email(to_email, email_subject, email_message)
+        logger.info('Email to: ' + to_email)
+        logger.info('Message: ' + email_message)
+        try:
+            send_email(to_email, email_subject, email_message)
+            logger.info('Email sent.')
+        except:
+            logger.info('Failed to send email.')
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -365,7 +368,7 @@ class DATA_SYSTEM(HBSYSTEM):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         # Capture data headers
         global n_packet_assembly, hdr_type
-        #logger.info(_dtype_vseq)
+        logger.info(_dtype_vseq)
         logger.info(time.strftime('%H:%M:%S - %m/%d/%y'))
         #logger.info('Special debug for developement:')
         #logger.info(ahex(bptc_decode(_data)))
