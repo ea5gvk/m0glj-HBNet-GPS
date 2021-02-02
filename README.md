@@ -91,7 +91,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
 |**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 |**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
-|**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`N0CALL-15 A-This is a test.`|
+|**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 A-This is a test.`|
 |**[EMAIL ADDRESS] E-[MESSAGE]**|Send an email to an email address.|`test@example.org E-This is a test.`| 
 
 
