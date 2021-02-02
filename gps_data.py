@@ -495,7 +495,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             # GNRMC
                             if 'GNRMC' in final_packet:
                                 logger.info('GNRMC location')
-                                nmea_parse = re.sub('\n.*|V\*.*', '', final_packet)
+                                nmea_parse = re.sub('.*\$|\n.*|V\*.*', '', final_packet)
                             loc = pynmea2.parse(nmea_parse, check=False)
                             logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
                             # Begin APRS format and upload
