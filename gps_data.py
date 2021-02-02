@@ -487,7 +487,15 @@ class DATA_SYSTEM(HBSYSTEM):
                         #NMEA GPS sentence
                         if '$GPRMC' in final_packet or '$GNRMC' in final_packet:
                             logger.info(final_packet + '\n')
-                            nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
+                            # Eliminate excess bytes based on NMEA type
+                            # GPRMC
+                            if 'GPRMC' in final_packet:
+                                logger.info('GPRMC location')
+                                nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
+                            # GNRMC
+                            if 'GNRMC' in final_packet:
+                                logger.info('GNRMC location')
+                                nmea_parse = re.sub('\n.*|V\*.*', '', final_packet)
                             loc = pynmea2.parse(nmea_parse, check=False)
                             logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
                             # Begin APRS format and upload
@@ -534,10 +542,11 @@ class DATA_SYSTEM(HBSYSTEM):
                                 dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time.strftime('%H:%M:%S - %m/%d/%y'))
                             except:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
+                            #final_packet = ''
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
                         # Assume this is an SMS message
-                        if '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
+                        elif '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
                             
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
