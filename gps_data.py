@@ -141,10 +141,15 @@ def header_ID(_data):
 ##    pass
 
 def aprs_send(packet):
-    AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-    AIS.connect()
-    AIS.sendall(packet)
-    AIS.close()
+    if aprs_callsign == 'N0CALL':
+        logger.info('APRS callsighn set to N0CALL, packet not sent.')
+        pass
+    else:
+        AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+        AIS.connect()
+        AIS.sendall(packet)
+        AIS.close()
+        logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time):
     #try:
@@ -288,13 +293,8 @@ def process_sms(_rf_src, sms):
                 lat_dir = 'N'
             #logger.info(lat)
             #logger.info(lat_dir)
-            #aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.').ljust(5) + lat_dir)
-            #aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.').ljust(5) + lon_dir)
-
             aprs_lat = str(str(re.sub('\..*|-', '', str(lat[0]))) + str(re.sub('\..*', '', str(lat[1])) + '.')).zfill(5) + '  ' + lat_dir
             aprs_lon = str(str(re.sub('\..*|-', '', str(lon[0]))) + str(re.sub('\..*', '', str(lon[1])) + '.')).zfill(6) + '  ' + lon_dir
-        #logger.info(mh.to_location(grid_square))
-        #logger.info(str(lat) + ', ' + str(lon))
         logger.info('Latitude: ' + str(aprs_lat))
         logger.info('Longitude: ' + str(aprs_lon))
         user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
@@ -321,7 +321,7 @@ def process_sms(_rf_src, sms):
             aprslib.parse(aprs_loc_packet)
             aprs_send(aprs_loc_packet)
             dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
-            logger.info('Sent manual position to APRS')
+            #logger.info('Sent manual position to APRS')
         except:
             logger.info('Exception. Not uploaded')
         packet_assembly = ''
@@ -342,7 +342,7 @@ def process_sms(_rf_src, sms):
         try:
             aprslib.parse(aprs_msg_pkt)
             aprs_send(aprs_msg_pkt)
-            logger.info('Packet sent.')
+            #logger.info('Packet sent.')
         except:
             logger.info('Error uploading MSG packet.')
     try:
@@ -445,7 +445,7 @@ class DATA_SYSTEM(HBSYSTEM):
                         float(lon_deg) < 121
                         aprs_send(aprs_loc_packet)
                         dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
-                        logger.info('Sent APRS packet')
+                        #logger.info('Sent APRS packet')
                     except:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
                     udt_block = 1
