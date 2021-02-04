@@ -60,10 +60,20 @@
 <td>Post a bulliten to the web dashboard.</td>
 <td><em><code>@BB This is a test bulletin.</code></em></td>
 </tr>
+<tr>
+<td><strong>@[CALLSIGN W/ SSID] A-[MESSAGE]</strong></td>
+<td>Send a message to another station via APRS.</td>
+<td><em><code>@N0CALL-15 A-This is a test.</code></em></td>
+</tr>
+<tr>
+<td><strong>[EMAIL ADDRESS] E-[MESSAGE]</strong></td>
+<td>Send an email to an email address.</td>
+<td><em><code>test@example.org E-This is a test.</code></em></td>
+</tr>  
 </tbody>
 </table>
 <p>&nbsp;</p>
-<p><strong>Commands should be sent in upper case.</strong> Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
+<p><strong>Commands should be in upper case.</strong> Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
 <p>Sending <code>@BB Test</code> will result in a post to the bulletin board with the messaage of "Test".</p>
 <p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@ICON</code> will remove the strored icon. Any position reports sent will have the default settings.</p>
 {% include 'footer.html' %}
