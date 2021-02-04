@@ -146,10 +146,10 @@ def aprs_send(packet):
         logger.info('APRS callsighn set to N0CALL, packet not sent.')
         pass
     else:
-##        AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
-##        AIS.connect()
-##        AIS.sendall(packet)
-##        AIS.close()
+        AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_server, port=aprs_port)
+        AIS.connect()
+        AIS.sendall(packet)
+        AIS.close()
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time):
