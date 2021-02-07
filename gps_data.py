@@ -92,8 +92,6 @@ __maintainer__ = 'Eric Craw, KF7EEL'
 __email__      = 'kf7eel@qsl.net'
 __status__     = 'pre-alpha'
 
-# Known to work with: AT-D878
-
 # Must have the following at line 1054 in bridge.py to forward group vcsbk, also there is a typo there:
 # self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
 
@@ -461,7 +459,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     btf = btf - 1
                     logger.info('Block #: ' + str(btf))
                     #logger.info(_seq)
-                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
+                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)) + '. Destination: ' + str(int_id(_dst_id)))
                     logger.info(ahex(bptc_decode(_data)))
                     if _seq == 0:
                         n_packet_assembly = 0
@@ -476,6 +474,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     if btf == 0:
                         final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
+
                         sms_hex_string = re.sub("b'|'", '', str(sms_hex))
                         #NMEA GPS sentence
                         if '$GPRMC' in final_packet or '$GNRMC' in final_packet:
