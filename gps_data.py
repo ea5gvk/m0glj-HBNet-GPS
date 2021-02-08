@@ -151,28 +151,30 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time):
-    #try:
-    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
-   # except:
-    #    dash_entries = []
-    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
-    with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
-            user_loc_file.write(str(dash_entries[:15]))
-            user_loc_file.close()
-    logger.info('User location saved for dashboard')
-    #logger.info(dash_entries)
+    pass
+##    #try:
+##    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+##   # except:
+##    #    dash_entries = []
+##    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
+##    with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
+##            user_loc_file.write(str(dash_entries[:15]))
+##            user_loc_file.close()
+##    logger.info('User location saved for dashboard')
+##    #logger.info(dash_entries)
 
 def dashboard_bb_write(call, dmr_id, time, bulletin):
-    #try:
-    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
-   # except:
-    #    dash_entries = []
-    dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulliten':bulletin})
-    with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
-            user_bb_file.write(str(dash_bb[:10]))
-            user_bb_file.close()
-    logger.info('User bulletin entry saved.')
-    #logger.info(dash_bb)
+    pass
+##    #try:
+##    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+##   # except:
+##    #    dash_entries = []
+##    dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulliten':bulletin})
+##    with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
+##            user_bb_file.write(str(dash_bb[:10]))
+##            user_bb_file.close()
+##    logger.info('User bulletin entry saved.')
+##    #logger.info(dash_bb)
 
 # Send email via SMTP function
 def send_email(to_email, email_subject, email_message):
@@ -610,21 +612,21 @@ if __name__ == '__main__':
         with open("./user_settings.txt", 'w') as user_dict_file:
             user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
             user_dict_file.close()
-    # Check to see if dashboard files exist
-    if Path('/tmp/gps_data_user_loc.txt').is_file():
-        pass
-    else:
-        Path('/tmp/gps_data_user_loc.txt').touch()
-        with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
-    if Path('/tmp/gps_data_user_bb.txt').is_file():
-        pass
-    else:
-        Path('/tmp/gps_data_user_bb.txt').touch()
-        with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
-            user_bb_file.write("[]")
-            user_bb_file.close()
+##    # Check to see if dashboard files exist
+##    if Path('/tmp/gps_data_user_loc.txt').is_file():
+##        pass
+##    else:
+##        Path('/tmp/gps_data_user_loc.txt').touch()
+##        with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
+##            user_loc_file.write("[]")
+##            user_loc_file.close()
+##    if Path('/tmp/gps_data_user_bb.txt').is_file():
+##        pass
+##    else:
+##        Path('/tmp/gps_data_user_bb.txt').touch()
+##        with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
+##            user_bb_file.write("[]")
+##            user_bb_file.close()
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
