@@ -44,7 +44,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet import reactor, task
 
 # Things we import from the main hblink module
-from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases
+from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases, aprs_upload, sendAprs
 from dmr_utils3.utils import bytes_3, int_id, get_alias
 from dmr_utils3 import decode, bptc, const
 import config
@@ -1814,6 +1814,7 @@ if __name__ == '__main__':
                 systems[system] = routerHBP(system, CONFIG, report_server)
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
+    aprs_upload(CONFIG)
 
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
