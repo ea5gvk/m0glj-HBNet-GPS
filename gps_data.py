@@ -254,6 +254,7 @@ def process_sms(_rf_src, sms):
             logger.info('Email sent.')
         except Exception as error_exception:
             logger.info('Failed to send email.')
+            logger.info(error_exception)
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
