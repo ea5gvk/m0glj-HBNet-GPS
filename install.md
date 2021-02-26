@@ -35,7 +35,7 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  **It is reccommended to run the gateway as a client.**
  
- A stanza is a section of the configuration file that begins with brackets (example: **[GLOBAL]**). Below is a summary of each stanza found in the configuration. For more detailed definitions, see the example configurations.
+ A stanza is a section of the configuration file that begins with brackets (example: **[GLOBAL]**). A MASTER stanza is a section of the configuration that will accept incomming connections from clients (peers). A PEER stanza is a section of configuration that will connect to another MMDVM server. Below is a summary of each stanza found in the configuration. **For more detailed definitions, see the example configurations.**
  
  **[GLOBAL]**
  
@@ -58,7 +58,8 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  This is the configuration for downloading the latest DMR ID database from radioid.net. Default setting will fetch new DB every 7 days.
   
- **See notes below to continue configuration**
+  
+ _**See notes below to continue configuration**_
  
  
 ## D-APRS as a client
@@ -84,11 +85,15 @@ Modify the APRS stanza to your liking.
  This stanza contains the settings for APRS-IS, this stanza only applies to the **_aprs_features_** branch. When beaconing the location of a connected hotspot or repeater (not GPS location of a radio), the settings here are used.
  
  You will also need to add **APRS: True** (or False) to each of your MASTER stanzas in hblink.cfg. Setting to false will disable the reporting of PEER locations (repeaters or hotspots) on the current MASTER stanza.
-
- # D-APRS built into bridge.py
-  
-**gps branch**
  
-**aprs_features branch**
+ See example hblink-SAMPLE.cfg in **aprs_features** branch.
+
+## D-APRS built into bridge.py
+
+Using this method, there is no need to have a gps_data.cfg file, or separate script running. The D-APRS gateway is "baked" into bridge.py. This is also much simpler to configure.
+
+Simply modify hblink.cfg to your liking, ensuring that the GPS_DATA stanza is in hblink.cfg. If you are using the **aprs_features** branch, ensuse that the APRS stanza is in hblink.cfg and that **APRS: True** (or false) is in each MASTER stanza. Thats it. See hblink-SAMPLE.cfg in **aprs_features** branch.
+  
+ 
 
  
