@@ -26,7 +26,7 @@ Install the required modules.
 
 `python3 -m pip install -r requirements.txt`
 
-_**Note: Ignore any errors regarding smtplib as that module comes by default on most Linux distributions.**_
+_**Note: Ignore any errors regarding smtplib or traceback as those modules come by default on most Linux distributions.**_
 
 
 # Configuration
