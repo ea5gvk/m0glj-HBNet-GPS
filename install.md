@@ -28,14 +28,14 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  ## D-APRS as a client
  
- #### gps branch
+ **gps branch**
  
- #### aprs_features branch
+ **aprs_features branch**
  
 
  ## D-APRS built into bridge.py
   
- #### gps branch
+**gps branch**
  
- #### aprs_features branch
+**aprs_features branch**
  
