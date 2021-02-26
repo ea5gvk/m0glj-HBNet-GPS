@@ -48,6 +48,7 @@ import const
 # The module needs logging logging, but handlers, etc. are controlled by the parent
 import logging
 logger = logging.getLogger(__name__)
+import traceback
 
 # Other modules we need for data and GPS
 from bitarray import bitarray
@@ -70,12 +71,12 @@ from gps_functions import cmd_list
 # Module for maidenhead grids
 try:
     import maidenhead as mh
-except:
+except Exception as error_exception:
     logger.info('Error importing maidenhead module, make sure it is installed.')
 # Module for sending email
 try:
     import smtplib
-except:
+except Exception as error_exception:
     logger.info('Error importing smtplib module, make sure it is installed.')
 
 #Modules for APRS settings
@@ -92,6 +93,8 @@ __maintainer__ = 'Eric Craw, KF7EEL'
 __email__      = 'kf7eel@qsl.net'
 __status__     = 'pre-alpha'
 
+# Known to work with: AT-D878
+
 # Must have the following at line 1054 in bridge.py to forward group vcsbk, also there is a typo there:
 # self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
 
@@ -101,7 +104,7 @@ __status__     = 'pre-alpha'
 # AT-D878 - Compressed UDP
 # MD-380 - Unified Data Transport
 hdr_type = ''
-btf = ''
+btf = -1
 ssid = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
@@ -242,16 +245,18 @@ def process_sms(_rf_src, sms):
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
     elif '@' and ' E-' in sms:
-        email_message = re.sub('.*@|.* E-', '', sms)
-        to_email = re.sub(' E-.*', '', sms)
+        email_message = str(re.sub('.*@|.* E-', '', sms))
+        to_email = str(re.sub(' E-.*', '', sms))
         email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
         logger.info('Email to: ' + to_email)
         logger.info('Message: ' + email_message)
         try:
             send_email(to_email, email_subject, email_message)
             logger.info('Email sent.')
-        except:
+        except Exception as error_exception:
             logger.info('Failed to send email.')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -306,8 +311,10 @@ def process_sms(_rf_src, sms):
             aprs_send(aprs_loc_packet)
             dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
             #logger.info('Sent manual position to APRS')
-        except:
+        except Exception as error_exception:
             logger.info('Exception. Not uploaded')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
         packet_assembly = ''
           
             
@@ -327,16 +334,20 @@ def process_sms(_rf_src, sms):
             aprslib.parse(aprs_msg_pkt)
             aprs_send(aprs_msg_pkt)
             #logger.info('Packet sent.')
-        except:
+        except Exception as error_exception:
             logger.info('Error uploading MSG packet.')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
             os.popen(cmd_list[sms]).read()
             packet_assembly = ''
-    except:
+    except Exception as error_exception:
         logger.info('Exception. Command possibly not in list, or other error.')
         packet_assembly = ''
+        logger.info(error_exception)
+        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     else:
         pass
 
@@ -434,8 +445,10 @@ class DATA_SYSTEM(HBSYSTEM):
                         aprs_send(aprs_loc_packet)
                         dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.strftime('%H:%M:%S - %m/%d/%y'))
                         #logger.info('Sent APRS packet')
-                    except:
+                    except Exception as error_exception:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
+                        logger.info(error_exception)
+                        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                     udt_block = 1
                     hdr_type = ''
                 else:
@@ -459,7 +472,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     btf = btf - 1
                     logger.info('Block #: ' + str(btf))
                     #logger.info(_seq)
-                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)) + '. Destination: ' + str(int_id(_dst_id)))
+                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
                     logger.info(ahex(bptc_decode(_data)))
                     if _seq == 0:
                         n_packet_assembly = 0
@@ -474,7 +487,6 @@ class DATA_SYSTEM(HBSYSTEM):
                     if btf == 0:
                         final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
                         sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
-
                         sms_hex_string = re.sub("b'|'", '', str(sms_hex))
                         #NMEA GPS sentence
                         if '$GPRMC' in final_packet or '$GNRMC' in final_packet:
@@ -521,9 +533,11 @@ class DATA_SYSTEM(HBSYSTEM):
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
                                 logger.info('User icon: ' + icon_table + icon_icon)
-                            except:
+                            except Exception as error_exception:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                logger.info(error_exception)
+                                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             try:
                             # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
@@ -532,8 +546,10 @@ class DATA_SYSTEM(HBSYSTEM):
                                 float(loc.lon)
                                 aprs_send(aprs_loc_packet)
                                 dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time.strftime('%H:%M:%S - %m/%d/%y'))
-                            except:
+                            except Exception as error_exception:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
+                                logger.info(error_exception)
+                                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             #final_packet = ''
                             # Get callsign based on DMR ID
                             # End APRS-IS upload

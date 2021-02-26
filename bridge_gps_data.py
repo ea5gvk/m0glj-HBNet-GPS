@@ -2,6 +2,8 @@
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   GPS/Data - Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#   Annotated modifications Copyright (C) 2021 Xavier FRS2013
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -42,7 +44,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet import reactor, task
 
 # Things we import from the main hblink module
-from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases
+from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases, aprs_upload, sendAprs
 from dmr_utils3.utils import bytes_3, int_id, get_alias
 from dmr_utils3 import decode, bptc, const
 import config
@@ -55,6 +57,7 @@ import pickle
 # The module needs logging, but handlers, etc. are controlled by the parent
 import logging
 logger = logging.getLogger(__name__)
+import traceback
 
 # Import UNIT time from rules.py
 from rules import UNIT_TIME, STATIC_UNIT
@@ -108,7 +111,7 @@ __email__      = 'n0mjs@me.com'
 # AT-D878 - Compressed UDP
 # MD-380 - Unified Data Transport
 hdr_type = ''
-btf = ''
+btf = -1
 ssid = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
@@ -249,16 +252,18 @@ def process_sms(_rf_src, sms):
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
     elif '@' and ' E-' in sms:
-        email_message = re.sub('.*@|.* E-', '', sms)
-        to_email = re.sub(' E-.*', '', sms)
+        email_message = str(re.sub('.*@|.* E-', '', sms))
+        to_email = str(re.sub(' E-.*', '', sms))
         email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
         logger.info('Email to: ' + to_email)
         logger.info('Message: ' + email_message)
         try:
             send_email(to_email, email_subject, email_message)
             logger.info('Email sent.')
-        except:
+        except Exception as error_exception:
             logger.info('Failed to send email.')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -313,8 +318,10 @@ def process_sms(_rf_src, sms):
             aprs_send(aprs_loc_packet)
             dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, strftime('%H:%M:%S - %m/%d/%y'))
             #logger.info('Sent manual position to APRS')
-        except:
+        except Exception as error_exception:
             logger.info('Exception. Not uploaded')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
         packet_assembly = ''
           
             
@@ -334,15 +341,19 @@ def process_sms(_rf_src, sms):
             aprslib.parse(aprs_msg_pkt)
             aprs_send(aprs_msg_pkt)
             #logger.info('Packet sent.')
-        except:
+        except Exception as error_exception:
             logger.info('Error uploading MSG packet.')
+            logger.info(error_exception)
+            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
             os.popen(cmd_list[sms]).read()
             packet_assembly = ''
-    except:
+    except Exception as error_exception:
         logger.info('Exception. Command possibly not in list, or other error.')
+        logger.info(error_exception)
+        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
         packet_assembly = ''
     else:
         pass
@@ -1486,8 +1497,10 @@ class routerHBP(HBSYSTEM):
                         aprs_send(aprs_loc_packet)
                         dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, strftime('%H:%M:%S - %m/%d/%y'))
                         #logger.info('Sent APRS packet')
-                    except:
+                    except Exception as error_exception:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
+                        logger.info(error_exception)
+                        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                     udt_block = 1
                     hdr_type = ''
                 else:
@@ -1572,9 +1585,11 @@ class routerHBP(HBSYSTEM):
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
                                 logger.info('User icon: ' + icon_table + icon_icon)
-                            except:
+                            except Exception as error_exception:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                logger.info(error_exception)
+                                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             try:
                             # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
@@ -1583,8 +1598,10 @@ class routerHBP(HBSYSTEM):
                                 float(loc.lon)
                                 aprs_send(aprs_loc_packet)
                                 dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), strftime('%H:%M:%S - %m/%d/%y'))
-                            except:
+                            except Exception as error_exception:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
+                                logger.info(error_exception)
+                                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             #final_packet = ''
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
@@ -1812,6 +1829,7 @@ if __name__ == '__main__':
                 systems[system] = routerHBP(system, CONFIG, report_server)
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
+    aprs_upload(CONFIG)
 
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
