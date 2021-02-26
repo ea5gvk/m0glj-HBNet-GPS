@@ -48,6 +48,7 @@ import const
 # The module needs logging logging, but handlers, etc. are controlled by the parent
 import logging
 logger = logging.getLogger(__name__)
+import traceback
 
 # Other modules we need for data and GPS
 from bitarray import bitarray
@@ -255,6 +256,7 @@ def process_sms(_rf_src, sms):
         except Exception as error_exception:
             logger.info('Failed to send email.')
             logger.info(error_exception)
+            logger.info(traceback.print_tb(error_exception.__traceback__))
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -312,6 +314,7 @@ def process_sms(_rf_src, sms):
         except Exception as error_exception:
             logger.info('Exception. Not uploaded')
             logger.info(error_exception)
+            logger.info(traceback.print_tb(error_exception.__traceback__))
         packet_assembly = ''
           
             
@@ -334,6 +337,7 @@ def process_sms(_rf_src, sms):
         except Exception as error_exception:
             logger.info('Error uploading MSG packet.')
             logger.info(error_exception)
+            logger.info(traceback.print_tb(error_exception.__traceback__))
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -343,6 +347,7 @@ def process_sms(_rf_src, sms):
         logger.info('Exception. Command possibly not in list, or other error.')
         packet_assembly = ''
         logger.info(error_exception)
+        logger.info(traceback.print_tb(error_exception.__traceback__))
     else:
         pass
 
@@ -443,6 +448,7 @@ class DATA_SYSTEM(HBSYSTEM):
                     except Exception as error_exception:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
                         logger.info(error_exception)
+                        logger.info(traceback.print_tb(error_exception.__traceback__))
                     udt_block = 1
                     hdr_type = ''
                 else:
@@ -531,6 +537,7 @@ class DATA_SYSTEM(HBSYSTEM):
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                                 logger.info(error_exception)
+                                logger.info(traceback.print_tb(error_exception.__traceback__))
                             try:
                             # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
                                 aprslib.parse(aprs_loc_packet)
@@ -542,6 +549,7 @@ class DATA_SYSTEM(HBSYSTEM):
                             except Exception as error_exception:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                                 logger.info(error_exception)
+                                logger.info(traceback.print_tb(error_exception.__traceback__))
                             #final_packet = ''
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
