@@ -9,6 +9,14 @@ There are three different branches to the project. All three branches contain hb
 
 # Installation
 
+Clone the git repository.
+
+`git clone https://github.com/kf7eel/hblink3`
+
+Change directory to hblink3.
+
+`cd hblink3`
+
 Install the required modules.
 
 `python3 -m pip install -r requirements.txt`
@@ -40,10 +48,20 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  Contains settings for logging to file, console, etc. Set log level here. Leave as default.
  
- **Note: The GPS_DATA stanza is only required in the configuration file that gps_data.py will be using.**
+ **[APRS]**
+
+**Note: This APRS stanza only applies to the _aprs_features_ beanch of the project. It is requires for beaconing the position of connected peers (repeaters or hotspots) and does not affect any GPS data from radios. This stanza only needs to be in hblink.cfg.**
+ 
+ This stanza contains the settings for APRS-IS, this stanza only applies to the **_aprs_features_** branch. When beaconing the location of a connected hotspot or repeater (not GPS location of a radio), the settings here are used.
  
  **[GPS_DATA]**
+
+**Note: The GPS_DATA stanza is only required in the configuration file that gps_data.py will be using.**
  
+ 
+ **[ALIASES]**
+ 
+ This is the configuration for downloading the latest DMR ID database from radioid.net. Default setting will fetch new DB every 7 days.
   
  **See notes below to continue configuration**
  
