@@ -1,3 +1,6 @@
+# [Home](https://kf7eel.github.io/hblink3/) | [Installation/Configuration](/install.html)
+
+
 # Installation
 
 ## WORK IN PROGRESS
