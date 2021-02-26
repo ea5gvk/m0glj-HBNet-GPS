@@ -1,6 +1,7 @@
+# Installation
+
 ## WORK IN PROGRESS
 
-# How to install HBLink3 with D-APRS
 
 ### Note about different branches:
 
@@ -48,12 +49,6 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  Contains settings for logging to file, console, etc. Set log level here. Leave as default.
  
- **[APRS]**
-
-**Note: This APRS stanza only applies to the _aprs_features_ beanch of the project. It is requires for beaconing the position of connected peers (repeaters or hotspots) and does not affect any GPS data from radios. This stanza only needs to be in hblink.cfg.**
- 
- This stanza contains the settings for APRS-IS, this stanza only applies to the **_aprs_features_** branch. When beaconing the location of a connected hotspot or repeater (not GPS location of a radio), the settings here are used.
- 
  **[GPS_DATA]**
 
 **Note: The GPS_DATA stanza is only required in the configuration file that gps_data.py will be using.**
@@ -66,19 +61,29 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  **See notes below to continue configuration**
  
  
- ## D-APRS as a client
+## D-APRS as a client
  
  Copy gps_data-SAMPLE.cfg to gps_data.cfg. Add a PEER stanza to connect to your network via MMDVM connection. Connecting the gateway to your network as a PEER is a fairly simple process. Add a MASTER stanza in you network configuration and call it something like "D-APRS". This is the MASTER that you will connect the gateway to as a client. You will need to modify rules.py on your network to allow the desired talkgroup/private calling to route to the gateway via MMDVM connection.
  
  You could also set a MASTER stanza and connect your network as a PEER. This is more suited for advanced users.
  
+ Mention rules.py
 
-### GPS branch
+### gps branch
 
-**gps branch**
+No more configuration reguired.
 
-**aprs_features branch**
+### aprs_features branch
+
+Modify the APRS stanza to your liking.
+
+ **[APRS]**
+
+**Note: This APRS stanza only applies to the _aprs_features_ beanch of the project. It is requires for beaconing the position of connected peers (repeaters or hotspots) and does not affect any GPS data from radios. This stanza only needs to be in hblink.cfg.**
  
+ This stanza contains the settings for APRS-IS, this stanza only applies to the **_aprs_features_** branch. When beaconing the location of a connected hotspot or repeater (not GPS location of a radio), the settings here are used.
+ 
+ You will also need to add **APRS: True** (or False) to each of your MASTER stanzas in hblink.cfg. Setting to false will disable the reporting of PEER locations (repeaters or hotspots) on the current MASTER stanza.
 
  # D-APRS built into bridge.py
   
