@@ -244,8 +244,8 @@ def process_sms(_rf_src, sms):
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), re.sub('@BB|@BB ','',sms))
     elif '@' and ' E-' in sms:
-        email_message = re.sub('.*@|.* E-', '', sms)
-        to_email = re.sub(' E-.*', '', sms)
+        email_message = str(re.sub('.*@|.* E-', '', sms))
+        to_email = str(re.sub(' E-.*', '', sms))
         email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
         logger.info('Email to: ' + to_email)
         logger.info('Message: ' + email_message)
