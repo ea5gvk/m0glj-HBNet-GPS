@@ -26,7 +26,7 @@ Install the required modules.
 
 `python3 -m pip install -r requirements.txt`
 
-_**Note: Ignore any errors regarding smtplib as that module come by default on most Linux distributions.**_
+_**Note: Ignore any errors regarding smtplib as that module comes by default on most Linux distributions.**_
 
 
 # Configuration
@@ -56,6 +56,20 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  **[GPS_DATA]**
 
 **Note: The GPS_DATA stanza is only required in the configuration file that gps_data.py will be using.**
+
+ DATA_DMR_ID - This is the DMR ID that users send DMR GPS data.
+ 
+ CALL_TYPE - group, unit, or both. Group if you want users to send data to a talkgroup, unit if you want users to send data as a private call, or both if you     want both options.
+ 
+ USER_APRS_SSID - Default APRS SSID assigned to user APRS positions.
+ 
+ USER_APRS_COMMENT - Default Comment attached to user APRS positions.
+ 
+ APRS_LOGIN_CALL, PASSCODE, SERVER, and PORT - Login settings for APRS-IS. Setting APRS_LOGIN_CALL to N0CALL will cause the gateway to not upload packets to  APRS server.
+ 
+ The IGATE settings are only applicable if you are using the gps_data_beacon_igate script. The gps_data_beacon_igate script uploads the position of the gateway as configured. This will cause APRS clients (such as aprs.fi) to see the gateway as an igate and keep statistics about it. The igate script does not effect the operation gps_data itself. Time in minutes.
+ 
+ The email gateway settings are OPTIONAL. They are NOT REQUIRED if you don't want to enable the email gateway. Leave as is to disable.
  
  
  **[ALIASES]**
@@ -66,7 +80,7 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  _**See notes below to continue configuration**_
  
  
-## D-APRS as a client
+### D-APRS as a client
  
  Copy gps_data-SAMPLE.cfg to gps_data.cfg. Add a PEER stanza to connect to your network via MMDVM connection. Connecting the gateway to your network as a PEER is a fairly simple process. Add a MASTER stanza in you network configuration and call it something like "D-APRS". This is the MASTER that you will connect the gateway to as a client. You will need to modify rules.py on your network to allow the desired talkgroup/private calling to route to the gateway via MMDVM connection.
  
@@ -74,11 +88,11 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  Mention rules.py
 
-### gps branch
+#### gps branch
 
 No more configuration reguired.
 
-### aprs_features branch
+#### aprs_features branch
 
 Modify the APRS stanza to your liking.
 
@@ -92,7 +106,7 @@ Modify the APRS stanza to your liking.
  
  See example hblink-SAMPLE.cfg in **aprs_features** branch.
 
-## D-APRS built into bridge.py
+### D-APRS built into bridge.py
 
 Using this method, there is no need to have a gps_data.cfg file, or separate script running. The D-APRS gateway is "baked" into bridge.py. This is also much simpler to configure.
 
