@@ -26,6 +26,7 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  **It is reccommended to run the gateway as a client.**
  
+ 
  # D-APRS as a client
  
  **gps branch**
