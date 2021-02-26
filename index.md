@@ -1,4 +1,4 @@
-# [Home](https://kf7eel.github.io/hblink3/) | [Installation/Configuration](/install.html)
+# [Home](https://kf7eel.github.io/hblink3/) | [Installation/Configuration](/hblink3/install.html)
 
 # GPS/Data Application
 
