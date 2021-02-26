@@ -68,13 +68,16 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
  # D-APRS as a client
  
- **gps branch**
+ Copy gps_data-SAMPLE.cfg to gps_data.cfg. Add a PEER stanza to connect to your network via MMDVM connection. Connecting the gateway to your network as a PEER is a fairly simple process. Add a MASTER stanza in you network configuration and call it something like "D-APRS". This is the MASTER that you will connect the gateway to as a client. You will need to modify rules.py on your network to allow the desired talkgroup/private calling to route to the gateway via MMDVM connection.
  
- Copy gps_data-SAMPLE.cfg to gps_data.cfg. Add a PEER stanza to connect to your network via MMDVM connection. You could also set a MASTER stanza and connect your network as a PEER. Connecting the gateway to your network as a PEER is much simpler though. 
+ You could also set a MASTER stanza and connect your network as a PEER. This is more suited for advanced users.
  
- Add a MASTER stanza in you network configuration and call it something like "D-APRS". This is the MASTER that you will connect the gateway to as a client. You will need to modify rules.py on your network to allow the desired talkgroup/private calling to route to the gateway via MMDVM connection.
- 
- **aprs_features branch**
+
+## GPS branch
+
+**gps branch**
+
+**aprs_features branch**
  
 
  # D-APRS built into bridge.py
@@ -83,5 +86,4 @@ First, it can be run as a client, think of it as a receive only DMR hotspot. Thi
  
 **aprs_features branch**
 
-# GPS branch
  
