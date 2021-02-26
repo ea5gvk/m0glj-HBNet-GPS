@@ -321,7 +321,7 @@ def process_sms(_rf_src, sms):
     elif 'A-' in sms and '@' in sms:
         #Example SMS text: @ARMDS A-This is a test.
         aprs_dest = re.sub('@| A-.*','',sms)
-        aprs_msg = re.sub('@.* A-|','',sms)
+        aprs_msg = re.sub('^@|.* A-|','',sms)
         logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
         user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
         if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
