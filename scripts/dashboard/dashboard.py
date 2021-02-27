@@ -24,6 +24,7 @@ This is a web dashboard for the GPS/Data application.
 from flask import Flask, render_template
 import ast, os
 from dashboard_settings import *
+import folium
 
 app = Flask(__name__)
 
@@ -125,6 +126,14 @@ def help():
 def about():
     #return get_data()
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+@app.route('/map/')
+def map():
+    user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    map_center = (46.9540700, 142.7360300)
+    folium_map = folium.Map(location=map_center, zoom_start=14)
+    for user_coord in user_loc:
+        folium.Marker(int([user_loc['lat']), int(str('-' + user_loc['lon']))], popup="<i>" + user_loc['call'] + "</i>", tooltip=user_loc['call']).add_to(m)
+    return folium_map._repr_html_()
 
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
