@@ -166,7 +166,13 @@ def view_map():
                 #folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(marker_cluster)
                 folium.CircleMarker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
         #return folium_map._repr_html_()
-        return  '{} {}'.format('<meta http-equiv="refresh" content="120">', folium_map._repr_html_())
+        return  '{} {}'.format("""<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="120" > 
+    <title>Tracking """ + track_call + """</title></head><p style="text-align: center;"><strong>Following """ + track_call + """</strong></p>
+<p style="text-align: center;"><em>Page automatically reloads every 2 minutes.</em></p>
+<p style="text-align: center;"><button onclick="self.close()">Close</button>
+</p>""", folium_map._repr_html_())
 
     if not track_call:
         folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
