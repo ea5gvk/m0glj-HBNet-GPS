@@ -1,7 +1,8 @@
 # Installation
 ----
 
-## [Home](https://kf7eel.github.io/hblink3/) | [Installation/Configuration](/hblink3/install.html)
+## [Home](https://kf7eel.github.io/hblink3/) | [Installation/Configuration](/hblink3/install.html) | [HBlink Website](https://hblink-org.github.io/)
+
 
 ----
 ## WORK IN PROGRESS
