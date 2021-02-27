@@ -131,11 +131,11 @@ def help():
 def about():
     #return get_data()
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
-@app.route('/map/')
-def map():
+@app.route('/view_map/')
+def view_map():
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
-    map_center = (47.9540700, -120.7360300)
-    folium_map = folium.Map(location=map_center, zoom_start=14)
+    #map_center = (47.9540700, -120.7360300)
+    folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
     for user_coord in user_loc:
         user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
         user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
@@ -145,6 +145,9 @@ def map():
             user_lon = -user_lon
         folium.Marker([user_lat, user_lon], popup="<i>" + str(user_coord['call']) + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
     return folium_map._repr_html_()
+@app.route('/map/')
+def map():
+    return render_template('map.html', title = dashboard_title, logo = logo)
 
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
