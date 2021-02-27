@@ -115,6 +115,14 @@ The web dashboard is completely optional. Python module flask is required for th
 
 **At this time, only sending of messages from DMR SMS to APRS-IS is supported.** I find this feature very pointless because it will only go one way, but someone else may find it important. **Messages from sent from APRS-IS to DMR SMS will not work.** I have not written the code for this yet. It will likley be a long time before this is a possibility.
 
+## APRS TOCALL
+
+The project was granted a [tocall](http://www.aprs.org/aprs11/tocalls.txt) of **APHBLx** by Bob Bruniga, WB4APR. This will identify that your APRS position came from HBLink. The x on the end can be any letter/number. Here are the current designations of APHBLx:
+
+* **APHBL3** - HBlink3 D-APRS gateway
+* **APHBLD** - DMRlink D-APRS gateway (the IPSC version of the project)
+* **_APHBLS_** - Planned, but not in use: HBLink3 via KISS TNC
+
 ## Configuration
 
 See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
