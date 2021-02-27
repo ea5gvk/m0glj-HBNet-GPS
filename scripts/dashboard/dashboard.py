@@ -143,7 +143,7 @@ def view_map():
             user_lat = -user_lat
         if 'W' in user_coord['lon']:
             user_lon = -user_lon
-        folium.Marker([user_lat, user_lon], popup="<i>" + str(user_coord['call']) + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
+        folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
     return folium_map._repr_html_()
 @app.route('/map/')
 def map():
