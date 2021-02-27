@@ -28,6 +28,7 @@ This should work for DMR radios that send location data as a UTF-8 NMEA sentence
 
 * **GPS**: Contains the GPS/Data Application.
 * **aprs_features**: Contains the GPS/Data Application and a modified version of the APRS implementation for repeaters and hotspots by **IU7IGU**. (See [https://github.com/iu7igu/hblink3-aprs](https://github.com/iu7igu/hblink3-aprs) for his work). I combined these for convenience.
+* **termux**: Tweaked version of this project that will run on Android in [Termux](https://termux.com/). **This branch is a WORK IN PROGRESS.**
 
 ## Confirmed working:
 Actually tested
