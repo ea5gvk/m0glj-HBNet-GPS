@@ -25,6 +25,7 @@ from flask import Flask, render_template
 import ast, os
 from dashboard_settings import *
 import folium
+from folium.plugins import MarkerCluster
 import re
 
 app = Flask(__name__)
@@ -146,6 +147,7 @@ def view_map():
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
     last_known_list = []
     folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
+    marker_cluster = MarkerCluster().add_to(folium_map)
     for user_coord in user_loc:
         user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
         user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
@@ -154,10 +156,11 @@ def view_map():
         if 'W' in user_coord['lon']:
             user_lon = -user_lon
         if user_coord['call'] not in last_known_list:
-            folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", icon=folium.Icon(color="red", icon="info-sign"), tooltip=str(user_coord['call'])).add_to(folium_map)
+            folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
             last_known_list.append(user_coord['call'])
         if user_coord['call'] in last_known_list:
-            folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
+            #folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(marker_cluster)
+            folium.CircleMarker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=2).add_to(marker_cluster)
     return folium_map._repr_html_()
 @app.route('/map/')
 def map():
