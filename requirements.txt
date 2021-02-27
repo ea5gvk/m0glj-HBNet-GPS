@@ -4,8 +4,7 @@ Twisted>=16.3.0
 dmr_utils3>=0.1.19
 configparser>=3.0.0
 aprslib>=0.6.42
-traceback
 pynmea2
 maidenhead
 flask
-smtplib
+folium

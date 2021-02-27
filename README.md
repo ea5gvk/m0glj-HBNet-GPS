@@ -15,8 +15,10 @@ Files modified from original master branch of HBLink3:
 
 #### Optional Modules
 * Flask - Required for dashboard
-* smtplib - Required for sending email. If pip fails to install module, it may already be installed as most Linux distrobutions have this module by default.
+* smtplib - Required for sending email. If pip fails to install module, it may already be installed as most Linux distributions have this module by default.
+* traceback - If pip fails to install module, it may already be installed as most Linux distrobutions have this module by default.
 * slixmpp - Required for upcoming XMPP gateway.
+* folium - Required for mapping on dashboard.
 
 This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
 

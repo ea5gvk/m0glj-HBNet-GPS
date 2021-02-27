@@ -24,6 +24,8 @@ This is a web dashboard for the GPS/Data application.
 from flask import Flask, render_template
 import ast, os
 from dashboard_settings import *
+import folium
+import re
 
 app = Flask(__name__)
 
@@ -101,6 +103,10 @@ def get_bb_data():
         return str('<h1 style="text-align: center;">Bulletin Board</h1>' + tbl_hdr + bb_hdr + tmp_bb + tbl_ftr)
     except:
         return str('<h1 style="text-align: center;">No data</h1>')
+def aprs_to_latlon(x):
+    degrees = int(x) // 100
+    minutes = x - 100*degrees
+    return degrees + minutes/60 
 
 @app.route('/')
 def index():
@@ -125,6 +131,23 @@ def help():
 def about():
     #return get_data()
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+@app.route('/view_map/')
+def view_map():
+    user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    #map_center = (47.9540700, -120.7360300)
+    folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
+    for user_coord in user_loc:
+        user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
+        user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
+        if 'S' in user_coord['lat']:
+            user_lat = -user_lat
+        if 'W' in user_coord['lon']:
+            user_lon = -user_lon
+        folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
+    return folium_map._repr_html_()
+@app.route('/map/')
+def map():
+    return render_template('map.html', title = dashboard_title, logo = logo)
 
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
