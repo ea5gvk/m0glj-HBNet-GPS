@@ -25,6 +25,7 @@ from flask import Flask, render_template
 import ast, os
 from dashboard_settings import *
 import folium
+import re
 
 app = Flask(__name__)
 
@@ -102,6 +103,10 @@ def get_bb_data():
         return str('<h1 style="text-align: center;">Bulletin Board</h1>' + tbl_hdr + bb_hdr + tmp_bb + tbl_ftr)
     except:
         return str('<h1 style="text-align: center;">No data</h1>')
+def aprs_to_latlon(x):
+    degrees = int(x) // 100
+    minutes = x - 100*degrees
+    return degrees + minutes/60 
 
 @app.route('/')
 def index():
@@ -129,10 +134,16 @@ def about():
 @app.route('/map/')
 def map():
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
-    map_center = (46.9540700, 142.7360300)
+    map_center = (47.9540700, -120.7360300)
     folium_map = folium.Map(location=map_center, zoom_start=14)
     for user_coord in user_loc:
-        folium.Marker(int([user_loc['lat']), int(str('-' + user_loc['lon']))], popup="<i>" + user_loc['call'] + "</i>", tooltip=user_loc['call']).add_to(m)
+        user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
+        user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
+        if 'S' in user_coord['lat']:
+            user_lat = -user_lat
+        if 'W' in user_coord['lon']:
+            user_lon = -user_lon
+        folium.Marker([user_lat, user_lon], popup="<i>" + str(user_coord['call']) + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
     return folium_map._repr_html_()
 
 if __name__ == '__main__':
