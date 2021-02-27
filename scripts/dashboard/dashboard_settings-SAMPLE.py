@@ -51,3 +51,4 @@ contact_website = 'https://hbl.ink'
 # Center dashboard map over these coordinates
 map_center = (47.00, -120.00)
 zoom_level = 7
+

@@ -104,7 +104,7 @@ __status__     = 'pre-alpha'
 # AT-D878 - Compressed UDP
 # MD-380 - Unified Data Transport
 hdr_type = ''
-btf = ''
+btf = -1
 ssid = ''
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
@@ -160,7 +160,7 @@ def dashboard_loc_write(call, lat, lon, time):
     #    dash_entries = []
     dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
     with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
-            user_loc_file.write(str(dash_entries[:15]))
+            user_loc_file.write(str(dash_entries[:50]))
             user_loc_file.close()
     logger.info('User location saved for dashboard')
     #logger.info(dash_entries)
@@ -321,7 +321,7 @@ def process_sms(_rf_src, sms):
     elif 'A-' in sms and '@' in sms:
         #Example SMS text: @ARMDS A-This is a test.
         aprs_dest = re.sub('@| A-.*','',sms)
-        aprs_msg = re.sub('@.* A-|','',sms)
+        aprs_msg = re.sub('^@|.* A-|','',sms)
         logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
         user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
         if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':

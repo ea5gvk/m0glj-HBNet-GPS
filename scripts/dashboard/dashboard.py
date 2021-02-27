@@ -58,7 +58,12 @@ def get_loc_data():
     </td>
     </tr>
     '''
+        display_number = 15
         for e in dash_loc:
+            if display_number == 0:
+                break
+            else:
+                display_number = display_number - 1
             tmp_loc = tmp_loc + '''<tr>
     <td style="text-align: center;"><a href="https://aprs.fi/''' + e['call'] + '''"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
