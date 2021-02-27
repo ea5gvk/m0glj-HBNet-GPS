@@ -58,19 +58,24 @@ def get_loc_data():
     </td>
     </tr>
     '''
+        last_known_loc_list = []
         display_number = 15
         for e in dash_loc:
             if display_number == 0:
                 break
             else:
-                display_number = display_number - 1
-            tmp_loc = tmp_loc + '''<tr>
+                if e['call'] in last_known_loc_list:
+                    pass
+                if e['call'] not in last_known_loc_list:
+                    last_known_loc_list.append(e['call'])
+                    display_number = display_number - 1
+                    tmp_loc = tmp_loc + '''<tr>
     <td style="text-align: center;"><a href="https://aprs.fi/''' + e['call'] + '''"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
     </tr>'''
-        return str(str('<h1 style="text-align: center;">Positions Received</h1>') + tbl_hdr + loc_hdr + tmp_loc + tbl_ftr)
+        return str(str('<h1 style="text-align: center;">Last Known Location</h1>') + tbl_hdr + loc_hdr + tmp_loc + tbl_ftr)
     except:
         return str('<h1 style="text-align: center;">No data</h1>')
 
@@ -139,7 +144,7 @@ def about():
 @app.route('/view_map/')
 def view_map():
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
-    #map_center = (47.9540700, -120.7360300)
+    last_known_list = []
     folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
     for user_coord in user_loc:
         user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
@@ -148,7 +153,11 @@ def view_map():
             user_lat = -user_lat
         if 'W' in user_coord['lon']:
             user_lon = -user_lon
-        folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
+        if user_coord['call'] not in last_known_list:
+            folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", icon=folium.Icon(color="red", icon="info-sign"), tooltip=str(user_coord['call'])).add_to(folium_map)
+            last_known_list.append(user_coord['call'])
+        if user_coord['call'] in last_known_list:
+            folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(folium_map)
     return folium_map._repr_html_()
 @app.route('/map/')
 def map():
