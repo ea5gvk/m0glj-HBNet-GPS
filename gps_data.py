@@ -180,7 +180,10 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
 def sos_write(dmr_id, time, message):
     user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
     try:
-        sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
+        if user_settings[dmr_id][1]['ssid'] == '':
+            sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
+        else:
+            sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
     except:
         sos_call = str(get_alias((dmr_id), subscriber_ids))
     sos_info = {'call': sos_call, 'dmr_id': dmr_id, 'time': time, 'message':message}
@@ -270,7 +273,7 @@ def process_sms(_rf_src, sms):
             logger.info(error_exception)
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     elif '@SOS' in sms:
-        sos_write(int_id(_rf_src), 'time', sms)
+        sos_write(int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), sms)
     elif '@REM SOS' == sms:
         os.remove('/tmp/gps_data_user_sos.txt')
         logger.info('Removing SOS')
