@@ -144,6 +144,7 @@ def about():
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
 @app.route('/view_map')
 def view_map():
+    reload_time = request.args.get('reload')
     track_call = request.args.get('track')
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
     last_known_list = []
@@ -158,24 +159,61 @@ def view_map():
             if 'W' in user_coord['lon']:
                 user_lon = -user_lon
             if user_coord['call'] not in last_known_list and user_coord['call'] == track_call:
-                folium_map = folium.Map(location=[user_lat, user_lon], zoom_start=15)
+                folium_map = folium.Map(location=[user_lat, user_lon], tiles="Stamen Toner", zoom_start=15)
                 marker_cluster = MarkerCluster().add_to(folium_map)
-                folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
+   #             folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
+                folium.Marker([user_lat, user_lon], popup="""<i>
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;">Last Location:</td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><strong>"""+ str(user_coord['call']) +"""</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>"""+ user_coord['time'] +"""</em></td>
+                </tr>
+                </tbody>
+                </table>
+                </i>
+                """, icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
                 last_known_list.append(user_coord['call'])
             if user_coord['call'] in last_known_list and user_coord['call'] == track_call:
                 #folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(marker_cluster)
-                folium.CircleMarker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+                folium.CircleMarker([user_lat, user_lon], popup="""
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                </tr>
+                </tbody>
+                </table>
+                """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
         #return folium_map._repr_html_()
-        return  '{} {}'.format("""<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="120" > 
-    <title>Tracking """ + track_call + """</title></head><p style="text-align: center;"><strong>Following """ + track_call + """</strong></p>
-<p style="text-align: center;"><em>Page automatically reloads every 2 minutes.</em></p>
-<p style="text-align: center;"><button onclick="self.close()">Close</button>
-</p>""", folium_map._repr_html_())
+            if not reload_time:
+                reload_time = 120
+        return  '{} {}'.format('''<head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="refresh" content="''' + str(reload_time) + """" > 
+                    <title>""" + dashboard_title + """ - Tracking """+ track_call + """</title></head><p style="text-align: center;"><strong>""" + dashboard_title + """ - Tracking """ + track_call + """</strong></p>
+                <p style="text-align: center;"><em>Page automatically reloads every """ + str(reload_time) + """ seconds.</em></p>
+                <p style="text-align: center;">
+                    <select name="sample" onchange="location = this.value;">
+                     <option value="view_map?track=""" + track_call + """&reload=120">2 Minutes</option>
+                     <option value="view_map?track=""" + track_call + """&reload=">Don't Reload</option>
+                     <option value="view_map?track=""" + track_call + """&reload=30">30 Seconds</option>
+                     <option value="view_map?track=""" + track_call + """&reload=5">5 Minutes</option>
+                     <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
+                    </select> 
+                <p style="text-align: center;"><button onclick="self.close()">Close</button>
+                </p>""", folium_map._repr_html_())
 
     if not track_call:
-        folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
+        folium_map = folium.Map(location=map_center, tiles="Stamen Toner", zoom_start=int(zoom_level))
         marker_cluster = MarkerCluster().add_to(folium_map)
         for user_coord in user_loc:
             user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
@@ -185,11 +223,43 @@ def view_map():
             if 'W' in user_coord['lon']:
                 user_lon = -user_lon
             if user_coord['call'] not in last_known_list:
-                folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + '\n<A href="view_map?track=' + user_coord['call'] + """" target="_blank">Track Station</A></i>""", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
+                #folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>Last Location: \n' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + '\n<A href="view_map?track=' + user_coord['call'] + """" target="_blank">Track Station</A></i>""", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
+                folium.Marker([user_lat, user_lon], popup="""<i>
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;">Last Location:</td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><strong><A href="view_map?track=""" + user_coord['call'] + """" target="_blank">Track Station</A></strong></td>
+                </tr>
+                </tbody>
+                </table>
+
+                </i>""", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
                 last_known_list.append(user_coord['call'])
             if user_coord['call'] in last_known_list:
                 #folium.Marker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call'])).add_to(marker_cluster)
-                folium.CircleMarker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+                #folium.CircleMarker([user_lat, user_lon], popup="<i>" + '<strong>' + str(user_coord['call']) + '</strong>' + '\n' + user_coord['time'] + "</i>", tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+                folium.CircleMarker([user_lat, user_lon], popup="""
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                </tr>
+                </tbody>
+                </table>
+                """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+
         return folium_map._repr_html_()
 @app.route('/map/')
 def map():
