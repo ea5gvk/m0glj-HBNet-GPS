@@ -183,6 +183,18 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
             user_bb_file.close()
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
+    
+def sos_write(dmr_id, time, message):
+    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+    try:
+        sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
+    except:
+        sos_call = str(get_alias((dmr_id), subscriber_ids))
+    sos_info = {'call': sos_call, 'dmr_id': dmr_id, 'time': time, 'message':message}
+    with open("/tmp/gps_data_user_sos.txt", 'w') as sos_file:
+            sos_file.write(str(sos_info))
+            sos_file.close()
+    logger.info('Saved SOS.')
 
 # Send email via SMTP function
 def send_email(to_email, email_subject, email_message):
@@ -264,6 +276,11 @@ def process_sms(_rf_src, sms):
             logger.info('Failed to send email.')
             logger.info(error_exception)
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+    elif '@SOS' in sms:
+        sos_write(int_id(_rf_src), 'time', sms)
+    elif '@REM SOS' == sms:
+        os.remove('/tmp/gps_data_user_sos.txt')
+        logger.info('Removing SOS')
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
