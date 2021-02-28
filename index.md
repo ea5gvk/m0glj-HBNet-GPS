@@ -101,7 +101,8 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
 |**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 A-This is a test.`|
 |**[EMAIL ADDRESS] E-[MESSAGE]**|Send an email to an email address.|`test@example.org E-This is a test.`| 
-
+|**@SOS**|Any SMS with @SOS in it will trigger an EMERGENCY notice on the dashboard|`@SOS THIS IS ONLY A TEST`|
+|**@REM SOS**|Removes EMERGENCY notice from dashboard.|`@REM SOS`|
 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
@@ -112,9 +113,31 @@ Sending `@BB Test` will result in a post to the bulletin board with the messaage
 **To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
 
 
-## Web Dashboard
+# Web Dashboard
 
 The web dashboard is completely optional. Python module flask is required for this to work. The web dashboard will display the last 15 positions of radios sent to APRS-IS. The dashboard will also sh user bulletin. A bulletin is a message sent via SMS that will display on the web dashboard. There are several uses for this, including: testing SMS functionality of radio, announcements, and moire. It is a novel feature. The page will automatically reload every 2 minutes. Setup is rather simple. Just modify the example config in the dashboard directory and rename it to dashboard_settings.py. Then start dashboard.py. 
+
+### Dashboard Features
+
+* View the Latitude and Longitude of sent positions
+* Post short messages to a bulletin board
+* View Bulletin Board messages as an RSS feed
+* Plot received positions on a map
+* Activate an EMERGENCY message on the dashboard.
+
+### Dashboard Screenshots
+
+![Main Page](https://github.com/kf7eel/hblink3/raw/gh-pages/normal.png)
+
+---
+
+![Map](https://github.com/kf7eel/hblink3/raw/gh-pages/map2.png)
+
+---
+
+![Emergency](https://github.com/kf7eel/hblink3/raw/gh-pages/emergency_screen.png)
+
+
 
 ## APRS messaging
 
