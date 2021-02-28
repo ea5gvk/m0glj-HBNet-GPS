@@ -140,6 +140,7 @@ def check_emergency():
         </table>
         <p>&nbsp;</p>
          <button onclick="window.open('view_map?track=""" + sos_file['call'] + """&reload=30','_blank' );" type="button" class="emergency_button"><h1>View Station on Map</h1></button>
+         <p style="text-align: center;"><a href="https://aprs.fi/""" + sos_file['call'] + """"><strong>View on aprs.fi</strong></a></p> 
          <hr />
 
         """)
@@ -296,23 +297,25 @@ def map():
 
 @app.route('/bulletin_rss.xml')
 def bb_rss():
-    #return render_template('map.html', title = dashboard_title, logo = logo)
-    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
-    post_data = ''
-    rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
-    <rss version="2.0">
-    <channel>
-      <title>""" + dashboard_title + """ - Bulletin Board Feed</title>
-      <link>""" + rss_link + """</link>
-      <description>This is the Bulletin Board feed from """ + dashboard_title + """</description>"""
-    for entry in dash_bb:
-        post_data = post_data + """
-         <item>
-            <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
-            <link>""" + rss_link + """</link>
-            <description>""" + entry['bulletin'] + """ - """ + entry['time'] + """</description>
-          </item>
-"""
-    return Response(rss_header + post_data + "</channel>\n</rss>", mimetype='text/xml')
+    try:
+        dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+        post_data = ''
+        rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
+        <rss version="2.0">
+        <channel>
+          <title>""" + dashboard_title + """ - Bulletin Board Feed</title>
+          <link>""" + rss_link + """</link>
+          <description>This is the Bulletin Board feed from """ + dashboard_title + """</description>"""
+        for entry in dash_bb:
+            post_data = post_data + """
+             <item>
+                <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
+                <link>""" + rss_link + """</link>
+                <description>""" + entry['bulletin'] + """ - """ + entry['time'] + """</description>
+              </item>
+    """
+        return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
+    except:
+        return str('<h1 style="text-align: center;">No data</h1>')
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)
