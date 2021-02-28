@@ -21,7 +21,7 @@
 This is a web dashboard for the GPS/Data application.
 '''
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 import ast, os
 from dashboard_settings import *
 import folium
@@ -107,7 +107,7 @@ def get_bb_data():
             tmp_bb = tmp_bb + '''<tr>
     <td style="text-align: center;"><strong>&nbsp;''' + e['call'] + '''&nbsp;</strong></td>
     <td style="text-align: center;">''' + str(e['dmr_id']) + '''</td>
-    <td style="text-align: center;"><strong>&nbsp;''' + e['bulliten'] + '''&nbsp;</strong></td>
+    <td style="text-align: center;"><strong>&nbsp;''' + e['bulletin'] + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
     </tr>'''
 
@@ -265,5 +265,25 @@ def view_map():
 def map():
     return render_template('map.html', title = dashboard_title, logo = logo)
 
+@app.route('/bulletin_rss.xml')
+def bb_rss():
+    #return render_template('map.html', title = dashboard_title, logo = logo)
+    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+    post_data = ''
+    rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
+    <rss version="2.0">
+    <channel>
+      <title>""" + dashboard_title + """ - Bulletin Board Feed</title>
+      <link>""" + rss_link + """</link>
+      <description>This is the Bulletin Board feed from """ + dashboard_title + """</description>"""
+    for entry in dash_bb:
+        post_data = post_data + """
+         <item>
+            <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
+            <link>""" + rss_link + """</link>
+            <description>""" + entry['bulletin'] + """ - """ + entry['time'] + """</description>
+          </item>
+"""
+    return Response(rss_header + post_data + "</channel>\n</rss>", mimetype='text/xml')
 if __name__ == '__main__':
     app.run(debug = True, port=dash_port, host=dash_host)

@@ -52,3 +52,6 @@ contact_website = 'https://hbl.ink'
 map_center = (47.00, -120.00)
 zoom_level = 7
 
+# RSS feed link, shows in the link section of each RSS item.
+rss_link = 'http://localhost:8092'
+
