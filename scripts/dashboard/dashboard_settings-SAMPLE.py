@@ -51,6 +51,9 @@ contact_website = 'https://hbl.ink'
 # Center dashboard map over these coordinates
 map_center = (47.00, -120.00)
 zoom_level = 7
+# List and preview of some map themes at http://leaflet-extras.github.io/leaflet-providers/preview/
+# The following are options for map themes and just work, you should use one of these: “OpenStreetMap”, “Stamen” (Terrain, Toner, and Watercolor),
+map_theme = 'Stamen Toner'
 
 # RSS feed link, shows in the link section of each RSS item.
 rss_link = 'http://localhost:8092'
