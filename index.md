@@ -103,7 +103,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**[EMAIL ADDRESS] E-[MESSAGE]**|Send an email to an email address.|`test@example.org E-This is a test.`| 
 |**@SOS**|Any SMS with @SOS in it will trigger an EMERGENCY notice on the dashboard|`@SOS THIS IS ONLY A TEST`|
 |**@NOTICE**|Any SMS with @NOTICE in it will trigger a notice on the dashboard, can be used to test EMERGENCY function.|`@NOTICE THIS IS ONLY A TEST`|
-|**@REM SOS**|Removes EMERGENCY notice from dashboard.|`@REM SOS`|
+|**@REM SOS**|Removes EMERGENCY or general notice from dashboard.|`@REM SOS`|
 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
