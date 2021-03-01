@@ -280,7 +280,7 @@ def process_sms(_rf_src, sms):
             logger.info('Failed to send email.')
             logger.info(error_exception)
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-    elif '@SOS' in sms:
+    elif '@SOS' in sms or '@NOTICE' in sms:
         sos_write(int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), sms)
     elif '@REM SOS' == sms:
         os.remove('/tmp/gps_data_user_sos.txt')
