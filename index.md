@@ -102,6 +102,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 A-This is a test.`|
 |**[EMAIL ADDRESS] E-[MESSAGE]**|Send an email to an email address.|`test@example.org E-This is a test.`| 
 |**@SOS**|Any SMS with @SOS in it will trigger an EMERGENCY notice on the dashboard|`@SOS THIS IS ONLY A TEST`|
+|**@NOTICE**|Any SMS with @NOTICE in it will trigger a notice on the dashboard, can be used to test EMERGENCY function.|`@NOTICE THIS IS ONLY A TEST`|
 |**@REM SOS**|Removes EMERGENCY notice from dashboard.|`@REM SOS`|
 
 
