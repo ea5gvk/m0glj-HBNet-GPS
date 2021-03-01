@@ -196,7 +196,7 @@ def view_map():
                 if 'W' in user_coord['lon']:
                     user_lon = -user_lon
                 if user_coord['call'] not in last_known_list and user_coord['call'] == track_call:
-                    folium_map = folium.Map(location=[user_lat, user_lon], tiles="Stamen Toner", zoom_start=15)
+                    folium_map = folium.Map(location=[user_lat, user_lon], tiles=map_theme, zoom_start=15)
                     marker_cluster = MarkerCluster().add_to(folium_map)
                     folium.Marker([user_lat, user_lon], popup="""<i>
                     <table style="width: 150px;">
@@ -251,7 +251,7 @@ def view_map():
                   <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
                 </p>"""
     if not track_call:
-        folium_map = folium.Map(location=map_center, tiles="Stamen Toner", zoom_start=int(zoom_level))
+        folium_map = folium.Map(location=map_center, tiles=map_theme, zoom_start=int(zoom_level))
         marker_cluster = MarkerCluster().add_to(folium_map)
         for user_coord in user_loc:
             user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))

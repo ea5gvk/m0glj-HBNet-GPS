@@ -167,7 +167,7 @@ def dashboard_loc_write(call, lat, lon, time):
     #    dash_entries = []
     dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
     with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
-            user_loc_file.write(str(dash_entries[:50]))
+            user_loc_file.write(str(dash_entries[:200]))
             user_loc_file.close()
     logger.info('User location saved for dashboard')
     #logger.info(dash_entries)
