@@ -71,7 +71,7 @@ def get_loc_data():
                     last_known_loc_list.append(e['call'])
                     display_number = display_number - 1
                     tmp_loc = tmp_loc + '''<tr>
-    <td style="text-align: center;"><a href="https://aprs.fi/''' + e['call'] + '''"><strong>''' + e['call'] + '''</strong></a></td>
+    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
@@ -240,11 +240,12 @@ def view_map():
                          <option value="view_map?track=""" + track_call + """&reload=5">5 Minutes</option>
                          <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
                         </select> 
-                    <p style="text-align: center;"><button onclick="self.close()">Close</button>
+                    <p style="text-align: center;"><button onclick="self.close()">Close</button><button onclick="history.back()">Back</button>
                     </p>""", folium_map._repr_html_())
     except:
         return """<h1 style="text-align: center;">Station not found.</h1>
-                  <p style="text-align: center;"><button onclick="self.close()">Close Window</button></p>"""
+                  <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
+                </p>"""
     if not track_call:
         folium_map = folium.Map(location=map_center, tiles="Stamen Toner", zoom_start=int(zoom_level))
         marker_cluster = MarkerCluster().add_to(folium_map)
