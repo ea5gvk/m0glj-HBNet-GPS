@@ -1478,8 +1478,13 @@ class routerHBP(HBSYSTEM):
                     lon_min = ba2num(bptc_decode(_data)[46:52])
                     lat_min_dec = str(ba2num(bptc_decode(_data)[24:38])).zfill(4)
                     lon_min_dec = str(ba2num(bptc_decode(_data)[52:66])).zfill(4)
-                    aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
-                    aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+                    # Old MD-380 coordinate format, keep here until new is confirmed working.
+                    #aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
+                    #aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+                    # Fix for MD-380 by G7HIF
+                    aprs_lat = str(str(lat_deg) + str(lat_min).zfill(2) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
+                    aprs_lon = str(str(lon_deg) + str(lon_min).zfill(2) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+
                     # Form APRS packet
                     #logger.info(aprs_loc_packet)
                     logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
