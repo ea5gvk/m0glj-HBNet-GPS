@@ -179,7 +179,7 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
     #    dash_entries = []
     dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
     with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
-            user_bb_file.write(str(dash_bb[:10]))
+            user_bb_file.write(str(dash_bb[:20]))
             user_bb_file.close()
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
