@@ -102,14 +102,19 @@ def get_bb_data():
     </td>
     </tr>
     '''
+        display_number = 10
         
         for e in dash_bb:
-            tmp_bb = tmp_bb + '''<tr>
-    <td style="text-align: center;"><strong>&nbsp;''' + e['call'] + '''&nbsp;</strong></td>
-    <td style="text-align: center;">''' + str(e['dmr_id']) + '''</td>
-    <td style="text-align: center;"><strong>&nbsp;''' + e['bulletin'] + '''&nbsp;</strong></td>
-    <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
-    </tr>'''
+            if display_number == 0:
+                break
+            else:
+                display_number = display_number - 1
+                tmp_bb = tmp_bb + '''<tr>
+        <td style="text-align: center;"><strong>&nbsp;''' + e['call'] + '''&nbsp;</strong></td>
+        <td style="text-align: center;">''' + str(e['dmr_id']) + '''</td>
+        <td style="text-align: center;"><strong>&nbsp;''' + e['bulletin'] + '''&nbsp;</strong></td>
+        <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
+        </tr>'''
 
         return str('<h1 style="text-align: center;">Bulletin Board</h1>' + tbl_hdr + bb_hdr + tmp_bb + tbl_ftr)
     except:
