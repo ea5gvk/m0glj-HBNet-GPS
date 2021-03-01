@@ -71,7 +71,7 @@ def get_loc_data():
                     last_known_loc_list.append(e['call'])
                     display_number = display_number - 1
                     tmp_loc = tmp_loc + '''<tr>
-    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''"><strong>''' + e['call'] + '''</strong></a></td>
+    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''&map_size=full"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
@@ -182,6 +182,7 @@ def about():
 def view_map():
     reload_time = request.args.get('reload')
     track_call = request.args.get('track')
+    map_size = request.args.get('map_size')
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
     last_known_list = []
     try:
@@ -231,10 +232,25 @@ def view_map():
             #return folium_map._repr_html_()
                 if not reload_time:
                     reload_time = 120
-            return  '{} {}'.format('''<head>
+            if not map_size:
+                map_view = '''<table style="width: 1000px; height: 600px; margin-left: auto; margin-right: auto;" border="1">
+                        <tbody>
+                        <tr>
+                        <td>
+                        ''' + folium_map._repr_html_() + '''</td>
+                        </tr>
+                        </tbody>
+                        </table>'''
+            if map_size == 'full':
+                map_view = folium_map._repr_html_()
+
+            return  '{} {}'.format('''
+                    <head>
                         <meta charset="UTF-8">
                         <meta http-equiv="refresh" content="''' + str(reload_time) + """" > 
-                        <title>""" + dashboard_title + """ - Tracking """+ track_call + """</title></head><p style="text-align: center;"><strong>""" + dashboard_title + """ - Tracking """ + track_call + """</strong></p>
+                        <title>""" + dashboard_title + """ - Tracking """+ track_call + """</title>
+                    </head>
+                    <p style="text-align: center;"><strong>""" + dashboard_title + """ - Tracking """ + track_call + """</strong></p>
                     <p style="text-align: center;"><em>Page automatically reloads every """ + str(reload_time) + """ seconds.</em></p>
                     <p style="text-align: center;">
                         <select name="sample" onchange="location = this.value;">
@@ -245,7 +261,8 @@ def view_map():
                          <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
                         </select> 
                     <p style="text-align: center;"><button onclick="self.close()">Close</button><button onclick="history.back()">Back</button>
-                    </p>""", folium_map._repr_html_())
+                    </p>
+                     """, map_view)
     except:
         return """<h1 style="text-align: center;">Station not found.</h1>
                   <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
