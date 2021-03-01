@@ -249,7 +249,7 @@ def view_map():
             if map_size == 'full':
                 map_view = folium_map._repr_html_()
 
-            return  '{} {}'.format('''
+            content = '''
                     <head>
                         <meta charset="UTF-8">
                         <meta http-equiv="refresh" content="''' + str(reload_time) + """" > 
@@ -267,11 +267,14 @@ def view_map():
                         </select> 
                     <p style="text-align: center;"><button onclick="self.close()">Close</button><button onclick="history.back()">Back</button>
                     </p>
-                     """, map_view)
+                     """ + map_view
+            return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
     except:
-        return """<h1 style="text-align: center;">Station not found.</h1>
+        content = """<h1 style="text-align: center;">Station not found.</h1>
                   <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
                 </p>"""
+        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+
     if not track_call:
         folium_map = folium.Map(location=map_center, tiles=map_theme, zoom_start=int(zoom_level))
         marker_cluster = MarkerCluster().add_to(folium_map)
@@ -318,6 +321,7 @@ def view_map():
                 """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
 
         return folium_map._repr_html_()
+    
 @app.route('/map/')
 def map():
     return render_template('map.html', title = dashboard_title, logo = logo)
@@ -358,6 +362,8 @@ def user_settings():
                 ssid = aprs_ssid
             if icon == '':
                 icon = '\['
+            if comment == '':
+                comment = 'Default comment.'
             #for result in user_settings:
             #return user_settings[int(user_id)][0]
             #return user_id
