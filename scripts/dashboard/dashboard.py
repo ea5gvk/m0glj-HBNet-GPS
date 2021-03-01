@@ -71,7 +71,7 @@ def get_loc_data():
                     last_known_loc_list.append(e['call'])
                     display_number = display_number - 1
                     tmp_loc = tmp_loc + '''<tr>
-    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''&map_size=full"><strong>''' + e['call'] + '''</strong></a></td>
+    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''"target="_blank"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
@@ -321,6 +321,77 @@ def view_map():
 @app.route('/map/')
 def map():
     return render_template('map.html', title = dashboard_title, logo = logo)
+
+@app.route('/user')
+def user_settings():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        user_result = """
+        <form action="user" method="get">
+        <table style="margin-left: auto; margin-right: auto;">
+        <tbody>
+        <tr style="height: 62px;">
+        <td style="text-align: center; height: 62px;">
+        <h2><strong><label for="user_id">DMR ID:</label></strong></h2>
+        </td>
+        </tr>
+        <tr style="height: 51.1667px;">
+        <td style="height: 51.1667px;"><input id="user_id" name="user_id" type="text" /></td>
+        </tr>
+        <tr style="height: 27px;">
+        <td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+        </tr>
+        </tbody>
+        </table>
+        </form>
+
+"""
+    else:
+        try:
+        #return render_template('map.html', title = dashboard_title, logo = logo)
+            user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())
+            call = user_settings[int(user_id)][0]['call']
+            ssid = user_settings[int(user_id)][1]['ssid']
+            icon = user_settings[int(user_id)][2]['icon']
+            comment = user_settings[int(user_id)][3]['comment']
+            if ssid == '':
+                ssid = aprs_ssid
+            if icon == '':
+                icon = '\['
+            #for result in user_settings:
+            #return user_settings[int(user_id)][0]
+            #return user_id
+            #return user_settings
+            user_result =  """<h2 style="text-align: center;">&nbsp;Settings for ID: """ + user_id + """</h2>
+                <table style="margin-left: auto; margin-right: auto; width: 419.367px;" border="1">
+                <tbody>
+                <tr>
+                <td style="width: 82px;"><strong>Callsign:</strong></td>
+                <td style="width: 319.367px; text-align: center;">""" + user_settings[int(user_id)][0]['call'] + """</td>
+                </tr>
+                <tr>
+                <td style="width: 82px;"><strong>SSID:</strong></td>
+                <td style="width: 319.367px; text-align: center;">""" + ssid + """</td>
+                </tr>
+                <tr>
+                <td style="width: 82px;"><strong>Icon:</strong></td>
+                <td style="width: 319.367px; text-align: center;">""" + icon + """</td>
+                </tr>
+                <tr>
+                <td style="width: 82px;"><strong>Comment:</strong></td>
+                <td style="width: 319.367px; text-align: center;">""" + comment + """</td>
+                </tr>
+                </tbody>
+                </table>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                                    </p>
+                                     """
+        except:
+            user_result = '''<h2 style="text-align: center;">User ID not found.</h2>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                        </p>'''
+        
+    return render_template('user_settings.html', title = dashboard_title, logo = logo, user_result = Markup(user_result))
 
 @app.route('/bulletin_rss.xml')
 def bb_rss():
