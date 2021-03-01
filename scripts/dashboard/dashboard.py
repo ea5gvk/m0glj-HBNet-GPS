@@ -119,8 +119,12 @@ def check_emergency():
     # open emergency txt
     try:
         sos_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_sos.txt').read())
+        if '@NOTICE' in sos_file['message'] and '@SOS' not in sos_file['message']:
+            notice_header = '<span style="background-color: #ffffff; color: #008000;">NOTICE:</span>'
+        else:
+            notice_header = '<span style="background-color: #ff0000; color: #ffffff;">EMERGENCY ACTIVATION</span>'
         value = Markup("""
-        <h1 style="text-align: center;"><span style="background-color: #ff0000; color: #ffffff;">EMERGENCY ACTIVATION</span></h1>
+        <h1 style="text-align: center;">""" +  notice_header  + """</h1>
         <p>&nbsp;</p>
         <table style="width: 441px; margin-left: auto; margin-right: auto;" border="3">
         <tbody>
