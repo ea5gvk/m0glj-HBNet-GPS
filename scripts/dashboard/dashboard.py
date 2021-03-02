@@ -27,6 +27,7 @@ from dashboard_settings import *
 import folium
 from folium.plugins import MarkerCluster
 import re
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -68,17 +69,21 @@ def get_loc_data():
                 if e['call'] in last_known_loc_list:
                     pass
                 if e['call'] not in last_known_loc_list:
+                    if type(e['time']) == str:
+                        loc_time = str(e['time'])
+                    if type(e['time']) == int or type(e['time']) == float:
+                        loc_time = datetime.fromtimestamp(e['time']).strftime(time_format)
                     last_known_loc_list.append(e['call'])
                     display_number = display_number - 1
                     tmp_loc = tmp_loc + '''<tr>
     <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''"target="_blank"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
-    <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + loc_time + '''&nbsp;</td>
     </tr>'''
         return str(str('<h1 style="text-align: center;">Last Known Location</h1>') + tbl_hdr + loc_hdr + tmp_loc + tbl_ftr)
     except:
-        return str('<h1 style="text-align: center;">No data</h1>')
+       return str('<h1 style="text-align: center;">No data</h1>')
 
 
 def get_bb_data():
@@ -108,12 +113,16 @@ def get_bb_data():
             if display_number == 0:
                 break
             else:
+                if type(e['time']) == str:
+                        loc_time = str(e['time'])
+                if type(e['time']) == int or type(e['time']) == float:
+                        loc_time = datetime.fromtimestamp(e['time']).strftime(time_format)
                 display_number = display_number - 1
                 tmp_bb = tmp_bb + '''<tr>
         <td style="text-align: center;"><strong>&nbsp;''' + e['call'] + '''&nbsp;</strong></td>
         <td style="text-align: center;">''' + str(e['dmr_id']) + '''</td>
         <td style="text-align: center;"><strong>&nbsp;''' + e['bulletin'] + '''&nbsp;</strong></td>
-        <td style="text-align: center;">&nbsp;''' + e['time'] + '''&nbsp;</td>
+        <td style="text-align: center;">&nbsp;''' + loc_time + '''&nbsp;</td>
         </tr>'''
 
         return str('<h1 style="text-align: center;">Bulletin Board</h1>' + tbl_hdr + bb_hdr + tmp_bb + tbl_ftr)
@@ -127,6 +136,10 @@ def check_emergency():
         if '@NOTICE' in sos_file['message'] and '@SOS' not in sos_file['message']:
             notice_header = '<span style="background-color: #ffffff; color: #008000;">NOTICE:</span>'
         else:
+            if type(sos_file['time']) == str:
+                        loc_time = str(sos_file['time'])
+            if type(sos_file['time']) == int or type(sos_file['time']) == float:
+                        loc_time = datetime.fromtimestamp(sos_file['time']).strftime(time_format)
             notice_header = '<span style="background-color: #ff0000; color: #ffffff;">EMERGENCY ACTIVATION</span>'
         value = Markup("""
         <h1 style="text-align: center;">""" +  notice_header  + """</h1>
@@ -142,7 +155,7 @@ def check_emergency():
         </tr>
         <tr>
         <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Time:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;">""" + sos_file['time'] + """</td>
+        <td style="width: 345.633px; text-align: center;">""" + loc_time + """</td>
         </tr>
         </tbody>
         </table>
@@ -196,6 +209,10 @@ def view_map():
             for user_coord in user_loc:
                 user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
                 user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
+                if type(user_coord['time']) == str:
+                        loc_time = str(user_coord['time'])
+                if type(user_coord['time']) == int or type(user_coord['time']) == float:
+                        loc_time = datetime.fromtimestamp(user_coord['time']).strftime(time_format)
                 if 'S' in user_coord['lat']:
                     user_lat = -user_lat
                 if 'W' in user_coord['lon']:
@@ -213,7 +230,7 @@ def view_map():
                     <td style="text-align: center;"><strong>"""+ str(user_coord['call']) +"""</strong></td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><em>"""+ user_coord['time'] +"""</em></td>
+                    <td style="text-align: center;"><em>"""+ loc_time +"""</em></td>
                     </tr>
                     </tbody>
                     </table>
@@ -228,7 +245,7 @@ def view_map():
                     <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                    <td style="text-align: center;"><em>""" + loc_time + """</em></td>
                     </tr>
                     </tbody>
                     </table>
@@ -264,7 +281,7 @@ def view_map():
                          <option value="view_map?track=""" + track_call + """&reload=5">5 Minutes</option>
                          <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
                         </select> 
-                    <p style="text-align: center;"><button onclick="self.close()">Close</button><button onclick="history.back()">Back</button>
+                    <p style="text-align: center;"><button onclick="self.close()">Close</button><!--<button onclick="history.back()">Back</button>-->
                     </p>
                      """ + map_view
             return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
@@ -280,6 +297,10 @@ def view_map():
         for user_coord in user_loc:
             user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
             user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
+            if type(user_coord['time']) == str:
+                    loc_time = str(user_coord['time'])
+            if type(user_coord['time']) == int or type(user_coord['time']) == float:
+                    loc_time = datetime.fromtimestamp(user_coord['time']).strftime(time_format)
             if 'S' in user_coord['lat']:
                 user_lat = -user_lat
             if 'W' in user_coord['lon']:
@@ -295,7 +316,7 @@ def view_map():
                 <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
                 </tr>
                 <tr>
-                <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                <td style="text-align: center;"><em>""" + loc_time + """</em></td>
                 </tr>
                 <tr>
                 <td style="text-align: center;"><strong><A href="view_map?track=""" + user_coord['call'] + """" target="_blank">Track Station</A></strong></td>
@@ -313,7 +334,7 @@ def view_map():
                 <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
                 </tr>
                 <tr>
-                <td style="text-align: center;"><em>""" + user_coord['time'] + """</em></td>
+                <td style="text-align: center;"><em>""" + loc_time + """</em></td>
                 </tr>
                 </tbody>
                 </table>
@@ -348,6 +369,8 @@ def user_settings():
         </tbody>
         </table>
         </form>
+                <p>&nbsp;</p>
+
 
 """
     else:
@@ -435,11 +458,15 @@ def mailbox():
         '''
         for messages in mailbox_file:
             if messages['recipient'] == recipient.upper():
+                if type(messages['time']) == str:
+                    loc_time = str(messages['time'])
+                if type(messages['time']) == int or type(messages['time']) == float:
+                    loc_time = datetime.fromtimestamp(messages['time']).strftime(time_format)
                 mail_content = mail_content + """
                 <table style="margin-left: auto; margin-right: auto; width: 372.55px;" border="1">
                 <tbody>
                 <tr>
-                <td style="width: 63px;"><strong>Callsign:</strong></td>
+                <td style="width: 63px;"><strong>From:</strong></td>
                 <td style="text-align: center; width: 292.55px;"><strong>""" + messages['call'] + """</strong></td>
                 </tr>
                 <tr>
@@ -448,7 +475,7 @@ def mailbox():
                 </tr>
                 <tr>
                 <td style="width: 63px;"><strong>Time:</strong></td>
-                <td style="width: 292.55px; text-align: center;">""" + messages['time'] + """</td>
+                <td style="width: 292.55px; text-align: center;">""" + loc_time + """</td>
                 </tr>
                 <tr>
                 <td style="width: 63px;"><strong>Message:</strong></td>
@@ -473,11 +500,15 @@ def bb_rss():
           <link>""" + rss_link + """</link>
           <description>This is the Bulletin Board feed from """ + dashboard_title + """</description>"""
         for entry in dash_bb:
+            if type(entry['time']) == str:
+                loc_time = str(entry['time'])
+            if type(entry['time']) == int or type(entry['time']) == float:
+                loc_time = datetime.fromtimestamp(entry['time']).strftime(time_format)
             post_data = post_data + """
              <item>
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
                 <link>""" + rss_link + """</link>
-                <description>""" + entry['bulletin'] + """ - """ + entry['time'] + """</description>
+                <description>""" + entry['bulletin'] + """ - """ + loc_time + """</description>
               </item>
     """
         return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
@@ -496,12 +527,16 @@ def mail_rss():
       <link>""" + rss_link + """</link>
       <description>This is a Mailbox feed from """ + dashboard_title + """ for """ + recipient + """.</description>"""
     for entry in mailbox_file:
+        if type(entry['time']) == str:
+            loc_time = str(entry['time'])
+        if type(entry['time']) == int or type(entry['time']) == float:
+            loc_time = datetime.fromtimestamp(entry['time']).strftime(time_format)
         if entry['recipient'] == recipient:
             post_data = post_data + """
              <item>
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
                 <link>""" + rss_link + """</link>
-                <description>""" + entry['message'] + """ - """ + entry['time'] + """</description>
+                <description>""" + entry['message'] + """ - """ + loc_time + """</description>
               </item>
     """
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
