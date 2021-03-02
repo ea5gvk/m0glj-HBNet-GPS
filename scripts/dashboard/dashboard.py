@@ -471,7 +471,7 @@ def mailbox():
 """
 
     else:
-        mailbox_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+        mailbox_file = ast.literal_eval(os.popen('cat ../../gps_data_user_mailbox.txt').read())
         mail_content = '<h2 style="text-align: center;">Messages for: ' + recipient.upper() + '''
         </h2>\n<p style="text-align: center;"><button onclick="history.back()">Back</button></p>\n
         <h4 style="text-align: center;"><a href="mailbox_rss?recipient=''' + recipient.upper() + '''"><em>Mailbox RSS Feed for ''' + recipient.upper() + '''</em></a><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5QIcFBAOXAevLAAAAZZJREFUSMftlbtKA0EUhj8jWhi8gaIEC29oxEoRFESLgIXYiWVSKoj6CCrBBwj6CBHNE1hEWy21ETQqiIW1wXhPo81ZOBw2apbdVPvDsDPnP8M/5zKzECJEQKivYO8DFoAYEAGKtTpQEvhW4w3IA+tAVy2F9fgEskA8COHUL8LOKAMZoMmLQF0FewcwImmNAzPANBB18b0BFoGroNLfBiyLgI2+BMwF3XgNwCrwYsQ//BBPSRPdAoeybjE+A8ClS+Sjfnf1E5A2dW4FzoxfwWvD/XWd7oAxI24jz3gVnpS7eiEpt+KvQEL5D5qal/245zFgU+pnXzMd+Zrh9/3q5l7g3CXtTs0bgWvFffn5vDa7iKcVv2K4DS8i3cAOsAuMm8h12ovqqrVL/R3upFrRKPBgHgctvm0iSynuWNnf5bf6byy5dPKe4nukhg6XU9yW2TfsJlDpNCUX27OaP8pD4WBCzQtmX381EUeAI3Xqe6m5xoHpYAezJuJkNb9Fh0tI4+SlXhpTwJBaZ+XbCcwr+6kcPESI2uAHmAijFaMnEmYAAAAASUVORK5CYII=" /></h4>
@@ -537,7 +537,7 @@ def bb_rss():
 
 @app.route('/mailbox_rss')
 def mail_rss():
-    mailbox_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+    mailbox_file = ast.literal_eval(os.popen('cat ../../gps_data_user_mailbox.txt').read())
     post_data = ''
     recipient = request.args.get('recipient').upper()
     rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
