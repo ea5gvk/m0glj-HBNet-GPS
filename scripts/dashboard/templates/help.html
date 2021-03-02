@@ -69,11 +69,44 @@
 <td><strong>[EMAIL ADDRESS] E-[MESSAGE]</strong></td>
 <td>Send an email to an email address.</td>
 <td><em><code>test@example.org E-This is a test.</code></em></td>
-</tr>  
+</tr>
+<tr>
+<td><strong>@[RECIPIENT CALLSIGN] M-[MESSAGE]</strong></td>
+<td>Post a message to the Mailbox.</td>
+<td><em>@N0CALL M-This is a test.</em></td>
+</tr>
+<tr>
+<td><strong>@REM MAIL</strong></td>
+<td>Remove all mail addressed to you.</td>
+<td><em>@REM MAIL</em></td>
+</tr>
+<tr>
+<td><strong>@SOS</strong></td>
+<td>EMERGENCY activation displays a banner on the main dashboard page.</td>
+<td><em>THIS IS AN EMERGENCY. @SOS</em></td>
+</tr>
+<tr>
+<td><strong>@NOTICE</strong></td>
+<td>Used to prominantly display a notice, similar to EMERGENCY activation.</td>
+<td><em>@NOTICE Server going down at 1800</em></td>
+</tr>
+<tr>
+<td><strong>@REM SOS</strong></td>
+<td>Removes an EMERGENCY or notice.</td>
+<td><em>@REM SOS</em></td>
+</tr>
 </tbody>
 </table>
 <p>&nbsp;</p>
 <p><strong>Commands should be in upper case.</strong> Send an SMS to <strong>{{data_call_id}}</strong> as a <strong>{{data_call_type}}</strong> with the desired command followed by the value. For example, to change your icon to a dog, the command would be <code>@ICON /p</code> (see the icon table for values). Changing your SSID is as simple as <code>@SSID 7</code>, and <code>@COM Testing 123</code> will change the comment.</p>
 <p>Sending <code>@BB Test</code> will result in a post to the bulletin board with the messaage of "Test".</p>
 <p><strong>To remove any of the stored values, just send the appropriate command without any input.</strong> <code>@COM</code> will remove the stored comment, <code>@ICON</code> will remove the stored icon, and <code>@ICON</code> will remove the strored icon. Any position reports sent will have the default settings.</p>
+
+<h3 style="text-align: center;">EMERGENCY Activation</h3>
+<p>The EMERGENCY Activation function will display a prominant banner accross the main dashboard page. The banner contains a message, time, callsign of station, and a link to the last known location of the station. This feature is intended to be used in situations where a user is in distress. To trigger an EMERGENCY activation, simply send an SMS to <strong>{{data_call_id}}</strong> with <strong>@SOS</strong> in the message. The <strong>@SOS</strong> command can be anywhere in the message. A less intimidating banner can be displayed for testing, or other purposes, by using <strong>@NOTICE</strong>. To remove the EMERGENCY activation, simply send the <strong>@REM SOS</strong> command.</p>
+<h3 style="text-align: center;">The Map</h3>
+<p>This dashboard now has a built in map. The map will display the last know location of stations and some previous plots from them. You can track a station by clicking on the red pin, and selecting the <strong>Track Station</strong> link. When tracking a station, you have a few options for a refresh rate, located in a drop down menu.</p>
+<h3 style="text-align: center;">The Mailbox</h3>
+<p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a formatted SMS to <strong>{{data_call_id}}</strong>. See the table above for a syntax example of posting a message to the Mailbox. The message recipient can then use the mailbox to check for messages. Message recipients can delete all of their messages by sending the command <strong>@REM MAIL</strong>. There is no way to remove a single message, it's all or none.</p>
+
 {% include 'footer.html' %}
