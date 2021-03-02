@@ -177,6 +177,28 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
 
+def mailbox_write(call, dmr_id, time, message, recipient):
+    #try:
+    mail_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+    mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
+    with open("/tmp/gps_data_user_mailbox.txt", 'w') as mailbox_file:
+            mailbox_file.write(str(mail_file[:100]))
+            mailbox_file.close()
+    logger.info('User mail saved.')
+
+def mailbox_delete(dmr_id):
+    mail_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+    call = str(get_alias((dmr_id), subscriber_ids))
+    new_data = []
+    for message in mail_file:
+        if message['recipient'] != call:
+            new_data.append(message)
+    with open("/tmp/gps_data_user_mailbox.txt", 'w') as mailbox_file:
+            mailbox_file.write(str(new_data[:100]))
+            mailbox_file.close()
+    logger.info('Mailbox updated. Delete occurred.')
+
+
 def sos_write(dmr_id, time, message):
     user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
     try:
@@ -277,6 +299,12 @@ def process_sms(_rf_src, sms):
     elif '@REM SOS' == sms:
         os.remove('/tmp/gps_data_user_sos.txt')
         logger.info('Removing SOS or Notice')
+    elif '@' and 'M-' in sms:
+        message = re.sub('@.* |M-','',sms)
+        recipient = re.sub('@| M-.*','',sms)
+        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), message, str(recipient).upper())
+    elif '@REM MAIL' == sms:
+        mailbox_delete(_rf_src)
     elif '@MH' in sms:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -666,6 +694,13 @@ if __name__ == '__main__':
         with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
             user_bb_file.write("[]")
             user_bb_file.close()
+    if Path('/tmp/gps_data_user_mailbox.txt').is_file():
+        pass
+    else:
+        Path('/tmp/gps_data_user_mailbox.txt').touch()
+        with open("/tmp/gps_data_user_mailbox.txt", 'w') as user_loc_file:
+            user_loc_file.write("[]")
+            user_loc_file.close()
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
