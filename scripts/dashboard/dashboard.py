@@ -537,7 +537,7 @@ def bb_rss():
 
 @app.route('/mailbox_rss')
 def mail_rss():
-    mailbox_file = ast.literal_eval(os.popen('cat ./gps_data_user_mailbox.txt').read())
+    mailbox_file = ast.literal_eval(os.popen('cat ../../gps_data_user_mailbox.txt').read())
     post_data = ''
     recipient = request.args.get('recipient').upper()
     rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
