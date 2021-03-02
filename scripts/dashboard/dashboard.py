@@ -133,40 +133,40 @@ def check_emergency():
     # open emergency txt
     try:
         sos_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_sos.txt').read())
+        if type(sos_file['time']) == str:
+            loc_time = str(sos_file['time'])
+        if type(sos_file['time']) == int or type(sos_file['time']) == float:
+            loc_time = datetime.fromtimestamp(sos_file['time']).strftime(time_format)
         if '@NOTICE' in sos_file['message'] and '@SOS' not in sos_file['message']:
             notice_header = '<span style="background-color: #ffffff; color: #008000;">NOTICE:</span>'
         else:
-            if type(sos_file['time']) == str:
-                        loc_time = str(sos_file['time'])
-            if type(sos_file['time']) == int or type(sos_file['time']) == float:
-                        loc_time = datetime.fromtimestamp(sos_file['time']).strftime(time_format)
             notice_header = '<span style="background-color: #ff0000; color: #ffffff;">EMERGENCY ACTIVATION</span>'
         value = Markup("""
-        <h1 style="text-align: center;">""" +  notice_header  + """</h1>
-        <table style="width: 441px; margin-left: auto; margin-right: auto;" border="3">
-        <tbody>
-        <tr>
-        <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>From:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['call'] + """</strong> - """ + str(sos_file['dmr_id']) + """</td>
-        </tr>
-        <tr>
-        <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Message:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;">""" + sos_file['message'] + """</td>
-        </tr>
-        <tr>
-        <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Time:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;">""" + loc_time + """</td>
-        </tr>
-        </tbody>
-        </table>
-        <p>&nbsp;</p>
-         <button onclick="window.open('view_map?track=""" + sos_file['call'] + """&reload=30','_blank' );" type="button" class="emergency_button"><h1>View Station on Map</h1></button>
-         <p style="text-align: center;"><a href="https://aprs.fi/""" + sos_file['call'] + """"><strong>View on aprs.fi</strong></a></p> 
-         <hr />
+            <h1 style="text-align: center;">""" +  notice_header  + """</h1>
+            <table style="width: 441px; margin-left: auto; margin-right: auto;" border="3">
+            <tbody>
+            <tr>
+            <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>From:</strong></span></td>
+            <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['call'] + """</strong> - """ + str(sos_file['dmr_id']) + """</td>
+            </tr>
+            <tr>
+            <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Message:</strong></span></td>
+            <td style="width: 345.633px; text-align: center;">""" + sos_file['message'] + """</td>
+            </tr>
+            <tr>
+            <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Time:</strong></span></td>
+            <td style="width: 345.633px; text-align: center;">""" + loc_time + """</td>
+            </tr>
+            </tbody>
+            </table>
+            <p>&nbsp;</p>
+             <button onclick="window.open('view_map?track=""" + sos_file['call'] + """&reload=30','_blank' );" type="button" class="emergency_button"><h1>View Station on Map</h1></button>
+             <p style="text-align: center;"><a href="https://aprs.fi/""" + sos_file['call'] + """"><strong>View on aprs.fi</strong></a></p> 
+             <hr />
 
-        """)
+            """)
         return value
-    except:
+    except Exception as e:
         return ''
 
 def aprs_to_latlon(x):
