@@ -300,7 +300,7 @@ def process_sms(_rf_src, sms):
         os.remove('/tmp/gps_data_user_sos.txt')
         logger.info('Removing SOS or Notice')
     elif '@' and 'M-' in sms:
-        message = re.sub('@.* |M-','',sms)
+        message = re.sub('^@|.* M-|','',sms)
         recipient = re.sub('@| M-.*','',sms)
         mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.strftime('%H:%M:%S - %m/%d/%y'), message, str(recipient).upper())
     elif '@REM MAIL' == sms:
