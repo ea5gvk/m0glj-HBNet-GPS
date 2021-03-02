@@ -217,6 +217,15 @@ def view_map():
                     user_lat = -user_lat
                 if 'W' in user_coord['lon']:
                     user_lon = -user_lon
+                loc_comment = ''
+                if 'comment' in user_coord:
+                    loc_comment = """
+                <tr>
+                <td style="text-align: center;">Comment:</td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><strong>"""+ str(user_coord['comment']) +"""</strong></td>
+                </tr>"""
                 if user_coord['call'] not in last_known_list and user_coord['call'] == track_call:
                     folium_map = folium.Map(location=[user_lat, user_lon], tiles=map_theme, zoom_start=15)
                     marker_cluster = MarkerCluster().add_to(folium_map)
@@ -231,6 +240,7 @@ def view_map():
                     </tr>
                     <tr>
                     <td style="text-align: center;"><em>"""+ loc_time +"""</em></td>
+                    """ + loc_comment + """
                     </tr>
                     </tbody>
                     </table>
@@ -285,10 +295,10 @@ def view_map():
                     </p>
                      """ + map_view
             return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
-    except:
+    except Exception as e:
         content = """<h1 style="text-align: center;">Station not found.</h1>
-                  <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
-                </p>"""
+                  #<p style="text-align: center;"><button onclick="self.close()">Close Window</button>
+                #</p>"""
         return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
 
     if not track_call:
@@ -305,6 +315,15 @@ def view_map():
                 user_lat = -user_lat
             if 'W' in user_coord['lon']:
                 user_lon = -user_lon
+            loc_comment = ''
+            if 'comment' in user_coord:
+                loc_comment = """
+            <tr>
+            <td style="text-align: center;">Comment:</td>
+            </tr>
+            <tr>
+            <td style="text-align: center;"><strong>"""+ str(user_coord['comment']) +"""</strong></td>
+            </tr>"""
             if user_coord['call'] not in last_known_list:
                 folium.Marker([user_lat, user_lon], popup="""<i>
                 <table style="width: 150px;">
@@ -318,6 +337,7 @@ def view_map():
                 <tr>
                 <td style="text-align: center;"><em>""" + loc_time + """</em></td>
                 </tr>
+                """ + loc_comment + """
                 <tr>
                 <td style="text-align: center;"><strong><A href="view_map?track=""" + user_coord['call'] + """" target="_blank">Track Station</A></strong></td>
                 </tr>

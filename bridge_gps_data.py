@@ -160,12 +160,12 @@ def aprs_send(packet):
         AIS.close()
         logger.info('Packet sent to APRS-IS.')
 
-def dashboard_loc_write(call, lat, lon, time):
+def dashboard_loc_write(call, lat, lon, time, comment):
     #try:
     dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
    # except:
     #    dash_entries = []
-    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time})
+    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
     with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
             user_loc_file.write(str(dash_entries[:200]))
             user_loc_file.close()
@@ -362,7 +362,7 @@ def process_sms(_rf_src, sms):
         try:
             aprslib.parse(aprs_loc_packet)
             aprs_send(aprs_loc_packet)
-            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time())
+            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
             #logger.info('Sent manual position to APRS')
         except Exception as error_exception:
             logger.info('Exception. Not uploaded')
@@ -1546,7 +1546,7 @@ class routerHBP(HBSYSTEM):
                         float(lat_deg) < 91
                         float(lon_deg) < 121
                         aprs_send(aprs_loc_packet)
-                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time())
+                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
                         #logger.info('Sent APRS packet')
                     except Exception as error_exception:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
@@ -1648,7 +1648,7 @@ class routerHBP(HBSYSTEM):
                                 float(loc.lat)
                                 float(loc.lon)
                                 aprs_send(aprs_loc_packet)
-                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time())
+                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment)
                             except Exception as error_exception:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                                 logger.info(error_exception)
