@@ -289,7 +289,7 @@ def process_sms(_rf_src, sms):
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
     elif '@BB' in sms:
-        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.time(), re.sub('@BB|@BB ','',sms))
+        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms))
     elif '@' and ' E-' in sms:
         email_message = str(re.sub('.*@|.* E-', '', sms))
         to_email = str(re.sub(' E-.*', '', sms))
@@ -304,14 +304,14 @@ def process_sms(_rf_src, sms):
             logger.info(error_exception)
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     elif '@SOS' in sms or '@NOTICE' in sms:
-        sos_write(int_id(_rf_src), time.time(), sms)
+        sos_write(int_id(_rf_src), time(), sms)
     elif '@REM SOS' == sms:
         os.remove('/tmp/gps_data_user_sos.txt')
         logger.info('Removing SOS')
     elif '@' and 'M-' in sms:
         message = re.sub('^@|.* M-|','',sms)
         recipient = re.sub('@| M-.*','',sms)
-        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time.time(), message, str(recipient).upper())
+        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
     elif '@REM MAIL' == sms:
         mailbox_delete(_rf_src)
     elif '@MH' in sms:
@@ -366,7 +366,7 @@ def process_sms(_rf_src, sms):
         try:
             aprslib.parse(aprs_loc_packet)
             aprs_send(aprs_loc_packet)
-            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.time())
+            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time())
             #logger.info('Sent manual position to APRS')
         except Exception as error_exception:
             logger.info('Exception. Not uploaded')
@@ -1550,7 +1550,7 @@ class routerHBP(HBSYSTEM):
                         float(lat_deg) < 91
                         float(lon_deg) < 121
                         aprs_send(aprs_loc_packet)
-                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time.time())
+                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time())
                         #logger.info('Sent APRS packet')
                     except Exception as error_exception:
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
@@ -1652,7 +1652,7 @@ class routerHBP(HBSYSTEM):
                                 float(loc.lat)
                                 float(loc.lon)
                                 aprs_send(aprs_loc_packet)
-                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time.time())
+                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time())
                             except Exception as error_exception:
                                 logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                                 logger.info(error_exception)
