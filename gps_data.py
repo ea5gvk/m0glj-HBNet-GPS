@@ -179,21 +179,21 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
 
 def mailbox_write(call, dmr_id, time, message, recipient):
     #try:
-    mail_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+    mail_file = ast.literal_eval(os.popen('cat ./gps_data_user_mailbox.txt').read())
     mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-    with open("/tmp/gps_data_user_mailbox.txt", 'w') as mailbox_file:
+    with open("./gps_data_user_mailbox.txt", 'w') as mailbox_file:
             mailbox_file.write(str(mail_file[:100]))
             mailbox_file.close()
     logger.info('User mail saved.')
 
 def mailbox_delete(dmr_id):
-    mail_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_mailbox.txt').read())
+    mail_file = ast.literal_eval(os.popen('cat ./gps_data_user_mailbox.txt').read())
     call = str(get_alias((dmr_id), subscriber_ids))
     new_data = []
     for message in mail_file:
         if message['recipient'] != call:
             new_data.append(message)
-    with open("/tmp/gps_data_user_mailbox.txt", 'w') as mailbox_file:
+    with open("./gps_data_user_mailbox.txt", 'w') as mailbox_file:
             mailbox_file.write(str(new_data[:100]))
             mailbox_file.close()
     logger.info('Mailbox updated. Delete occurred.')
@@ -694,11 +694,11 @@ if __name__ == '__main__':
         with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
             user_bb_file.write("[]")
             user_bb_file.close()
-    if Path('/tmp/gps_data_user_mailbox.txt').is_file():
+    if Path('./gps_data_user_mailbox.txt').is_file():
         pass
     else:
-        Path('/tmp/gps_data_user_mailbox.txt').touch()
-        with open("/tmp/gps_data_user_mailbox.txt", 'w') as user_loc_file:
+        Path('./gps_data_user_mailbox.txt').touch()
+        with open("./gps_data_user_mailbox.txt", 'w') as user_loc_file:
             user_loc_file.write("[]")
             user_loc_file.close()
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
