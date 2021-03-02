@@ -48,6 +48,9 @@ contact_call = 'N0CALL'
 contact_email = 'email@example.org'
 contact_website = 'https://hbl.ink'
 
+# Time format for display
+time_format = '%H:%M:%S - %m/%d/%y'
+
 # Center dashboard map over these coordinates
 map_center = (47.00, -120.00)
 zoom_level = 7
