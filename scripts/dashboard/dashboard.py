@@ -202,94 +202,105 @@ def view_map():
     map_size = request.args.get('map_size')
     user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
     last_known_list = []
-    try:
-        if track_call:
-            #folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
-            #marker_cluster = MarkerCluster().add_to(folium_map)
-            for user_coord in user_loc:
-                user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
-                user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
-                if type(user_coord['time']) == str:
-                        loc_time = str(user_coord['time'])
-                if type(user_coord['time']) == int or type(user_coord['time']) == float:
-                        loc_time = datetime.fromtimestamp(user_coord['time']).strftime(time_format)
-                if 'S' in user_coord['lat']:
-                    user_lat = -user_lat
-                if 'W' in user_coord['lon']:
-                    user_lon = -user_lon
-                if user_coord['call'] not in last_known_list and user_coord['call'] == track_call:
-                    folium_map = folium.Map(location=[user_lat, user_lon], tiles=map_theme, zoom_start=15)
-                    marker_cluster = MarkerCluster().add_to(folium_map)
-                    folium.Marker([user_lat, user_lon], popup="""<i>
-                    <table style="width: 150px;">
+    #try:
+    if track_call:
+        #folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
+        #marker_cluster = MarkerCluster().add_to(folium_map)
+        for user_coord in user_loc:
+            user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
+            user_lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lon'])))
+            if type(user_coord['time']) == str:
+                    loc_time = str(user_coord['time'])
+            if type(user_coord['time']) == int or type(user_coord['time']) == float:
+                    loc_time = datetime.fromtimestamp(user_coord['time']).strftime(time_format)
+            if 'S' in user_coord['lat']:
+                user_lat = -user_lat
+            if 'W' in user_coord['lon']:
+                user_lon = -user_lon
+            loc_comment = ''
+            if 'comment' in user_coord:
+                loc_comment = """
+            <tr>
+            <td style="text-align: center;">Comment:</td>
+            </tr>
+            <tr>
+            <td style="text-align: center;"><strong>"""+ str(user_coord['comment']) +"""</strong></td>
+            </tr>"""
+            if user_coord['call'] not in last_known_list and user_coord['call'] == track_call:
+                folium_map = folium.Map(location=[user_lat, user_lon], tiles=map_theme, zoom_start=15)
+                marker_cluster = MarkerCluster().add_to(folium_map)
+                folium.Marker([user_lat, user_lon], popup="""<i>
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;">Last Location:</td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><strong>"""+ str(user_coord['call']) +"""</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>"""+ loc_time +"""</em></td>
+                """ + loc_comment + """
+                </tr>
+                </tbody>
+                </table>
+                </i>
+                """, icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
+                last_known_list.append(user_coord['call'])
+            if user_coord['call'] in last_known_list and user_coord['call'] == track_call:
+                folium.CircleMarker([user_lat, user_lon], popup="""
+                <table style="width: 150px;">
+                <tbody>
+                <tr>
+                <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
+                </tr>
+                <tr>
+                <td style="text-align: center;"><em>""" + loc_time + """</em></td>
+                </tr>
+                </tbody>
+                </table>
+                """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+        #return folium_map._repr_html_()
+            if not reload_time:
+                reload_time = 120
+        if not map_size:
+            map_view = '''<table style="width: 1000px; height: 600px; margin-left: auto; margin-right: auto;" border="1">
                     <tbody>
                     <tr>
-                    <td style="text-align: center;">Last Location:</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align: center;"><strong>"""+ str(user_coord['call']) +"""</strong></td>
-                    </tr>
-                    <tr>
-                    <td style="text-align: center;"><em>"""+ loc_time +"""</em></td>
+                    <td>
+                    ''' + folium_map._repr_html_() + '''</td>
                     </tr>
                     </tbody>
-                    </table>
-                    </i>
-                    """, icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
-                    last_known_list.append(user_coord['call'])
-                if user_coord['call'] in last_known_list and user_coord['call'] == track_call:
-                    folium.CircleMarker([user_lat, user_lon], popup="""
-                    <table style="width: 150px;">
-                    <tbody>
-                    <tr>
-                    <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
-                    </tr>
-                    <tr>
-                    <td style="text-align: center;"><em>""" + loc_time + """</em></td>
-                    </tr>
-                    </tbody>
-                    </table>
-                    """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
-            #return folium_map._repr_html_()
-                if not reload_time:
-                    reload_time = 120
-            if not map_size:
-                map_view = '''<table style="width: 1000px; height: 600px; margin-left: auto; margin-right: auto;" border="1">
-                        <tbody>
-                        <tr>
-                        <td>
-                        ''' + folium_map._repr_html_() + '''</td>
-                        </tr>
-                        </tbody>
-                        </table>'''
-            if map_size == 'full':
-                map_view = folium_map._repr_html_()
+                    </table>'''
+        if map_size == 'full':
+            map_view = folium_map._repr_html_()
 
-            content = '''
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta http-equiv="refresh" content="''' + str(reload_time) + """" > 
-                        <title>""" + dashboard_title + """ - Tracking """+ track_call + """</title>
-                    </head>
-                    <p style="text-align: center;"><strong>""" + dashboard_title + """ - Tracking """ + track_call + """</strong></p>
-                    <p style="text-align: center;"><em>Page automatically reloads every """ + str(reload_time) + """ seconds.</em></p>
-                    <p style="text-align: center;">
-                        <select name="sample" onchange="location = this.value;">
-                         <option value="view_map?track=""" + track_call + """&reload=120">2 Minutes</option>
-                         <option value="view_map?track=""" + track_call + """&reload=">Don't Reload</option>
-                         <option value="view_map?track=""" + track_call + """&reload=30">30 Seconds</option>
-                         <option value="view_map?track=""" + track_call + """&reload=5">5 Minutes</option>
-                         <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
-                        </select> 
-                    <p style="text-align: center;"><button onclick="self.close()">Close</button><!--<button onclick="history.back()">Back</button>-->
-                    </p>
-                     """ + map_view
-            return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
-    except:
-        content = """<h1 style="text-align: center;">Station not found.</h1>
-                  <p style="text-align: center;"><button onclick="self.close()">Close Window</button>
-                </p>"""
+        content = '''
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="refresh" content="''' + str(reload_time) + """" > 
+                    <title>""" + dashboard_title + """ - Tracking """+ track_call + """</title>
+                </head>
+                <p style="text-align: center;"><strong>""" + dashboard_title + """ - Tracking """ + track_call + """</strong></p>
+                <p style="text-align: center;"><em>Page automatically reloads every """ + str(reload_time) + """ seconds.</em></p>
+                <p style="text-align: center;">
+                    <select name="sample" onchange="location = this.value;">
+                     <option value="view_map?track=""" + track_call + """&reload=120">2 Minutes</option>
+                     <option value="view_map?track=""" + track_call + """&reload=">Don't Reload</option>
+                     <option value="view_map?track=""" + track_call + """&reload=30">30 Seconds</option>
+                     <option value="view_map?track=""" + track_call + """&reload=5">5 Minutes</option>
+                     <option value="view_map?track=""" + track_call + """&reload=600">10 Minutes</option> 
+                    </select> 
+                <p style="text-align: center;"><button onclick="self.close()">Close</button><!--<button onclick="history.back()">Back</button>-->
+                </p>
+                 """ + map_view
         return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+    #except Exception as e:
+        #content = """<h1 style="text-align: center;">Station not found.</h1>
+                  #<p style="text-align: center;"><button onclick="self.close()">Close Window</button>
+                #</p>"""
+        #content = str(e)
+        #return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
 
     if not track_call:
         folium_map = folium.Map(location=map_center, tiles=map_theme, zoom_start=int(zoom_level))
@@ -305,6 +316,15 @@ def view_map():
                 user_lat = -user_lat
             if 'W' in user_coord['lon']:
                 user_lon = -user_lon
+            loc_comment = ''
+            if 'comment' in user_coord:
+                loc_comment = """
+            <tr>
+            <td style="text-align: center;">Comment:</td>
+            </tr>
+            <tr>
+            <td style="text-align: center;"><strong>"""+ str(user_coord['comment']) +"""</strong></td>
+            </tr>"""
             if user_coord['call'] not in last_known_list:
                 folium.Marker([user_lat, user_lon], popup="""<i>
                 <table style="width: 150px;">
@@ -318,6 +338,7 @@ def view_map():
                 <tr>
                 <td style="text-align: center;"><em>""" + loc_time + """</em></td>
                 </tr>
+                """ + loc_comment + """
                 <tr>
                 <td style="text-align: center;"><strong><A href="view_map?track=""" + user_coord['call'] + """" target="_blank">Track Station</A></strong></td>
                 </tr>
