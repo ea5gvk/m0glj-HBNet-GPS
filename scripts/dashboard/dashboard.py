@@ -130,20 +130,19 @@ def check_emergency():
             notice_header = '<span style="background-color: #ff0000; color: #ffffff;">EMERGENCY ACTIVATION</span>'
         value = Markup("""
         <h1 style="text-align: center;">""" +  notice_header  + """</h1>
-        <p>&nbsp;</p>
         <table style="width: 441px; margin-left: auto; margin-right: auto;" border="3">
         <tbody>
         <tr>
         <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>From:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['call'] + """ - """ + str(sos_file['dmr_id']) + """</strong></td>
+        <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['call'] + """</strong> - """ + str(sos_file['dmr_id']) + """</td>
         </tr>
         <tr>
         <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Message:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['message'] + """</strong></td>
+        <td style="width: 345.633px; text-align: center;">""" + sos_file['message'] + """</td>
         </tr>
         <tr>
         <td style="width: 78.3667px;"><span style="text-decoration: underline;"><strong>Time:</strong></span></td>
-        <td style="width: 345.633px; text-align: center;"><strong>""" + sos_file['time'] + """</strong></td>
+        <td style="width: 345.633px; text-align: center;">""" + sos_file['time'] + """</td>
         </tr>
         </tbody>
         </table>
@@ -331,6 +330,7 @@ def user_settings():
     user_id = request.args.get('user_id')
     if not user_id:
         user_result = """
+        Use this tool to find and check the stored APRS settings for your DMR ID. When a position is sent, the stored settings will be used to format the APRS packet.
         <form action="user" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
@@ -397,7 +397,7 @@ def user_settings():
                 <p style="text-align: center;"><button onclick="history.back()">Back</button>
                         </p>'''
         
-    return render_template('user_settings.html', title = dashboard_title, logo = logo, user_result = Markup(user_result))
+    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(user_result))
 
 @app.route('/mailbox')
 def mailbox():
@@ -436,7 +436,6 @@ def mailbox():
         for messages in mailbox_file:
             if messages['recipient'] == recipient.upper():
                 mail_content = mail_content + """
-                <p>&nbsp;</p>
                 <table style="margin-left: auto; margin-right: auto; width: 372.55px;" border="1">
                 <tbody>
                 <tr>
@@ -457,6 +456,7 @@ def mailbox():
                 </tr>
                 </tbody>
                 </table>
+                <p>&nbsp;</p>
 
                 """
     return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(mail_content))
