@@ -448,7 +448,7 @@ def mailbox():
     if not recipient:
         mail_content = """
         <p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a specially formatted SMS to <strong>""" + data_call_id + """</strong>.
-        The message recipient can then use the mailbox to check for messages. Enter your call sign below to check for messages. See the <a href="help">help</a> page for more information.</p>
+        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign below to check for messages. See the <a href="help">help</a> page for more information.</p>
         <form action="mailbox" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
@@ -478,10 +478,23 @@ def mailbox():
         '''
         for messages in mailbox_file:
             if messages['recipient'] == recipient.upper():
+                sender = """
+                <tr>
+                <td style="width: 63px;"><strong>DMR ID:</strong></td>
+                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
+                </tr>
+                """
                 if type(messages['time']) == str:
                     loc_time = str(messages['time'])
                 if type(messages['time']) == int or type(messages['time']) == float:
                     loc_time = datetime.fromtimestamp(messages['time']).strftime(time_format)
+                if type(messages['dmr_id']) == str:
+                    sender = """
+                <tr>
+                <td style="width: 63px;"><strong>APRS Call:</strong></td>
+                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
+                </tr>
+                """
                 mail_content = mail_content + """
                 <table style="margin-left: auto; margin-right: auto; width: 372.55px;" border="1">
                 <tbody>
@@ -489,10 +502,7 @@ def mailbox():
                 <td style="width: 63px;"><strong>From:</strong></td>
                 <td style="text-align: center; width: 292.55px;"><strong>""" + messages['call'] + """</strong></td>
                 </tr>
-                <tr>
-                <td style="width: 63px;"><strong>DMR ID:</strong></td>
-                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
-                </tr>
+                """ + sender + """
                 <tr>
                 <td style="width: 63px;"><strong>Time:</strong></td>
                 <td style="width: 292.55px; text-align: center;">""" + loc_time + """</td>
