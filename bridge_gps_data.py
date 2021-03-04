@@ -162,11 +162,11 @@ def aprs_send(packet):
 
 def dashboard_loc_write(call, lat, lon, time, comment):
     #try:
-    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
    # except:
     #    dash_entries = []
     dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment': comment})
-    with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
+    with open(loc_file, 'w') as user_loc_file:
             user_loc_file.write(str(dash_entries[:200]))
             user_loc_file.close()
     logger.info('User location saved for dashboard')
@@ -174,11 +174,11 @@ def dashboard_loc_write(call, lat, lon, time, comment):
 
 def dashboard_bb_write(call, dmr_id, time, bulletin):
     #try:
-    dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+    dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
    # except:
     #    dash_entries = []
     dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
-    with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
+    with open(bb_file, 'w') as user_bb_file:
             user_bb_file.write(str(dash_bb[:20]))
             user_bb_file.close()
     logger.info('User bulletin entry saved.')
@@ -186,29 +186,28 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
 
 def mailbox_write(call, dmr_id, time, message, recipient):
     #try:
-    mail_file = ast.literal_eval(os.popen('cat ./gps_data_user_mailbox.txt').read())
+    mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
     mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-    with open("./gps_data_user_mailbox.txt", 'w') as mailbox_file:
+    with open(the_mailbox_file, 'w') as mailbox_file:
             mailbox_file.write(str(mail_file[:100]))
             mailbox_file.close()
     logger.info('User mail saved.')
 
 def mailbox_delete(dmr_id):
-    mail_file = ast.literal_eval(os.popen('cat ./gps_data_user_mailbox.txt').read())
+    mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
     call = str(get_alias((dmr_id), subscriber_ids))
     new_data = []
     for message in mail_file:
         if message['recipient'] != call:
             new_data.append(message)
-    with open("./gps_data_user_mailbox.txt", 'w') as mailbox_file:
+    with open(the_mailbox_file, 'w') as mailbox_file:
             mailbox_file.write(str(new_data[:100]))
             mailbox_file.close()
     logger.info('Mailbox updated. Delete occurred.')
 
 
-
 def sos_write(dmr_id, time, message):
-   user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
     try:
         if user_settings[dmr_id][1]['ssid'] == '':
             sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
@@ -216,9 +215,8 @@ def sos_write(dmr_id, time, message):
             sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
     except:
         sos_call = str(get_alias((dmr_id), subscriber_ids))
-
     sos_info = {'call': sos_call, 'dmr_id': dmr_id, 'time': time, 'message':message}
-    with open("/tmp/gps_data_user_sos.txt", 'w') as sos_file:
+    with open(emergency_sos_file, 'w') as sos_file:
             sos_file.write(str(sos_info))
             sos_file.close()
     logger.info('Saved SOS.')
@@ -261,6 +259,8 @@ def user_setting_write(dmr_id, setting, value):
                 user_dict[dmr_id][1]['ssid'] = value  
             if setting.upper() == 'COM':
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
+            if setting.upper() == 'APRS':
+                user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
@@ -288,6 +288,9 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+    # Write blank entry to cause APRS receive to look for packets for this station.
+    elif '@APRS' in sms:
+        user_setting_write(int_id(_rf_src), 'APRS', '')
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms))
     elif '@' and ' E-' in sms:
@@ -306,7 +309,7 @@ def process_sms(_rf_src, sms):
     elif '@SOS' in sms or '@NOTICE' in sms:
         sos_write(int_id(_rf_src), time(), sms)
     elif '@REM SOS' == sms:
-        os.remove('/tmp/gps_data_user_sos.txt')
+        os.remove(emergency_sos_file)
         logger.info('Removing SOS')
     elif '@' and 'M-' in sms:
         message = re.sub('^@|.* M-|','',sms)
@@ -358,7 +361,7 @@ def process_sms(_rf_src, sms):
                 ssid = user_settings[int_id(_rf_src)][1]['ssid']	
             if user_settings[int_id(_rf_src)][3]['comment'] != '':	
                 comment = user_settings[int_id(_rf_src)][3]['comment']	
-        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
         logger.info(aprs_loc_packet)
         logger.info('User comment: ' + comment)
         logger.info('User SSID: ' + ssid)
@@ -1539,7 +1542,7 @@ class routerHBP(HBSYSTEM):
                             ssid = user_settings[int_id(_rf_src)][1]['ssid']	
                         if user_settings[int_id(_rf_src)][3]['comment'] != '':	
                             comment = user_settings[int_id(_rf_src)][3]['comment']
-                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
                     logger.info(aprs_loc_packet)
                     logger.info('User comment: ' + comment)
                     logger.info('User SSID: ' + ssid)
@@ -1635,14 +1638,14 @@ class routerHBP(HBSYSTEM):
                                         ssid = user_settings[int_id(_rf_src)][1]['ssid']	
                                     if user_settings[int_id(_rf_src)][3]['comment'] != '':	
                                         comment = user_settings[int_id(_rf_src)][3]['comment']	
-                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
+                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
                                 logger.info(aprs_loc_packet)
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
                                 logger.info('User icon: ' + icon_table + icon_icon)
                             except Exception as error_exception:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
-                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:/' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
                                 logger.info(error_exception)
                                 logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             try:
@@ -1769,38 +1772,6 @@ if __name__ == '__main__':
     # Change the current directory to the location of the application
     os.chdir(os.path.dirname(os.path.realpath(sys.argv[0])))
 
-    # Check if user_settings (for APRS settings of users) exists. Creat it if not.
-    if Path('./user_settings.txt').is_file():
-        pass
-    else:
-        Path('./user_settings.txt').touch()
-        with open("./user_settings.txt", 'w') as user_dict_file:
-            user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
-            user_dict_file.close()
-    # Check to see if dashboard files exist
-    if Path('/tmp/gps_data_user_loc.txt').is_file():
-        pass
-    else:
-        Path('/tmp/gps_data_user_loc.txt').touch()
-        with open("/tmp/gps_data_user_loc.txt", 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
-    if Path('/tmp/gps_data_user_bb.txt').is_file():
-        pass
-    else:
-        Path('/tmp/gps_data_user_bb.txt').touch()
-        with open("/tmp/gps_data_user_bb.txt", 'w') as user_bb_file:
-            user_bb_file.write("[]")
-            user_bb_file.close()
-    if Path('./gps_data_user_mailbox.txt').is_file():
-        pass
-    else:
-        Path('./gps_data_user_mailbox.txt').touch()
-        with open("./gps_data_user_mailbox.txt", 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
-
-
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hblink.cfg)')
@@ -1832,6 +1803,43 @@ if __name__ == '__main__':
     email_password = CONFIG['GPS_DATA']['EMAIL_PASSWORD']
     smtp_server = CONFIG['GPS_DATA']['SMTP_SERVER']
     smtp_port = CONFIG['GPS_DATA']['SMTP_PORT']
+
+    # Dashboard files
+    bb_file = CONFIG['GPS_DATA']['BULLETIN_BOARD_FILE']
+    loc_file = CONFIG['GPS_DATA']['LOCATION_FILE']
+    the_mailbox_file = CONFIG['GPS_DATA']['MAILBOX_FILE']
+    emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
+
+        # Check if user_settings (for APRS settings of users) exists. Creat it if not.
+    if Path('./user_settings.txt').is_file():
+        pass
+    else:
+        Path('./user_settings.txt').touch()
+        with open("./user_settings.txt", 'w') as user_dict_file:
+            user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
+            user_dict_file.close()
+    # Check to see if dashboard files exist
+    if Path(loc_file).is_file():
+        pass
+    else:
+        Path(loc_file).touch()
+        with open(loc_file, 'w') as user_loc_file:
+            user_loc_file.write("[]")
+            user_loc_file.close()
+    if Path(bb_file).is_file():
+        pass
+    else:
+        Path(bb_file).touch()
+        with open(bb_file, 'w') as user_bb_file:
+            user_bb_file.write("[]")
+            user_bb_file.close()
+    if Path(the_mailbox_file).is_file():
+        pass
+    else:
+        Path(the_mailbox_file).touch()
+        with open(the_mailbox_file, 'w') as user_loc_file:
+            user_loc_file.write("[]")
+            user_loc_file.close()
 
     # Ensure we have a path for the rules file, if one wasn't specified, then use the default (top of file)
     if not cli_args.RULES_FILE:
