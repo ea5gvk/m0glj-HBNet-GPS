@@ -162,6 +162,10 @@ def build_config(_config_file):
                     'EMAIL_PASSWORD': config.get(section, 'EMAIL_PASSWORD'),
                     'SMTP_SERVER': config.get(section, 'SMTP_SERVER'),
                     'SMTP_PORT': config.get(section, 'SMTP_PORT'),
+                    'LOCATION_FILE': config.get(section, 'LOCATION_FILE'),
+                    'BULLETIN_BOARD_FILE': config.get(section, 'BULLETIN_BOARD_FILE'),
+                    'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
+                    'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
 
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:

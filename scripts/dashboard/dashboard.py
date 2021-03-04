@@ -23,11 +23,15 @@ This is a web dashboard for the GPS/Data application.
 
 from flask import Flask, render_template, request, Response, Markup
 import ast, os
-from dashboard_settings import *
+#from dashboard_settings import *
 import folium
 from folium.plugins import MarkerCluster
 import re
 from datetime import datetime
+import argparse
+from configparser import ConfigParser
+
+
 
 app = Flask(__name__)
 
@@ -42,7 +46,7 @@ tbl_ftr = '''
 
 def get_loc_data():
     try:
-        dash_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+        dash_loc = ast.literal_eval(os.popen('cat ' + loc_file).read())
         tmp_loc = ''
         loc_hdr = '''
     <tr>
@@ -88,7 +92,7 @@ def get_loc_data():
 
 def get_bb_data():
     try:
-        dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+        dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
         tmp_bb = ''
         
         bb_hdr = '''
@@ -132,7 +136,7 @@ def get_bb_data():
 def check_emergency():
     # open emergency txt
     try:
-        sos_file = ast.literal_eval(os.popen('cat /tmp/gps_data_user_sos.txt').read())
+        sos_file = ast.literal_eval(os.popen('cat ' + emergency_sos_file).read())
         if type(sos_file['time']) == str:
             loc_time = str(sos_file['time'])
         if type(sos_file['time']) == int or type(sos_file['time']) == float:
@@ -200,7 +204,7 @@ def view_map():
     reload_time = request.args.get('reload')
     track_call = request.args.get('track')
     map_size = request.args.get('map_size')
-    user_loc = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    user_loc = ast.literal_eval(os.popen('cat ' + loc_file).read())
     last_known_list = []
     try:
         if track_call:
@@ -302,7 +306,7 @@ def view_map():
         return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
 
     if not track_call:
-        folium_map = folium.Map(location=map_center, tiles=map_theme, zoom_start=int(zoom_level))
+        folium_map = folium.Map(location=(map_center_lat, map_center_lon), tiles=map_theme, zoom_start=int(zoom_level))
         marker_cluster = MarkerCluster().add_to(folium_map)
         for user_coord in user_loc:
             user_lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', user_coord['lat'])))
@@ -406,7 +410,7 @@ def user_settings():
             if icon == '':
                 icon = '\['
             if comment == '':
-                comment = 'Default comment.'
+                comment = default_comment + ' ' + user_id
             #for result in user_settings:
             #return user_settings[int(user_id)][0]
             #return user_id
@@ -448,7 +452,7 @@ def mailbox():
     if not recipient:
         mail_content = """
         <p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a specially formatted SMS to <strong>""" + data_call_id + """</strong>.
-        The message recipient can then use the mailbox to check for messages. Enter your call sign below to check for messages. See the <a href="help">help</a> page for more information.</p>
+        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign below to check for messages. See the <a href="help">help</a> page for more information.</p>
         <form action="mailbox" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
@@ -471,17 +475,30 @@ def mailbox():
 """
 
     else:
-        mailbox_file = ast.literal_eval(os.popen('cat ../../gps_data_user_mailbox.txt').read())
+        mailbox_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
         mail_content = '<h2 style="text-align: center;">Messages for: ' + recipient.upper() + '''
         </h2>\n<p style="text-align: center;"><button onclick="history.back()">Back</button></p>\n
         <h4 style="text-align: center;"><a href="mailbox_rss?recipient=''' + recipient.upper() + '''"><em>Mailbox RSS Feed for ''' + recipient.upper() + '''</em></a><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5QIcFBAOXAevLAAAAZZJREFUSMftlbtKA0EUhj8jWhi8gaIEC29oxEoRFESLgIXYiWVSKoj6CCrBBwj6CBHNE1hEWy21ETQqiIW1wXhPo81ZOBw2apbdVPvDsDPnP8M/5zKzECJEQKivYO8DFoAYEAGKtTpQEvhW4w3IA+tAVy2F9fgEskA8COHUL8LOKAMZoMmLQF0FewcwImmNAzPANBB18b0BFoGroNLfBiyLgI2+BMwF3XgNwCrwYsQ//BBPSRPdAoeybjE+A8ClS+Sjfnf1E5A2dW4FzoxfwWvD/XWd7oAxI24jz3gVnpS7eiEpt+KvQEL5D5qal/245zFgU+pnXzMd+Zrh9/3q5l7g3CXtTs0bgWvFffn5vDa7iKcVv2K4DS8i3cAOsAuMm8h12ovqqrVL/R3upFrRKPBgHgctvm0iSynuWNnf5bf6byy5dPKe4nukhg6XU9yW2TfsJlDpNCUX27OaP8pD4WBCzQtmX381EUeAI3Xqe6m5xoHpYAezJuJkNb9Fh0tI4+SlXhpTwJBaZ+XbCcwr+6kcPESI2uAHmAijFaMnEmYAAAAASUVORK5CYII=" /></h4>
         '''
         for messages in mailbox_file:
             if messages['recipient'] == recipient.upper():
+                sender = """
+                <tr>
+                <td style="width: 63px;"><strong>DMR ID:</strong></td>
+                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
+                </tr>
+                """
                 if type(messages['time']) == str:
                     loc_time = str(messages['time'])
                 if type(messages['time']) == int or type(messages['time']) == float:
                     loc_time = datetime.fromtimestamp(messages['time']).strftime(time_format)
+                if type(messages['dmr_id']) == str:
+                    sender = """
+                <tr>
+                <td style="width: 63px;"><strong>APRS Call:</strong></td>
+                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
+                </tr>
+                """
                 mail_content = mail_content + """
                 <table style="margin-left: auto; margin-right: auto; width: 372.55px;" border="1">
                 <tbody>
@@ -489,10 +506,7 @@ def mailbox():
                 <td style="width: 63px;"><strong>From:</strong></td>
                 <td style="text-align: center; width: 292.55px;"><strong>""" + messages['call'] + """</strong></td>
                 </tr>
-                <tr>
-                <td style="width: 63px;"><strong>DMR ID:</strong></td>
-                <td style="width: 292.55px; text-align: center;">""" + str(messages['dmr_id']) + """</td>
-                </tr>
+                """ + sender + """
                 <tr>
                 <td style="width: 63px;"><strong>Time:</strong></td>
                 <td style="width: 292.55px; text-align: center;">""" + loc_time + """</td>
@@ -508,10 +522,11 @@ def mailbox():
                 """
     return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(mail_content))
 
+
 @app.route('/bulletin_rss.xml')
 def bb_rss():
     try:
-        dash_bb = ast.literal_eval(os.popen('cat /tmp/gps_data_user_bb.txt').read())
+        dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
         post_data = ''
         rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
         <rss version="2.0">
@@ -532,12 +547,13 @@ def bb_rss():
               </item>
     """
         return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
-    except:
-        return str('<h1 style="text-align: center;">No data</h1>')
+    except Exception as e:
+        #return str('<h1 style="text-align: center;">No data</h1>')
+        return str(e)
 
 @app.route('/mailbox_rss')
 def mail_rss():
-    mailbox_file = ast.literal_eval(os.popen('cat ../../gps_data_user_mailbox.txt').read())
+    mailbox_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
     post_data = ''
     recipient = request.args.get('recipient').upper()
     rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
@@ -562,4 +578,64 @@ def mail_rss():
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
 
 if __name__ == '__main__':
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
+    cli_args = arg_parser.parse_args()
+    parser = ConfigParser()
+    if not cli_args.CONFIG_FILE:
+        print('\n\nMust specify a config file with -c argument.\n\n')
+    parser.read(cli_args.CONFIG_FILE)
+    ###### Definitions #####
+    # Title of the Dashboard
+    dashboard_title = parser.get('GPS_DATA', 'DASHBOARD_TITLE')
+    # Logo used on dashboard page
+    logo = parser.get('GPS_DATA', 'LOGO')
+    dash_port = int(parser.get('GPS_DATA', 'DASH_PORT'))
+    # IP to run server on
+    dash_host = parser.get('GPS_DATA', 'DASH_HOST')
+    #Description of dashboard to show on main page
+    description = parser.get('GPS_DATA', 'DESCRIPTION')
+    # The following will generate a help page for your users.
+
+    # Data call type
+    if parser.get('GPS_DATA', 'CALL_TYPE') == 'unit':
+        data_call_type = 'Private Call'
+    if parser.get('GPS_DATA', 'CALL_TYPE') == 'group':
+        data_call_type = 'Group Call'
+    if parser.get('GPS_DATA', 'CALL_TYPE') == 'both':
+        data_call_type = 'Private or Group Call'
+    # DMR ID of GPS/Data application
+    data_call_id = parser.get('GPS_DATA', 'DATA_DMR_ID')
+    # Default APRS ssid
+    aprs_ssid = parser.get('GPS_DATA', 'USER_APRS_SSID')
+
+    # Gateway contact info displayed on about page.
+    contact_name = parser.get('GPS_DATA', 'CONTACT_NAME')
+    contact_call = parser.get('GPS_DATA', 'CONTACT_CALL')
+    contact_email = parser.get('GPS_DATA', 'CONTACT_EMAIL')
+    contact_website = parser.get('GPS_DATA', 'CONTACT_WEBSITE')
+
+    # Center dashboard map over these coordinates
+    map_center_lat = float(parser.get('GPS_DATA', 'MAP_CENTER_LAT'))
+    map_center_lon = float(parser.get('GPS_DATA', 'MAP_CENTER_LON'))
+    zoom_level = int(parser.get('GPS_DATA', 'ZOOM_LEVEL'))
+    map_theme = parser.get('GPS_DATA', 'MAP_THEME')
+
+    # Time format for display
+    time_format = parser.get('GPS_DATA', 'TIME_FORMAT')
+
+    # RSS feed link, shows in the link section of each RSS item.
+    rss_link = parser.get('GPS_DATA', 'RSS_LINK')
+
+    # Default APRS comment for users.
+    default_comment = parser.get('GPS_DATA', 'USER_APRS_COMMENT')
+
+
+    # DO NOT MODIFY BELOW HERE.
+    bb_file = parser.get('GPS_DATA', 'BULLETIN_BOARD_FILE')
+    loc_file = parser.get('GPS_DATA', 'LOCATION_FILE')
+    emergency_sos_file = parser.get('GPS_DATA', 'EMERGENCY_SOS_FILE')
+    the_mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
+    ########################
+    
     app.run(debug = True, port=dash_port, host=dash_host)
