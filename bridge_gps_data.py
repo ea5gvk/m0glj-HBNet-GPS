@@ -207,7 +207,7 @@ def mailbox_delete(dmr_id):
 
 
 def sos_write(dmr_id, time, message):
-    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     try:
         if user_settings[dmr_id][1]['ssid'] == '':
             sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
@@ -245,7 +245,7 @@ def decdeg2dms(dd):
 def user_setting_write(dmr_id, setting, value):
 ##    try:
     # Open file and load as dict for modification
-        with open("./user_settings.txt", 'r') as f:
+        with open(user_settings_file, 'r') as f:
 ##            if f.read() == '{}':
 ##                user_dict = {}
             user_dict = ast.literal_eval(f.read())
@@ -264,7 +264,7 @@ def user_setting_write(dmr_id, setting, value):
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
-        with open("./user_settings.txt", 'w') as user_dict_file:
+        with open(user_settings_file, 'w') as user_dict_file:
             user_dict_file.write(str(user_dict))
             user_dict_file.close()
             logger.info('User setting saved')
@@ -340,7 +340,7 @@ def process_sms(_rf_src, sms):
         logger.info('Latitude: ' + str(aprs_lat))
         logger.info('Longitude: ' + str(aprs_lon))
         # 14FRS2013 simplified and moved settings retrieval
-        user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())	
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())	
         if int_id(_rf_src) not in user_settings:	
             ssid = str(user_ssid)	
             icon_table = '/'	
@@ -383,7 +383,7 @@ def process_sms(_rf_src, sms):
         aprs_dest = re.sub('@| A-.*','',sms)
         aprs_msg = re.sub('^@|.* A-|','',sms)
         logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
-        user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
         if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
             ssid = user_settings[int_id(_rf_src)][1]['ssid']
         else:
@@ -1521,7 +1521,7 @@ class routerHBP(HBSYSTEM):
                     #logger.info(aprs_loc_packet)
                     logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
                     # 14FRS2013 simplified and moved settings retrieval
-                    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+                    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
                     if int_id(_rf_src) not in user_settings:	
                         ssid = str(user_ssid)	
                         icon_table = '/'	
@@ -1617,7 +1617,7 @@ class routerHBP(HBSYSTEM):
                                 # Begin APRS format and upload
                                 # Disable opening file for reading to reduce "collision" or reading and writing at same time.
                                 # 14FRS2013 simplified and moved settings retrieval
-                                user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())	
+                                user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())	
                                 if int_id(_rf_src) not in user_settings:	
                                     ssid = str(user_ssid)	
                                     icon_table = '/'	
@@ -1811,11 +1811,11 @@ if __name__ == '__main__':
     emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
 
         # Check if user_settings (for APRS settings of users) exists. Creat it if not.
-    if Path('./user_settings.txt').is_file():
+    if Path(user_settings_file).is_file():
         pass
     else:
-        Path('./user_settings.txt').touch()
-        with open("./user_settings.txt", 'w') as user_dict_file:
+        Path(user_settings_file).touch()
+        with open(user_settings_file, 'w') as user_dict_file:
             user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
             user_dict_file.close()
     # Check to see if dashboard files exist

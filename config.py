@@ -166,6 +166,7 @@ def build_config(_config_file):
                     'BULLETIN_BOARD_FILE': config.get(section, 'BULLETIN_BOARD_FILE'),
                     'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
                     'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
+                    'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
 
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
