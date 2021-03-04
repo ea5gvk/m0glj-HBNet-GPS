@@ -44,7 +44,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet import reactor, task
 
 # Things we import from the main hblink module
-from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases
+from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases, aprs_upload, sendAprs
 from dmr_utils3.utils import bytes_3, int_id, get_alias
 from dmr_utils3 import decode, bptc, const
 import config
@@ -207,7 +207,7 @@ def mailbox_delete(dmr_id):
 
 
 def sos_write(dmr_id, time, message):
-    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     try:
         if user_settings[dmr_id][1]['ssid'] == '':
             sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
@@ -340,7 +340,7 @@ def process_sms(_rf_src, sms):
         logger.info('Latitude: ' + str(aprs_lat))
         logger.info('Longitude: ' + str(aprs_lon))
         # 14FRS2013 simplified and moved settings retrieval
-        user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())	
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())	
         if int_id(_rf_src) not in user_settings:	
             ssid = str(user_ssid)	
             icon_table = '/'	
@@ -383,7 +383,7 @@ def process_sms(_rf_src, sms):
         aprs_dest = re.sub('@| A-.*','',sms)
         aprs_msg = re.sub('^@|.* A-|','',sms)
         logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
-        user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
         if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
             ssid = user_settings[int_id(_rf_src)][1]['ssid']
         else:
@@ -1521,7 +1521,7 @@ class routerHBP(HBSYSTEM):
                     #logger.info(aprs_loc_packet)
                     logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
                     # 14FRS2013 simplified and moved settings retrieval
-                    user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())
+                    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
                     if int_id(_rf_src) not in user_settings:	
                         ssid = str(user_ssid)	
                         icon_table = '/'	
@@ -1617,7 +1617,7 @@ class routerHBP(HBSYSTEM):
                                 # Begin APRS format and upload
                                 # Disable opening file for reading to reduce "collision" or reading and writing at same time.
                                 # 14FRS2013 simplified and moved settings retrieval
-                                user_settings = ast.literal_eval(os.popen('cat ./user_settings.txt').read())	
+                                user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())	
                                 if int_id(_rf_src) not in user_settings:	
                                     ssid = str(user_ssid)	
                                     icon_table = '/'	
@@ -1811,11 +1811,11 @@ if __name__ == '__main__':
     emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
 
         # Check if user_settings (for APRS settings of users) exists. Creat it if not.
-    if Path('./user_settings.txt').is_file():
+    if Path(user_settings_file).is_file():
         pass
     else:
-        Path('./user_settings.txt').touch()
-        with open("./user_settings.txt", 'w') as user_dict_file:
+        Path(user_settings_file).touch()
+        with open(user_settings_file, 'w') as user_dict_file:
             user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]}")
             user_dict_file.close()
     # Check to see if dashboard files exist
@@ -1898,7 +1898,7 @@ if __name__ == '__main__':
                 systems[system] = routerHBP(system, CONFIG, report_server)
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
-    #aprs_upload(CONFIG)
+    aprs_upload(CONFIG)
 
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)

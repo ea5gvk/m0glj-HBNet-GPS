@@ -24,18 +24,16 @@ import time
 import argparse
 
 def mailbox_write(call, dmr_id, time, message, recipient):
+    global mailbox_file
     mail_file = ast.literal_eval(os.popen('cat ' + mailbox_file).read())
     mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-    with open("../../gps_data_user_mailbox.txt", 'w') as mailbox_file:
+    with open(mailbox_file, 'w') as mailbox_file:
             mailbox_file.write(str(mail_file[:100]))
             mailbox_file.close()
     print('User mail saved.')
 
 def aprs_filter(packet):
-    #if aprslib.parse(packet) in aprslib.parse(packet):
-     #   print(aprslib.parse(packet))
-    #else:
-    #    pass
+
     user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())
     if 'addresse' in aprslib.parse(packet):
         #print(aprslib.parse(packet))
@@ -43,11 +41,10 @@ def aprs_filter(packet):
         recipient_ssid = re.sub('.*-','', aprslib.parse(packet)['addresse'])
 
         for i in user_settings.items():
-##            print('checking user_settings ' + recipient)
-            if recipient in i[1][0]['call'] and recipient_ssid in i[1][1]['ssid']:
-##                print(i[1][0])
-##                print(i[1][1])
-##                print(aprslib.parse(packet))
+            ssid = i[1][1]['ssid']
+            if i[1][1]['ssid'] == '':
+                ssid = user_aprs_ssid
+            if recipient in i[1][0]['call'] and recipient_ssid in ssid:
                 mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time.time(), aprslib.parse(packet)['message_text'], recipient)
                 if 'msgNo' in aprslib.parse(packet):
                     time.sleep(1)
@@ -71,6 +68,7 @@ if __name__ == '__main__':
     aprs_login = parser.get('GPS_DATA', 'APRS_RECEIVE_LOGIN_CALL')
     aprs_passcode = parser.get('GPS_DATA', 'APRS_LOGIN_PASSCODE')
     mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
+    user_settings_file = mailbox_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
 
     AIS = aprslib.IS(aprs_login, passwd=int(aprs_passcode), host=aprs_server, port=int(aprs_port))
     user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())

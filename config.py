@@ -106,6 +106,7 @@ def build_config(_config_file):
     CONFIG['GLOBAL'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
+    CONFIG['APRS'] = {}
     CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
@@ -165,6 +166,7 @@ def build_config(_config_file):
                     'BULLETIN_BOARD_FILE': config.get(section, 'BULLETIN_BOARD_FILE'),
                     'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
                     'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
+                    'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
 
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
@@ -180,6 +182,15 @@ def build_config(_config_file):
                     'PEER_URL': config.get(section, 'PEER_URL'),
                     'SUBSCRIBER_URL': config.get(section, 'SUBSCRIBER_URL'),
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
+                })
+
+            elif section == 'APRS':
+                CONFIG['APRS'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'CALLSIGN': config.get(section, 'CALLSIGN'),
+                    'REPORT_INTERVAL': config.getint(section, 'REPORT_INTERVAL'),
+                    'SERVER': config.get(section, 'SERVER'),
+                    'MESSAGE': config.get(section, 'MESSAGE')
                 })
 
             elif config.getboolean(section, 'ENABLED'):
@@ -278,6 +289,7 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
+                        'APRS': config.getboolean(section, 'APRS'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),
