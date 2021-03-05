@@ -25,9 +25,9 @@ import argparse
 
 def mailbox_write(call, dmr_id, time, message, recipient):
     global mailbox_file
-    mail_file = ast.literal_eval(os.popen('cat ' + mailbox_file).read())
+    mail_file = ast.literal_eval(os.popen('cat ' + parser.get('GPS_DATA', 'MAILBOX_FILE')).read())
     mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-    with open(mailbox_file, 'w') as mailbox_file:
+    with openparser.get('GPS_DATA', 'MAILBOX_FILE'), 'w') as mailbox_file:
             mailbox_file.write(str(mail_file[:100]))
             mailbox_file.close()
     print('User mail saved.')
