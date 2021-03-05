@@ -1809,6 +1809,8 @@ if __name__ == '__main__':
     loc_file = CONFIG['GPS_DATA']['LOCATION_FILE']
     the_mailbox_file = CONFIG['GPS_DATA']['MAILBOX_FILE']
     emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
+    # User APRS settings
+    user_settings_file = CONFIG['GPS_DATA']['USER_SETTINGS_FILE']
 
         # Check if user_settings (for APRS settings of users) exists. Creat it if not.
     if Path(user_settings_file).is_file():
