@@ -34,7 +34,7 @@ def mailbox_write(call, dmr_id, time, message, recipient):
 
 def aprs_filter(packet):
 
-    user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     if 'addresse' in aprslib.parse(packet):
         #print(aprslib.parse(packet))
         recipient = re.sub('-.*','', aprslib.parse(packet)['addresse'])
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     user_settings_file = mailbox_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
 
     AIS = aprslib.IS(aprs_login, passwd=int(aprs_passcode), host=aprs_server, port=int(aprs_port))
-    user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     print('APRS message receive script for GPS/Data Application.\nAuthor: Eric, KF7EEL - kf7eel@qsl.net')
     AIS.set_filter(parser.get('GPS_DATA', 'APRS_FILTER'))
     AIS.connect()

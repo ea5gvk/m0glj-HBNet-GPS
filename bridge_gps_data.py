@@ -44,7 +44,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet import reactor, task
 
 # Things we import from the main hblink module
-from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases, aprs_upload, sendAprs
+from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases
 from dmr_utils3.utils import bytes_3, int_id, get_alias
 from dmr_utils3 import decode, bptc, const
 import config
@@ -245,7 +245,7 @@ def decdeg2dms(dd):
 def user_setting_write(dmr_id, setting, value):
 ##    try:
     # Open file and load as dict for modification
-        with open("./user_settings.txt", 'r') as f:
+        with open(user_settings_file, 'r') as f:
 ##            if f.read() == '{}':
 ##                user_dict = {}
             user_dict = ast.literal_eval(f.read())
@@ -264,7 +264,7 @@ def user_setting_write(dmr_id, setting, value):
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
-        with open("./user_settings.txt", 'w') as user_dict_file:
+        with open(user_settings_file, 'w') as user_dict_file:
             user_dict_file.write(str(user_dict))
             user_dict_file.close()
             logger.info('User setting saved')
@@ -1898,7 +1898,7 @@ if __name__ == '__main__':
                 systems[system] = routerHBP(system, CONFIG, report_server)
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
-    aprs_upload(CONFIG)
+    #aprs_upload(CONFIG)
 
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)

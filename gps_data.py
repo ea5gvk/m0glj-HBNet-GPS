@@ -238,7 +238,7 @@ def decdeg2dms(dd):
 def user_setting_write(dmr_id, setting, value):
 ##    try:
     # Open file and load as dict for modification
-        with open("./user_settings.txt", 'r') as f:
+        with open(user_settings_file, 'r') as f:
 ##            if f.read() == '{}':
 ##                user_dict = {}
             user_dict = ast.literal_eval(f.read())
@@ -257,7 +257,7 @@ def user_setting_write(dmr_id, setting, value):
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
-        with open("./user_settings.txt", 'w') as user_dict_file:
+        with open(user_settings_file, 'w') as user_dict_file:
             user_dict_file.write(str(user_dict))
             user_dict_file.close()
             logger.info('User setting saved')
