@@ -68,7 +68,8 @@ if __name__ == '__main__':
     aprs_login = parser.get('GPS_DATA', 'APRS_RECEIVE_LOGIN_CALL')
     aprs_passcode = parser.get('GPS_DATA', 'APRS_LOGIN_PASSCODE')
     mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
-    user_settings_file = mailbox_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
+    user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
+    user_aprs_ssid = parser.get('GPS_DATA', 'USER_APRS_SSID')
 
     AIS = aprslib.IS(aprs_login, passwd=int(aprs_passcode), host=aprs_server, port=int(aprs_port))
     user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
