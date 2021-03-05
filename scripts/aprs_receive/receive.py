@@ -39,18 +39,21 @@ def aprs_filter(packet):
         #print(aprslib.parse(packet))
         recipient = re.sub('-.*','', aprslib.parse(packet)['addresse'])
         recipient_ssid = re.sub('.*-','', aprslib.parse(packet)['addresse'])
+        if recipient == '':
+            pass
+        elif:
+            for i in user_settings.items():
+                ssid = i[1][1]['ssid']
+                if i[1][1]['ssid'] == '':
+                    ssid = user_aprs_ssid
+                if recipient in i[1][0]['call'] and recipient_ssid in ssid:
+                    mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time.time(), aprslib.parse(packet)['message_text'], recipient)
+                    if 'msgNo' in aprslib.parse(packet):
+                        time.sleep(1)
+                        AIS.sendall(aprslib.parse(packet)['addresse'] + '>APHBL3,TCPIP*:' + ':' + aprslib.parse(packet)['from'].ljust(9) +':ack'+aprslib.parse(packet)['msgNo'])
+                        print('Send ACK')
+                        print(aprslib.parse(packet)['addresse'] + '>APHBL3,TCPIP*:' + ':' + aprslib.parse(packet)['from'].ljust(9) +':ack'+aprslib.parse(packet)['msgNo'])
 
-        for i in user_settings.items():
-            ssid = i[1][1]['ssid']
-            if i[1][1]['ssid'] == '':
-                ssid = user_aprs_ssid
-            if recipient in i[1][0]['call'] and recipient_ssid in ssid:
-                mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time.time(), aprslib.parse(packet)['message_text'], recipient)
-                if 'msgNo' in aprslib.parse(packet):
-                    time.sleep(1)
-                    AIS.sendall(aprslib.parse(packet)['addresse'] + '>APHBL3,TCPIP*:' + ':' + aprslib.parse(packet)['from'].ljust(9) +':ack'+aprslib.parse(packet)['msgNo'])
-                    print('Send ACK')
-                    print(aprslib.parse(packet)['addresse'] + '>APHBL3,TCPIP*:' + ':' + aprslib.parse(packet)['from'].ljust(9) +':ack'+aprslib.parse(packet)['msgNo'])
 ##    else:
 ##        print(aprslib.parse(packet)['from'])
 
