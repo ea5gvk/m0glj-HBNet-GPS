@@ -41,7 +41,7 @@ def aprs_filter(packet):
         recipient_ssid = re.sub('.*-','', aprslib.parse(packet)['addresse'])
         if recipient == '':
             pass
-        elif:
+        else:
             for i in user_settings.items():
                 ssid = i[1][1]['ssid']
                 if i[1][1]['ssid'] == '':
