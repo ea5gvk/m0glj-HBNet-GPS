@@ -206,6 +206,7 @@ def view_map():
     map_size = request.args.get('map_size')
     user_loc = ast.literal_eval(os.popen('cat ' + loc_file).read())
     last_known_list = []
+    coord_list = []
     try:
         if track_call:
             #folium_map = folium.Map(location=map_center, zoom_start=int(zoom_level))
@@ -320,6 +321,7 @@ def view_map():
             if 'W' in user_coord['lon']:
                 user_lon = -user_lon
             loc_comment = ''
+            coord_list.append([user_lat, user_lon])
             if 'comment' in user_coord:
                 loc_comment = """
             <tr>
@@ -351,18 +353,21 @@ def view_map():
                 </i>""", icon=folium.Icon(color="red", icon="record"), tooltip=str(user_coord['call'])).add_to(folium_map)
                 last_known_list.append(user_coord['call'])
             if user_coord['call'] in last_known_list:
-                folium.CircleMarker([user_lat, user_lon], popup="""
-                <table style="width: 150px;">
-                <tbody>
-                <tr>
-                <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
-                </tr>
-                <tr>
-                <td style="text-align: center;"><em>""" + loc_time + """</em></td>
-                </tr>
-                </tbody>
-                </table>
-                """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+                if coord_list.count([user_lat, user_lon]) > 15:
+                    pass
+                else:
+                    folium.CircleMarker([user_lat, user_lon], popup="""
+                    <table style="width: 150px;">
+                    <tbody>
+                    <tr>
+                    <td style="text-align: center;"><strong>""" + user_coord['call'] + """</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><em>""" + loc_time + """</em></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    """, tooltip=str(user_coord['call']), fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
 
         return folium_map._repr_html_()
     
