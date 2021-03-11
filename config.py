@@ -279,7 +279,6 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
-                        'APRS': config.getboolean(section, 'APRS'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),

@@ -252,7 +252,6 @@ def user_setting_write(dmr_id, setting, value):
             logger.info('Current settings: ' + str(user_dict))
             if dmr_id not in user_dict:
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
-
             if setting.upper() == 'ICON':
                 user_dict[dmr_id][2]['icon'] = value
             if setting.upper() == 'SSID':
@@ -261,6 +260,11 @@ def user_setting_write(dmr_id, setting, value):
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
             if setting.upper() == 'APRS':
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
+            if setting.upper() == 'PIN':
+                try:
+                    user_dict[dmr_id][4]['pin'] = value
+                except:
+                    user_dict[dmr_id].append({'pin': value})
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
@@ -270,11 +274,7 @@ def user_setting_write(dmr_id, setting, value):
             logger.info('User setting saved')
             f.close()
             packet_assembly = ''
-##    except:
-##        logger.info('No data file found, creating one.')
-##        #Path('./user_settings.txt').mkdir(parents=True, exist_ok=True)
-##        Path('./user_settings.txt').touch()
-        
+            
 # Process SMS, do something bases on message
 
 def process_sms(_rf_src, sms):
@@ -288,6 +288,8 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+    elif '@PIN' in sms:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)))    
     # Write blank entry to cause APRS receive to look for packets for this station.
     elif '@APRS' in sms:
         user_setting_write(int_id(_rf_src), 'APRS', '')
