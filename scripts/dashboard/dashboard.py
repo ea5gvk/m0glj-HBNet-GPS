@@ -60,7 +60,7 @@ def get_loc_data():
     <h2>&nbsp;<strong>Longitude</strong>&nbsp;</h2>
     </td>
     <td style="text-align: center;">
-    <h2>&nbsp;<strong>Local Time</strong>&nbsp;</h2>
+    <h2>&nbsp;<strong>Time</strong>&nbsp;</h2>
     </td>
     </tr>
     '''
@@ -101,13 +101,13 @@ def get_bb_data():
     <h2><strong>&nbsp;Callsign&nbsp;</strong></h2>
     </td>
     <td style="text-align: center;">
-    <h2>&nbsp;<strong>DMR ID</strong>&nbsp; </h2>
+    <h2>&nbsp;<strong>ID</strong>&nbsp; </h2>
     </td>
     <td style="text-align: center;">
     <h2>&nbsp;<strong>Bulletin</strong>&nbsp;</h2>
     </td>
     <td style="text-align: center;">
-    <h2>&nbsp;<strong>Local Time</strong>&nbsp;</h2>
+    <h2>&nbsp;<strong>Time</strong>&nbsp;</h2>
     </td>
     </tr>
     '''
@@ -177,6 +177,22 @@ def aprs_to_latlon(x):
     degrees = int(x) // 100
     minutes = x - 100*degrees
     return degrees + minutes/60 
+
+def user_setting_write(dmr_id, input_ssid, input_icon, input_comment):
+    dmr_id = int(dmr_id)
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+    new_dict = user_settings
+    new_dict[dmr_id][1]['ssid'] = input_ssid
+    new_dict[dmr_id][2]['icon'] = input_icon
+    new_dict[dmr_id][3]['comment'] = input_comment
+    print(input_comment)
+    print(new_dict[dmr_id])
+                        
+    # Write modified dict to file
+    with open(user_settings_file, 'w') as user_dict_file:
+        user_dict_file.write(str(new_dict))
+        user_dict_file.close()
+        
 
 @app.route('/')
 def index():
@@ -375,37 +391,136 @@ def view_map():
 def map():
     return render_template('map.html', title = dashboard_title, logo = logo)
 
-@app.route('/user')
+@app.route('/user', methods = ['GET', 'POST'])
 def user_settings():
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     user_id = request.args.get('user_id')
-    if not user_id:
-        user_result = """
-        Use this tool to find and check the stored APRS settings for your DMR ID. When a position is sent, the stored settings will be used to format the APRS packet.
-        <form action="user" method="get">
-        <table style="margin-left: auto; margin-right: auto;">
+    if request.method == 'POST' and request.form.get('dmr_id'):
+        if int(request.form.get('dmr_id')) in user_settings:
+            user_id = request.form.get('dmr_id')
+            ssid = user_settings[int(request.form.get('dmr_id'))][1]['ssid']
+            icon = user_settings[int(request.form.get('dmr_id'))][2]['icon']
+            comment = user_settings[int(request.form.get('dmr_id'))][3]['comment']
+            try:
+                pin = user_settings[int(request.form.get('dmr_id'))][4]['pin']
+                if ssid == '':
+                    ssid = aprs_ssid
+                if icon == '':
+                    icon = '\['
+                if comment == '':
+                    comment = default_comment + ' ' + user_id
+                user_result = """
+                Use this tool to change the stored APRS settings for your DMR ID. When a position is sent, the stored settings will be used to format the APRS packet. Leave field(s) blank for default value.
+        <h2 style="text-align: center;">&nbsp;Modify Settings for ID: """ + user_id + """</h2>
+        <form action="user" method="post">
+        <table style="margin-left: auto; margin-right: auto; width: 419.367px;" border="1">
         <tbody>
-        <tr style="height: 62px;">
-        <td style="text-align: center; height: 62px;">
-        <h2><strong><label for="user_id">DMR ID:</label></strong></h2>
-        </td>
+        <tr>
+        <td style="width: 82px;"><strong>Callsign:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><strong>""" + str(user_settings[int(user_id)][0]['call']) + """</strong></td>
         </tr>
-        <tr style="height: 51.1667px;">
-        <td style="height: 51.1667px;"><input id="user_id" name="user_id" type="text" /></td>
+        <tr>
+        <td style="width: 82px;"><strong>SSID:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><input id="ssid" name="ssid" type="text" placeholder='""" + ssid + """' /></td>
         </tr>
-        <tr style="height: 27px;">
-        <td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+        <tr>
+        <td style="width: 82px;"><strong>Icon:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><input id="icon" name="icon" type="text" placeholder='""" + icon + """' /></td>
+        </tr>
+        <tr>
+        <td style="width: 82px;"><strong>Comment:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><input id="comment" name="comment" type="text" placeholder='""" + comment + """'/></td>
+        </tr>
+        <tr>
+        <td style="width: 82px;"><strong>DMR ID:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><input id="dmr_id" name="dmr_id" type="text" value='""" + user_id + """'/></td>
+        </tr>
+        <tr>
+        <td style="width: 82px;"><strong>PIN:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><input id="pin" name="pin" type="password" /></td>
         </tr>
         </tbody>
         </table>
+        <p style="text-align: center;"><input type="submit" value="Submit" /></p>
         </form>
+                        <p>&nbsp;</p>
+
+
+        """
+            except:
+                user_result = """<h2 style="text-align: center;">No PIN set for """ + str(user_settings[int(user_id)][0]['call']) + """ - """ + request.form.get('dmr_id') + """</h2>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                        </p>"""
+        if int(request.form.get('dmr_id')) not in user_settings:
+                user_result = """<h2 style="text-align: center;">DMR ID not found.</h2>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                        </p>"""
+    #if edit_user:
+        
+    if request.method == 'POST' and request.form.get('dmr_id') and request.form.get('pin'):
+        if int(request.form.get('pin')) == pin:
+            ssid = request.form.get('ssid')
+            icon = request.form.get('icon')
+            comment = request.form.get('comment')
+            user_setting_write(request.form.get('dmr_id'), request.form.get('ssid'), request.form.get('icon'), request.form.get('comment'))
+            user_result = """<h2 style="text-align: center;">Changed settings for """  + str(user_settings[int(user_id)][0]['call']) + """ - """ + request.form.get('dmr_id') +  """</h2>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                        </p>"""
+        if int(request.form.get('pin')) != pin:
+            user_result = """<h2 style="text-align: center;">Incorrect PIN.</h2>
+                <p style="text-align: center;"><button onclick="history.back()">Back</button>
+                        </p>"""
+
+    if request.method == 'GET' and not request.args.get('user_id'):
+        user_result = """
+        Use this tool to find, check, and change the stored APRS settings for your DMR ID. When a position is sent, the stored settings will be used to format the APRS packet.
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="3">
+<tbody>
+<tr>
+<td><form action="user" method="get">
+<table style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr style="height: 62px;">
+<td style="text-align: center; height: 62px;">
+<h2><strong><label for="user_id">Look up DMR ID:</label></strong></h2>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px;"><input id="user_id" name="user_id" type="text" /></td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+</tr>
+</tbody>
+</table>
+</form></td>
+<td><form action="user" method="post">
+<table style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr style="height: 62px;">
+<td style="text-align: center; height: 62px;">
+<h2><strong><label for="dmr_id">Edit DMR ID:</label></strong></h2>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px;"><input id="dmr_id" name="dmr_id" type="text" /></td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+</tr>
+</tbody>
+</table>
+</form></td>
+</tr>
+</tbody>
+</table>
                 <p>&nbsp;</p>
 
 
 """
-    else:
+    #else:
+    if request.method == 'GET' and request.args.get('user_id'):
         try:
-        #return render_template('map.html', title = dashboard_title, logo = logo)
-            user_settings = ast.literal_eval(os.popen('cat ../../user_settings.txt').read())
             call = user_settings[int(user_id)][0]['call']
             ssid = user_settings[int(user_id)][1]['ssid']
             icon = user_settings[int(user_id)][2]['icon']
@@ -457,7 +572,7 @@ def mailbox():
     if not recipient:
         mail_content = """
         <p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a specially formatted SMS to <strong>""" + data_call_id + """</strong>.
-        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign below to check for messages. See the <a href="help">help</a> page for more information.</p>
+        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign (without APRS SSID) below to check for messages. See the <a href="help">help</a> page for more information.</p>
         <form action="mailbox" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
@@ -549,7 +664,8 @@ def bb_rss():
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
                 <link>""" + rss_link + """</link>
                 <description>""" + entry['bulletin'] + """ - """ + loc_time + """</description>
-              </item>
+                <pubDate>""" + datetime.fromtimestamp(entry['time']).strftime('%a, %d %b %y') +"""</pubDate>
+             </item>
     """
         return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
     except Exception as e:
@@ -578,6 +694,7 @@ def mail_rss():
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
                 <link>""" + rss_link + """</link>
                 <description>""" + entry['message'] + """ - """ + loc_time + """</description>
+                <pubDate>""" + datetime.fromtimestamp(entry['time']).strftime('%a, %d %b %y') +"""</pubDate>
               </item>
     """
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
@@ -641,6 +758,7 @@ if __name__ == '__main__':
     loc_file = parser.get('GPS_DATA', 'LOCATION_FILE')
     emergency_sos_file = parser.get('GPS_DATA', 'EMERGENCY_SOS_FILE')
     the_mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
+    user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
     ########################
     
     app.run(debug = True, port=dash_port, host=dash_host)

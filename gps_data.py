@@ -152,15 +152,41 @@ def aprs_send(packet):
         AIS.sendall(packet)
         AIS.close()
         logger.info('Packet sent to APRS-IS.')
+# For future use
+##def position_timer(aprs_call):
+##    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
+##    for i in dash_entries:
+##        if aprs_call == i['call']:
+##            if time.time()
+
 
 def dashboard_loc_write(call, lat, lon, time, comment):
     #try:
     dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
    # except:
     #    dash_entries = []
-    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment': comment})
+    list_index = 0
+    call_count = 0
+    new_dash_entries = []
+    for i in dash_entries:
+        if i['call'] == call:
+            if call_count >= 25:
+                print(call_count)
+                pass
+
+            else:
+                new_dash_entries.append(i)
+            call_count = call_count + 1
+
+        if call != i['call']:
+            print('Record call: |' + i['call'] + '|')
+            print('Filter Call: |' + call + '|')
+            new_dash_entries.append(i)
+            
+            pass
+        list_index = list_index + 1
     with open(loc_file, 'w') as user_loc_file:
-            user_loc_file.write(str(dash_entries[:200]))
+            user_loc_file.write(str(new_dash_entries[:500]))
             user_loc_file.close()
     logger.info('User location saved for dashboard')
     #logger.info(dash_entries)
@@ -245,7 +271,6 @@ def user_setting_write(dmr_id, setting, value):
             logger.info('Current settings: ' + str(user_dict))
             if dmr_id not in user_dict:
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
-
             if setting.upper() == 'ICON':
                 user_dict[dmr_id][2]['icon'] = value
             if setting.upper() == 'SSID':
@@ -254,6 +279,11 @@ def user_setting_write(dmr_id, setting, value):
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
             if setting.upper() == 'APRS':
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
+            if setting.upper() == 'PIN':
+                try:
+                    user_dict[dmr_id][4]['pin'] = value
+                except:
+                    user_dict[dmr_id].append({'pin': value})
             f.close()
             logger.info('Loaded user settings. Preparing to write...')
     # Write modified dict to file
@@ -263,11 +293,7 @@ def user_setting_write(dmr_id, setting, value):
             logger.info('User setting saved')
             f.close()
             packet_assembly = ''
-##    except:
-##        logger.info('No data file found, creating one.')
-##        #Path('./user_settings.txt').mkdir(parents=True, exist_ok=True)
-##        Path('./user_settings.txt').touch()
-        
+      
 # Process SMS, do something bases on message
 
 def process_sms(_rf_src, sms):
@@ -281,6 +307,8 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
     elif '@COM' in sms:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+    elif '@PIN' in sms:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)))
     # Write blank entry to cause APRS receive to look for packets for this station.
     elif '@APRS' in sms:
         user_setting_write(int_id(_rf_src), 'APRS', '')
