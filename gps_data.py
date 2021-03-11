@@ -281,7 +281,10 @@ def user_setting_write(dmr_id, setting, value):
                 user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}]
             if setting.upper() == 'PIN':
                 try:
-                    user_dict[dmr_id][4]['pin'] = value
+                    if user_dict[dmr_id]:
+                        user_dict[dmr_id][4]['pin'] = value
+                    if not user_dict[dmr_id]:
+                        user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
                 except:
                     user_dict[dmr_id].append({'pin': value})
             f.close()
