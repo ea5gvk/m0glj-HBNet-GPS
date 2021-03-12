@@ -161,28 +161,22 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time, comment):
-    #try:
-    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
-   # except:
-    #    dash_entries = []
+    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
+# Clear old entries
     list_index = 0
     call_count = 0
     new_dash_entries = []
     for i in dash_entries:
         if i['call'] == call:
             if call_count >= 25:
-                print(call_count)
                 pass
-
             else:
                 new_dash_entries.append(i)
             call_count = call_count + 1
 
         if call != i['call']:
-            print('Record call: |' + i['call'] + '|')
-            print('Filter Call: |' + call + '|')
             new_dash_entries.append(i)
-            
             pass
         list_index = list_index + 1
     with open(loc_file, 'w') as user_loc_file:

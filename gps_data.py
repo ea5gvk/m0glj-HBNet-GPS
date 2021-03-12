@@ -161,28 +161,22 @@ def aprs_send(packet):
 
 
 def dashboard_loc_write(call, lat, lon, time, comment):
-    #try:
-    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
-   # except:
-    #    dash_entries = []
+    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
+# Clear old entries
     list_index = 0
     call_count = 0
     new_dash_entries = []
     for i in dash_entries:
         if i['call'] == call:
             if call_count >= 25:
-                print(call_count)
                 pass
-
             else:
                 new_dash_entries.append(i)
             call_count = call_count + 1
 
         if call != i['call']:
-            print('Record call: |' + i['call'] + '|')
-            print('Filter Call: |' + call + '|')
             new_dash_entries.append(i)
-            
             pass
         list_index = list_index + 1
     with open(loc_file, 'w') as user_loc_file:
@@ -774,9 +768,9 @@ if __name__ == '__main__':
         pass
     else:
         Path(the_mailbox_file).touch()
-        with open(the_mailbox_file, 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
+        with open(the_mailbox_file, 'w') as user_mail_file:
+            user_mail_file.write("[]")
+            user_mail_file.close()
     
     # Start the system logger
     if cli_args.LOG_LEVEL:
