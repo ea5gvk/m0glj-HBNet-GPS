@@ -21,7 +21,7 @@
 This is a web dashboard for the GPS/Data application.
 '''
 
-from flask import Flask, render_template, request, Response, Markup
+from flask import Flask, render_template, request, Response, Markup, jsonify, make_response
 import ast, os
 #from dashboard_settings import *
 import folium
@@ -30,6 +30,7 @@ import re
 from datetime import datetime
 import argparse
 from configparser import ConfigParser
+from send_sms import *
 
 
 
@@ -185,8 +186,12 @@ def user_setting_write(dmr_id, input_ssid, input_icon, input_comment):
     new_dict[dmr_id][1]['ssid'] = input_ssid
     new_dict[dmr_id][2]['icon'] = input_icon
     new_dict[dmr_id][3]['comment'] = input_comment
-    print(input_comment)
-    print(new_dict[dmr_id])
+    if input_aprs == 'True':
+        new_dict[dmr_id][5]['APRS'] = True
+    if input_aprs == 'False':
+        new_dict[dmr_id][5]['APRS'] = False
+    #print(input_comment)
+    #print(new_dict[dmr_id])
                         
     # Write modified dict to file
     with open(user_settings_file, 'w') as user_dict_file:
@@ -401,8 +406,11 @@ def user_settings():
             ssid = user_settings[int(request.form.get('dmr_id'))][1]['ssid']
             icon = user_settings[int(request.form.get('dmr_id'))][2]['icon']
             comment = user_settings[int(request.form.get('dmr_id'))][3]['comment']
+            aprs_msg_status = str(user_settings[int(request.form.get('dmr_id'))][5]['APRS'])
+            
             try:
                 pin = user_settings[int(request.form.get('dmr_id'))][4]['pin']
+                
                 if ssid == '':
                     ssid = aprs_ssid
                 if icon == '':
@@ -430,6 +438,15 @@ def user_settings():
         <tr>
         <td style="width: 82px;"><strong>Comment:</strong></td>
         <td style="width: 319.367px; text-align: center;"><input id="comment" name="comment" type="text" placeholder='""" + comment + """'/></td>
+        </tr>
+        <tr>
+        <td style="width: 82px;"><strong>APRS Messaging:</strong></td>
+        <td style="width: 319.367px; text-align: center;"><select name="aprs" id="aprs">
+          <option value='""" + aprs_msg_status + """' selected>""" + aprs_msg_status + """</option>
+          <option value="True"> True (Enabled) </option>
+          <option value="False"> False (Disabled) </option>
+        </select>
+        </td>
         </tr>
         <tr>
         <td style="width: 82px;"><strong>DMR ID:</strong></td>
@@ -462,7 +479,7 @@ def user_settings():
             ssid = request.form.get('ssid')
             icon = request.form.get('icon')
             comment = request.form.get('comment')
-            user_setting_write(request.form.get('dmr_id'), request.form.get('ssid'), request.form.get('icon'), request.form.get('comment'))
+            user_setting_write(request.form.get('dmr_id'), request.form.get('ssid'), request.form.get('icon'), request.form.get('comment'), request.form.get('aprs'))
             user_result = """<h2 style="text-align: center;">Changed settings for """  + str(user_settings[int(user_id)][0]['call']) + """ - """ + request.form.get('dmr_id') +  """</h2>
                 <p style="text-align: center;"><button onclick="history.back()">Back</button>
                         </p>"""
@@ -525,6 +542,7 @@ def user_settings():
             ssid = user_settings[int(user_id)][1]['ssid']
             icon = user_settings[int(user_id)][2]['icon']
             comment = user_settings[int(user_id)][3]['comment']
+            aprs_msg_status = str(user_settings[int(user_id)][5]['APRS'])
             if ssid == '':
                 ssid = aprs_ssid
             if icon == '':
@@ -553,6 +571,10 @@ def user_settings():
                 <tr>
                 <td style="width: 82px;"><strong>Comment:</strong></td>
                 <td style="width: 319.367px; text-align: center;">""" + comment + """</td>
+                </tr>
+                <tr>
+                <td style="width: 82px;"><strong>APRS Messaging:</strong></td>
+                <td style="width: 319.367px; text-align: center;">""" + aprs_msg_status + """</td>
                 </tr>
                 </tbody>
                 </table>
@@ -699,6 +721,54 @@ def mail_rss():
     """
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
 
+@app.route('/api/<api_mode>', methods=['POST'])
+def api(api_mode=None):
+    api_data = request.json
+    # Find out type of JSON
+    #print(api_data)
+    #print(authorized_users)
+    try:
+    # Filter msg_xfer
+        if api_data['mode'] == 'msg_xfer':
+            # Handle authorization
+            if api_data['auth_type'] == 'private':
+                #Authenticate
+                if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
+                    print(api_data['credentials']['user'])
+                    print(api_data['credentials']['password'])
+                    for sms in api_data['data'].items():
+                        sms_data = sms[1]
+                        print((sms_data['destination_id']))
+                        print((sms_data['source_id']))
+                        print((sms_data['message']))
+                        #send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', 1, sms_data['message'])
+                    return jsonify(
+                        mode=api_data['mode'],
+                        status='Generated SMS',
+                    )
+                else:
+                    return jsonify(
+                    mode=api_data['mode'],
+                    status='Authentication error',
+                )
+            if api_data['auth_type'] == 'public':
+                return jsonify(
+                    mode=api_data['mode'],
+                    status='Not implemented at this time',
+                )
+            else:
+                return jsonify(
+                    mode=api_data['mode'],
+                    status='Not an authorization method',
+                )
+        else:
+            message = jsonify(message='Mode not found')
+            return make_response(message, 400)
+    except Exception as e:
+        message = jsonify(message='Error:' + str(e))
+        return make_response(message, 400)
+
+#################### Run App ############################
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
@@ -759,6 +829,15 @@ if __name__ == '__main__':
     emergency_sos_file = parser.get('GPS_DATA', 'EMERGENCY_SOS_FILE')
     the_mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
     user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
+
+    # API settings
+    authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
+    try:
+        global authorized_users, other_systems
+        from authorized_apps import authorized_users, access_systems
+    except Exception as e:
+        print(e)
+    
     ########################
     
     app.run(debug = True, port=dash_port, host=dash_host)
