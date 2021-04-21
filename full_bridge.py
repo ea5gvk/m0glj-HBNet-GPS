@@ -2280,4 +2280,6 @@ if __name__ == '__main__':
     else:
         threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,)).start()
     #logger.info(UNIT_MAP)
+    #global authorized_users, other_systems
+    #from .scripts.dashboard.authorized_apps import authorized_users, other_systems
     reactor.run()

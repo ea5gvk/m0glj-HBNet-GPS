@@ -721,59 +721,63 @@ def mail_rss():
     """
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
 
-@app.route('/api/<api_mode>', methods=['POST'])
+@app.route('/api/<api_mode>', methods=['POST', 'GET'])
 def api(api_mode=None):
-    api_data = request.json
-    # Find out type of JSON
-    #print(api_data)
-    #print(authorized_users)
-##    try:
-    # Filter msg_xfer
-    if api_data['mode'] == 'msg_xfer':
-        # Handle authorization
-        if api_data['auth_type'] == 'private':
-            #Authenticate
-            if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
-                print(api_data['credentials']['user'])
-                print(api_data['credentials']['password'])
-                for sms in api_data['data'].items():
-                    sms_data = sms[1]
-                    print((sms_data['destination_id']))
-                    print((sms_data['source_id']))
-                    print((sms_data['message']))
-                    print((sms_data['slot']))
-                    if sms_data['slot'] == 0:
-                        send_slot = int(unit_sms_ts) - 1
-                    if sms_data['slot'] == 1:
-                        send_slot = 0
-                    if sms_data['slot'] == 2:
-                        send_slot = 1
-                    send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+    if request.method == 'GET':
+        print('get')
+        return render_template('generic.html', title = dashboard_title, content = Markup(api_content))
+    else:
+        api_data = request.json
+        # Find out type of JSON
+        #print(api_data)
+        #print(authorized_users)
+    ##    try:
+        # Filter msg_xfer
+        if api_data['mode'] == 'msg_xfer':
+            # Handle authorization
+            if api_data['auth_type'] == 'private':
+                #Authenticate
+                if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
+                    print(api_data['credentials']['user'])
+                    print(api_data['credentials']['password'])
+                    for sms in api_data['data'].items():
+                        sms_data = sms[1]
+                        print((sms_data['destination_id']))
+                        print((sms_data['source_id']))
+                        print((sms_data['message']))
+                        print((sms_data['slot']))
+                        if sms_data['slot'] == 0:
+                            send_slot = int(unit_sms_ts) - 1
+                        if sms_data['slot'] == 1:
+                            send_slot = 0
+                        if sms_data['slot'] == 2:
+                            send_slot = 1
+                        send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+                    return jsonify(
+                        mode=api_data['mode'],
+                        status='Generated SMS',
+                    )
+                else:
+                    return jsonify(
+                    mode=api_data['mode'],
+                    status='Authentication error',
+                )
+            if api_data['auth_type'] == 'public':
                 return jsonify(
                     mode=api_data['mode'],
-                    status='Generated SMS',
+                    status='Not implemented at this time',
                 )
             else:
                 return jsonify(
-                mode=api_data['mode'],
-                status='Authentication error',
-            )
-        if api_data['auth_type'] == 'public':
-            return jsonify(
-                mode=api_data['mode'],
-                status='Not implemented at this time',
-            )
+                    mode=api_data['mode'],
+                    status='Not an authorization method',
+                )
         else:
-            return jsonify(
-                mode=api_data['mode'],
-                status='Not an authorization method',
-            )
-    else:
-        message = jsonify(message='Mode not found')
-        return make_response(message, 400)
-##    except Exception as e:
-##        message = jsonify(message='Error:' + str(e))
-##        return make_response(message, 400)
+            message = jsonify(message='Mode not found')
+            return make_response(message, 400)
+    ##    except Exception as e:
+    ##        message = jsonify(message='Error:' + str(e))
+    ##        return make_response(message, 400)
 
 #################### Run App ############################
 if __name__ == '__main__':
