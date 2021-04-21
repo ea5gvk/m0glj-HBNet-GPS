@@ -727,46 +727,53 @@ def api(api_mode=None):
     # Find out type of JSON
     #print(api_data)
     #print(authorized_users)
-    try:
+##    try:
     # Filter msg_xfer
-        if api_data['mode'] == 'msg_xfer':
-            # Handle authorization
-            if api_data['auth_type'] == 'private':
-                #Authenticate
-                if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
-                    print(api_data['credentials']['user'])
-                    print(api_data['credentials']['password'])
-                    for sms in api_data['data'].items():
-                        sms_data = sms[1]
-                        print((sms_data['destination_id']))
-                        print((sms_data['source_id']))
-                        print((sms_data['message']))
-                        #send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', 1, sms_data['message'])
-                    return jsonify(
-                        mode=api_data['mode'],
-                        status='Generated SMS',
-                    )
-                else:
-                    return jsonify(
-                    mode=api_data['mode'],
-                    status='Authentication error',
-                )
-            if api_data['auth_type'] == 'public':
+    if api_data['mode'] == 'msg_xfer':
+        # Handle authorization
+        if api_data['auth_type'] == 'private':
+            #Authenticate
+            if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
+                print(api_data['credentials']['user'])
+                print(api_data['credentials']['password'])
+                for sms in api_data['data'].items():
+                    sms_data = sms[1]
+                    print((sms_data['destination_id']))
+                    print((sms_data['source_id']))
+                    print((sms_data['message']))
+                    print((sms_data['slot']))
+                    if sms_data['slot'] == 0:
+                        send_slot = int(unit_sms_ts) - 1
+                    if sms_data['slot'] == 1:
+                        send_slot = 0
+                    if sms_data['slot'] == 2:
+                        send_slot = 1
+                    send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
                 return jsonify(
                     mode=api_data['mode'],
-                    status='Not implemented at this time',
+                    status='Generated SMS',
                 )
             else:
                 return jsonify(
-                    mode=api_data['mode'],
-                    status='Not an authorization method',
-                )
+                mode=api_data['mode'],
+                status='Authentication error',
+            )
+        if api_data['auth_type'] == 'public':
+            return jsonify(
+                mode=api_data['mode'],
+                status='Not implemented at this time',
+            )
         else:
-            message = jsonify(message='Mode not found')
-            return make_response(message, 400)
-    except Exception as e:
-        message = jsonify(message='Error:' + str(e))
+            return jsonify(
+                mode=api_data['mode'],
+                status='Not an authorization method',
+            )
+    else:
+        message = jsonify(message='Mode not found')
         return make_response(message, 400)
+##    except Exception as e:
+##        message = jsonify(message='Error:' + str(e))
+##        return make_response(message, 400)
 
 #################### Run App ############################
 if __name__ == '__main__':
@@ -831,7 +838,13 @@ if __name__ == '__main__':
     user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
 
     # API settings
-    authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
+    #authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
+    # Default SMS TS for unit calls
+    unit_sms_ts = parser.get('GPS_DATA', 'UNIT_SMS_TS')
+    if unit_sms_ts == 2:
+        unit_sms_ts = 1
+    if unit_sms_ts == 1:
+        unit_sms_ts = 0
     try:
         global authorized_users, other_systems
         from authorized_apps import authorized_users, access_systems

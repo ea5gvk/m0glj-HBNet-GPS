@@ -147,6 +147,7 @@ def build_config(_config_file):
                     'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
                     'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
                     'CALL_TYPE': config.get(section, 'CALL_TYPE'),
+                    'UNIT_SMS_TS': config.get(section, 'UNIT_SMS_TS'),
                     'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
                     'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
                     'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
