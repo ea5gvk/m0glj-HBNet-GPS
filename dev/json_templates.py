@@ -79,3 +79,20 @@ app_response = {
 
 json_object = json.dumps(app_response, indent = 4)  
 print(json_object)
+
+msg_xfer = {
+    'mode':'raw',
+    'system_name':'ABC',
+    'response_url':'http://localhost:8093/api/',
+    'auth_type':'private',
+    'credentials': {
+        'user':'test_name',
+        'password':'passw0rd',
+        },
+    'data':{
+        1:{'MMDVM Packet 1'},
+        2:{'MMDVM Packet 2'}
+
+    }
+
+}

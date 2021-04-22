@@ -2164,6 +2164,11 @@ if __name__ == '__main__':
     emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
     # User APRS settings
     user_settings_file = CONFIG['GPS_DATA']['USER_SETTINGS_FILE']
+
+    #API variables
+    auth_token_file = CONFIG['GPS_DATA']['AUTHORIZED_TOKENS_FILE']
+    use_api = CONFIG['GPS_DATA']['USE_API']
+    
     # Check if user_settings (for APRS settings of users) exists. Creat it if not.
     if Path(user_settings_file).is_file():
         pass
@@ -2187,13 +2192,23 @@ if __name__ == '__main__':
         with open(bb_file, 'w') as user_bb_file:
             user_bb_file.write("[]")
             user_bb_file.close()
+    #Only create if API enabled
+    if use_api == True:
+        if Path(auth_token_file).is_file():
+            pass
+        else:
+            Path(auth_token_file).touch()
+            with open(auth_token_file, 'w') as auth_token:
+                auth_token.write("[]")
+                auth_token.close()
+
     if Path(the_mailbox_file).is_file():
         pass
     else:
         Path(the_mailbox_file).touch()
-        with open(the_mailbox_file, 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
+        with open(the_mailbox_file, 'w') as mailbox_file:
+            mailbox_file.write("[]")
+            mailbox_file.close()
     try:
         Path('/tmp/.hblink_data_que/').mkdir(parents=True, exist_ok=True)
     except:
@@ -2274,7 +2289,7 @@ if __name__ == '__main__':
     # Check for outgoing SMS
     data_que_check()
     # APRS beacon and receive
-    if aprs_callsign == 'N0CALL':
+    if 'N0CALL' in aprs_callsign:
         logger.info('APRS callsighn set to N0CALL, packet not sent.')
         pass
     else:

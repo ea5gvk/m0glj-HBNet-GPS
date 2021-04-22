@@ -170,6 +170,9 @@ def build_config(_config_file):
                     'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
                     'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
                     'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
+                    'USE_API': config.getboolean(section, 'USE_API'),
+                    'AUTHORIZED_TOKENS_FILE': config.get(section, 'AUTHORIZED_TOKENS_FILE'),
+
 
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:

@@ -721,16 +721,15 @@ def mail_rss():
     """
     return Response(rss_header + post_data + "\n</channel>\n</rss>", mimetype='text/xml')
 
-@app.route('/api/<api_mode>', methods=['POST', 'GET'])
+@app.route('/api', methods=['GET'])
+@app.route('/api/<api_mode>', methods=['POST'])
 def api(api_mode=None):
     if request.method == 'GET':
-        print('get')
+        api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
         return render_template('generic.html', title = dashboard_title, content = Markup(api_content))
-    else:
+    if use_api == 'True' or use_api == "true":
         api_data = request.json
-        # Find out type of JSON
-        #print(api_data)
-        #print(authorized_users)
+        # Find out mode of JSON
     ##    try:
         # Filter msg_xfer
         if api_data['mode'] == 'msg_xfer':
@@ -758,31 +757,55 @@ def api(api_mode=None):
                         status='Generated SMS',
                     )
                 else:
-                    return jsonify(
-                    mode=api_data['mode'],
-                    status='Authentication error',
-                )
+                    message = jsonify(message='Authentication error')
+                    return make_response(message, 401)
             if api_data['auth_type'] == 'public':
-                return jsonify(
-                    mode=api_data['mode'],
-                    status='Not implemented at this time',
-                )
+                    message = jsonify(message='Not implemented')
+                    return make_response(message, 403)
             else:
-                return jsonify(
-                    mode=api_data['mode'],
-                    status='Not an authorization method',
-                )
+                message = jsonify(message='Not an authentication method')
+                return make_response(message, 400)
         if api_data['mode'] == 'app':
-            print('implement')
+            auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+            for token in auth_file:
+                if token == api_data['auth_token']:
+                    auth_file.remove(api_data['auth_token'])
+                    for i in api_data['data'].items():
+                        sms_data = i[1]
+                        if sms_data['slot'] == 0:
+                            send_slot = int(unit_sms_ts) - 1
+                        if sms_data['slot'] == 1:
+                            send_slot = 0
+                        if sms_data['slot'] == 2:
+                            send_slot = 1
+                        send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+                    new_auth_file = auth_file
+                    with open(auth_token_file, 'w') as auth_token:
+                        auth_token.write(str(auth_file))
+                        auth_token.close()
+            
+                    
+                    return jsonify(
+                            mode=api_data['mode'],
+                            status='Token accepted, SMS generated',
+                        )
+                if token != api_data['auth_token']:
+                    message = jsonify(message='Auth token not found')
+                    return make_response(message, 401)
+                    
         else:
             message = jsonify(message='Mode not found')
-            return make_response(message, 400)
+            return make_response(message, 404)
+    if use_api == "False" or use_api == "false":
+            message = jsonify(message='API is disabled for this server')
+            return make_response(message, 502)
     ##    except Exception as e:
     ##        message = jsonify(message='Error:' + str(e))
     ##        return make_response(message, 400)
 
 #################### Run App ############################
 if __name__ == '__main__':
+    global use_api
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually gps_data.cfg)')
     cli_args = arg_parser.parse_args()
@@ -842,6 +865,19 @@ if __name__ == '__main__':
     emergency_sos_file = parser.get('GPS_DATA', 'EMERGENCY_SOS_FILE')
     the_mailbox_file = parser.get('GPS_DATA', 'MAILBOX_FILE')
     user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
+
+    auth_token_file = parser.get('GPS_DATA', 'AUTHORIZED_TOKENS_FILE')
+    use_api = parser.get('GPS_DATA', 'USE_API')
+
+    #Only create if API enabled
+    if use_api == True:
+        if Path(auth_token_file).is_file():
+            pass
+        else:
+            Path(auth_token_file).touch()
+            with open(auth_token_file, 'w') as auth_token:
+                auth_token.write("[]")
+                auth_token.close()
 
     # API settings
     #authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
