@@ -772,6 +772,8 @@ def api(api_mode=None):
                     mode=api_data['mode'],
                     status='Not an authorization method',
                 )
+        if api_data['mode'] == 'app':
+            print('implement')
         else:
             message = jsonify(message='Mode not found')
             return make_response(message, 400)
