@@ -51,7 +51,7 @@ BRIDGES = {
 list the names of each system that should bridge unit to unit (individual) calls.
 '''
 
-UNIT = ['MASTER-1', 'CHANGE_ME']
+UNIT = ['MASTER-1', 'PEER-1']
 
 '''
 Unit Call flood timeout:

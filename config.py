@@ -172,6 +172,8 @@ def build_config(_config_file):
                     'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
                     'USE_API': config.getboolean(section, 'USE_API'),
                     'AUTHORIZED_TOKENS_FILE': config.get(section, 'AUTHORIZED_TOKENS_FILE'),
+                    'AUTHORIZED_USERS_FILE': config.get(section, 'AUTHORIZED_USERS_FILE'),
+                    'ACCESS_SYSTEMS_FILE': config.get(section, 'ACCESS_SYSTEMS_FILE'),
 
 
                 })

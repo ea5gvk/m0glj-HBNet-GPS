@@ -1,0 +1,12 @@
+{
+    'XYZ':{
+        'mode':'msg_xfer',
+        'user':'test_name',
+        'password':'passw0rd'
+        },
+    'APP':{
+        'mode':'app',
+        'user':'test_name',
+        'password':'passw0rd'
+        }
+}

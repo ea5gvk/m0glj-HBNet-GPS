@@ -728,6 +728,8 @@ def api(api_mode=None):
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
         return render_template('generic.html', title = dashboard_title, content = Markup(api_content))
     if use_api == 'True' or use_api == "true":
+        access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+        authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
         api_data = request.json
         # Find out mode of JSON
     ##    try:
@@ -868,6 +870,8 @@ if __name__ == '__main__':
 
     auth_token_file = parser.get('GPS_DATA', 'AUTHORIZED_TOKENS_FILE')
     use_api = parser.get('GPS_DATA', 'USE_API')
+    access_systems_file = parser.get('GPS_DATA', 'ACCESS_SYSTEMS_FILE')
+    authorized_users_file = parser.get('GPS_DATA', 'AUTHORIZED_USERS_FILE')
 
     #Only create if API enabled
     if use_api == True:
@@ -878,20 +882,23 @@ if __name__ == '__main__':
             with open(auth_token_file, 'w') as auth_token:
                 auth_token.write("[]")
                 auth_token.close()
+        if unit_sms_ts == 2:
+            unit_sms_ts = 1
+        if unit_sms_ts == 1:
+            unit_sms_ts = 0
+        try:
+            #global authorized_users, other_systems
+            #from authorized_apps import authorized_users, access_systems
+            access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+            authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+        except Exception as e:
+            print(e)
 
     # API settings
     #authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
     # Default SMS TS for unit calls
     unit_sms_ts = parser.get('GPS_DATA', 'UNIT_SMS_TS')
-    if unit_sms_ts == 2:
-        unit_sms_ts = 1
-    if unit_sms_ts == 1:
-        unit_sms_ts = 0
-    try:
-        global authorized_users, other_systems
-        from authorized_apps import authorized_users, access_systems
-    except Exception as e:
-        print(e)
+    
     
     ########################
     

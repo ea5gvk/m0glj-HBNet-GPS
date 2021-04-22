@@ -304,19 +304,21 @@ def user_setting_write(dmr_id, setting, value):
 # Process SMS, do something bases on message
 
 def process_sms(_rf_src, sms):
-    if sms == 'ID':
+    parse_sms = sms.split(' ')
+    logger.info(parse_sms)
+    if parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         send_sms(False, int_id(_rf_src), data_id, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
-    elif sms == 'TEST':
+    elif parse_sms[0] == 'TEST':
         logger.info('It works!')
         send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'It works')
-    elif '@ICON' in sms:
+    elif '@ICON' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms))
-    elif '@SSID' in sms:
+    elif '@SSID' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
-    elif '@COM' in sms:
+    elif '@COM' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
-    elif '@PIN' in sms:
+    elif '@PIN' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)))    
     # Write blank entry to cause APRS receive to look for packets for this station.
     elif '@APRS ON' in sms or '@APRS on' in sms:
@@ -325,9 +327,10 @@ def process_sms(_rf_src, sms):
         user_setting_write(int_id(_rf_src), 'APRS OFF', False)
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms))
-    elif '@' and ' E-' in sms:
-        email_message = str(re.sub('.*@|.* E-', '', sms))
-        to_email = str(re.sub(' E-.*', '', sms))
+    elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
+        s = ' '
+        email_message =  s.join(parse_sms[1:])#str(re.sub('.*@|.* E-', '', sms))
+        to_email = parse_sms[0]#str(re.sub(' E-.*', '', sms))
         email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
         logger.info('Email to: ' + to_email)
         logger.info('Message: ' + email_message)
@@ -343,13 +346,13 @@ def process_sms(_rf_src, sms):
     elif '@REM SOS' == sms:
         os.remove(emergency_sos_file)
         logger.info('Removing SOS or Notice')
-    elif '@' and 'M-' in sms:
+    elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
         message = re.sub('^@|.* M-|','',sms)
         recipient = re.sub('@| M-.*','',sms)
         mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
     elif '@REM MAIL' == sms:
         mailbox_delete(_rf_src)
-    elif '@MH' in sms:
+    elif '@MH' in parse_sms[0]:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
             pass
@@ -410,29 +413,34 @@ def process_sms(_rf_src, sms):
         packet_assembly = ''
           
             
-    elif 'A-' in sms and '@' in sms:
+    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
         #Example SMS text: @ARMDS A-This is a test.
-        aprs_dest = re.sub('@| A-.*','',sms)
-        aprs_msg = re.sub('^@|.* A-|','',sms)
+        s = ' '
+        aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
+        aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
+        logger.info(aprs_msg)
         logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
         user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
         if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
             ssid = user_settings[int_id(_rf_src)][1]['ssid']
         else:
             ssid = user_ssid
-        if user_settings[int_id(_rf_src)][5]['APRS'] == True:
-            aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
-            logger.info(aprs_msg_pkt)
-            try:
-                aprslib.parse(aprs_msg_pkt)
-                aprs_send(aprs_msg_pkt)
-                #logger.info('Packet sent.')
-            except Exception as error_exception:
-                logger.info('Error uploading MSG packet.')
-                logger.info(error_exception)
-                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-        else:
-            send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" to enable.')
+        try:
+            if user_settings[int_id(_rf_src)][5]['APRS'] == True:
+                aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
+                logger.info(aprs_msg_pkt)
+                try:
+                    aprslib.parse(aprs_msg_pkt)
+                    aprs_send(aprs_msg_pkt)
+                    #logger.info('Packet sent.')
+                except Exception as error_exception:
+                    logger.info('Error uploading MSG packet.')
+                    logger.info(error_exception)
+                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+            else:
+                send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+        except Exception as e:
+            send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -2165,10 +2173,8 @@ if __name__ == '__main__':
     # User APRS settings
     user_settings_file = CONFIG['GPS_DATA']['USER_SETTINGS_FILE']
 
-    #API variables
-    auth_token_file = CONFIG['GPS_DATA']['AUTHORIZED_TOKENS_FILE']
     use_api = CONFIG['GPS_DATA']['USE_API']
-    
+
     # Check if user_settings (for APRS settings of users) exists. Creat it if not.
     if Path(user_settings_file).is_file():
         pass
@@ -2194,6 +2200,12 @@ if __name__ == '__main__':
             user_bb_file.close()
     #Only create if API enabled
     if use_api == True:
+        logger.info('Dashboard API enabled')
+            #API variables
+        auth_token_file = CONFIG['GPS_DATA']['AUTHORIZED_TOKENS_FILE']
+        use_api = CONFIG['GPS_DATA']['USE_API']
+        access_systems_file = CONFIG['GPS_DATA']['ACCESS_SYSTEMS_FILE']
+        authorized_users_file = CONFIG['GPS_DATA']['AUTHORIZED_USERS_FILE']
         if Path(auth_token_file).is_file():
             pass
         else:
