@@ -6,7 +6,8 @@ import json
 
 msg_xfer = {
     'mode':'msg_xfer',
-    'system_name':'ABC',
+    'system_shortcut':'ABC',
+    'server_name':'Test HBlink Network',
     'response_url':'http://localhost:8093/api/',
     'auth_type':'private',
     'credentials': {
@@ -41,7 +42,8 @@ print('-----------------------------------------')
 
 app_request = {
     'mode':'app',
-    'system_name':'ABC',
+    'system_shortcut':'ABC',
+    'server_name':'Test HBlink Network',
     'response_url':'http://localhost:8093/api/',
     'auth_token':'1234567899',
     'data':{
@@ -61,7 +63,7 @@ print('-----------------------------------------')
 
 app_response = {
     'mode':'app',
-    'system_name':'APP',
+    'app_name':'Test HBlink App',
     'auth_token':'736a9ced7e7688c951490a7f8e1ebdd4',
     'data':{
         1:{'source_app':'app_name',
@@ -88,7 +90,7 @@ print(json_object)
 print('-----------------------------------------')
 raw_msg_xfer = {
     'mode':'raw',
-    'system_name':'ABC',
+    'system_shortcut':'ABC',
     'response_url':'http://localhost:8093/api/',
     'auth_type':'private',
     'credentials': {

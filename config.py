@@ -176,6 +176,7 @@ def build_config(_config_file):
                     'ACCESS_SYSTEMS_FILE': config.get(section, 'ACCESS_SYSTEMS_FILE'),
                     'MY_API_NAME': config.get(section, 'MY_API_NAME'),
                     'DASHBOARD_URL': config.get(section, 'DASHBOARD_URL'),
+                    'SERVER_NAME': config.get(section, 'SERVER_NAME'),
 
 
                 })

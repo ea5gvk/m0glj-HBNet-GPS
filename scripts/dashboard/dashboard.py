@@ -741,8 +741,8 @@ def api(api_mode=None):
             # Handle authorization
             if api_data['auth_type'] == 'private':
                 #Authenticate
-                if api_data['system_name'] in authorized_users:
-                    if api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
+                if api_data['system_shortcut'] in authorized_users:
+                    if api_data['credentials']['user'] == authorized_users[api_data['system_shortcut']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_shortcut']]['password']:
                         print(api_data['credentials']['user'])
                         print(api_data['credentials']['password'])
                         for sms in api_data['data'].items():

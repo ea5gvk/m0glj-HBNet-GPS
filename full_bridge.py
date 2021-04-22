@@ -255,7 +255,8 @@ def send_app_request(url, message, source_id):
         auth_token.close()
     app_request = {
     'mode':'app',
-    'system_name':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'system_shortcut':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'server_name':CONFIG['GPS_DATA']['SERVER_NAME'],
     'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
     'auth_token':the_token,
     'data':{
@@ -275,7 +276,7 @@ def send_msg_xfer(url, user, password, message, source_id, dest_id):
     url = url + '/msg_xfer'
     msg_xfer = {
     'mode':'msg_xfer',
-    'system_name':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'system_shortcut':CONFIG['GPS_DATA']['MY_API_NAME'],
     'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'],
     'auth_type':'private',
     'credentials': {
