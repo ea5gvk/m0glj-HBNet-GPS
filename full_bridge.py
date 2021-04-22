@@ -100,6 +100,10 @@ import libscrc
 import random
 from bitarray.util import hex2ba as hex2bits
 
+#Used for sending data via API
+import requests
+import json
+import hashlib
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
@@ -237,6 +241,59 @@ def sos_write(dmr_id, time, message):
             sos_file.write(str(sos_info))
             sos_file.close()
     logger.info('Saved SOS.')
+def send_app_request(url, message, source_id):
+    url = url + '/app'
+    #Load current AUTH token list
+    auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+    the_token = str(hashlib.md5(str(time()).encode('utf-8')).hexdigest())
+    new_auth_file = auth_file
+    new_auth_file.append(the_token)
+    # Write new list to file
+    with open(auth_token_file, 'w') as auth_token:
+        auth_token.write(str(auth_file))
+        auth_token.close()
+    app_request = {
+    'mode':'app',
+    'system_name':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'],
+    'auth_token':the_token,
+    'data':{
+            'source_id':source_id,
+            'slot':0,
+            'msg_type':'unit',
+            'msg_format':'motorola',
+            'message':message
+            }
+    }
+    json_object = json.dumps(app_request, indent = 4)
+    print(json_object)
+    requests.post(url, data=json_object, headers={'Content-Type': 'application/json'})
+
+    
+def send_msg_xfer(url, user, password, message, source_id, dest_id):
+    url = url + '/msg_xfer'
+    msg_xfer = {
+    'mode':'msg_xfer',
+    'system_name':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'],
+    'auth_type':'private',
+    'credentials': {
+        'user':user,
+        'password':password,
+        },
+    'data':{
+            1:{'source_id':source_id,
+                'destination_id':dest_id,
+                'slot':0,
+                'msg_type':'unit',
+                'msg_format':'motorola',
+                'message':message
+               }
+           }
+    }
+    json_object = json.dumps(msg_xfer, indent = 4)
+    requests.post(url, data=json_object, headers={'Content-Type': 'application/json'})
+
 
 # Send email via SMTP function
 def send_email(to_email, email_subject, email_message):
@@ -412,7 +469,32 @@ def process_sms(_rf_src, sms):
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
         packet_assembly = ''
           
-            
+    elif '?' in parse_sms[0][0:1]:
+        use_api = CONFIG['GPS_DATA']['USE_API']
+        print(use_api)
+        if use_api == True:
+            auth_tokens = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+            access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+            authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+            system = parse_sms[0][1:]
+            #print(access_systems[system])
+            #print(authorized_users)
+            # Determin msg_xfer or app
+            if access_systems[system]['mode'] == 'msg_xfer':
+                s = ' '
+                message_to_send = s.join(parse_sms[2:])
+                dest_id = int(parse_sms[1])
+                source_id = int_id(_rf_src)
+                send_msg_xfer(access_systems[system]['url'], access_systems[system]['user'], access_systems[system]['password'], message_to_send, source_id, dest_id)
+            if access_systems[system]['mode'] == 'app':
+                s = ' '
+                message_to_send = s.join(parse_sms[1:])
+                source_id = int_id(_rf_src)
+                send_app_request(access_systems[system]['url'], message_to_send, source_id)
+                
+                
+        if use_api == False:
+            send_sms(False, int_id(_rf_src), data_id, 0000, 'unit', 'API not enabled. Contact server admin.')
     elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
         #Example SMS text: @ARMDS A-This is a test.
         s = ' '
@@ -2123,7 +2205,6 @@ class bridgeReportFactory(reportFactory):
 #************************************************
 
 if __name__ == '__main__':
-
     import argparse
     import sys
     import os

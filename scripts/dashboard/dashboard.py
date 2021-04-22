@@ -731,6 +731,9 @@ def api(api_mode=None):
         access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
         authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
         api_data = request.json
+        #print(type(api_data))
+        #print((api_data))
+
         # Find out mode of JSON
     ##    try:
         # Filter msg_xfer
@@ -738,28 +741,32 @@ def api(api_mode=None):
             # Handle authorization
             if api_data['auth_type'] == 'private':
                 #Authenticate
-                if api_data['system_name'] in authorized_users and api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
-                    print(api_data['credentials']['user'])
-                    print(api_data['credentials']['password'])
-                    for sms in api_data['data'].items():
-                        sms_data = sms[1]
-                        print((sms_data['destination_id']))
-                        print((sms_data['source_id']))
-                        print((sms_data['message']))
-                        print((sms_data['slot']))
-                        if sms_data['slot'] == 0:
-                            send_slot = int(unit_sms_ts) - 1
-                        if sms_data['slot'] == 1:
-                            send_slot = 0
-                        if sms_data['slot'] == 2:
-                            send_slot = 1
-                        send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
-                    return jsonify(
-                        mode=api_data['mode'],
-                        status='Generated SMS',
-                    )
+                if api_data['system_name'] in authorized_users:
+                    if api_data['credentials']['user'] == authorized_users[api_data['system_name']]['user'] and api_data['credentials']['password'] == authorized_users[api_data['system_name']]['password']:
+                        print(api_data['credentials']['user'])
+                        print(api_data['credentials']['password'])
+                        for sms in api_data['data'].items():
+                            sms_data = sms[1]
+                            print((sms_data['destination_id']))
+                            print((sms_data['source_id']))
+                            print((sms_data['message']))
+                            print((sms_data['slot']))
+                            if sms_data['slot'] == 0:
+                                send_slot = int(unit_sms_ts) - 1
+                            if sms_data['slot'] == 1:
+                                send_slot = 0
+                            if sms_data['slot'] == 2:
+                                send_slot = 1
+                            send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+                        return jsonify(
+                            mode=api_data['mode'],
+                            status='Generated SMS',
+                        )
+                    else:
+                        message = jsonify(message='Authentication error')
+                        return make_response(message, 401)
                 else:
-                    message = jsonify(message='Authentication error')
+                    message = jsonify(message='System not authorized')
                     return make_response(message, 401)
             if api_data['auth_type'] == 'public':
                     message = jsonify(message='Not implemented')
@@ -770,7 +777,12 @@ def api(api_mode=None):
         if api_data['mode'] == 'app':
             auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
             for token in auth_file:
+                print()
+                print(token)
+                print(api_data['auth_token'])
+                print()
                 if token == api_data['auth_token']:
+                    
                     auth_file.remove(api_data['auth_token'])
                     for i in api_data['data'].items():
                         sms_data = i[1]
@@ -855,7 +867,7 @@ if __name__ == '__main__':
     time_format = parser.get('GPS_DATA', 'TIME_FORMAT')
 
     # RSS feed link, shows in the link section of each RSS item.
-    rss_link = parser.get('GPS_DATA', 'RSS_LINK')
+    rss_link = parser.get('GPS_DATA', 'DASHBOARD_URL')
 
     # Default APRS comment for users.
     default_comment = parser.get('GPS_DATA', 'USER_APRS_COMMENT')
