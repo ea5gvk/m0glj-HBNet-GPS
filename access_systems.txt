@@ -1,11 +1,20 @@
 {
     'XYZ':{
         'mode':'msg_xfer',
+        'network_name':'My HBlink Server',
+        'url':'http://example.net/api',
         'user':'test_name',
         'password':'passw0rd'
         },
     'APP':{
         'mode':'app',
+        'app_name':'Test app',
+        'url':'http://localhost:8080/post',
+        },
+    'ABC':{
+        'mode':'msg_xfer',
+        'network_name':'Regional HBlink Network 1',
+        'url':'http://localhost:8092/api',
         'user':'test_name',
         'password':'passw0rd'
         }

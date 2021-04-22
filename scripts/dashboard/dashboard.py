@@ -726,7 +726,7 @@ def mail_rss():
 def api(api_mode=None):
     if request.method == 'GET':
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
-        return render_template('generic.html', title = dashboard_title, content = Markup(api_content))
+        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(api_content))
     if use_api == 'True' or use_api == "true":
         access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
         authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
@@ -776,6 +776,7 @@ def api(api_mode=None):
                 return make_response(message, 400)
         if api_data['mode'] == 'app':
             auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+            print(auth_file)
             for token in auth_file:
                 print()
                 print(token)
@@ -792,7 +793,7 @@ def api(api_mode=None):
                             send_slot = 0
                         if sms_data['slot'] == 2:
                             send_slot = 1
-                        send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+                        send_sms(False, sms_data['destination_id'], 0000, 0000, 'unit', send_slot, sms_data['message'])
                     new_auth_file = auth_file
                     with open(auth_token_file, 'w') as auth_token:
                         auth_token.write(str(auth_file))
@@ -803,9 +804,9 @@ def api(api_mode=None):
                             mode=api_data['mode'],
                             status='Token accepted, SMS generated',
                         )
-                if token != api_data['auth_token']:
-                    message = jsonify(message='Auth token not found')
-                    return make_response(message, 401)
+##                if token != api_data['auth_token']:
+##                    message = jsonify(message='Auth token not found')
+##                    return make_response(message, 401)
                     
         else:
             message = jsonify(message='Mode not found')

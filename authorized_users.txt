@@ -1,5 +1,5 @@
 {
-    'ABC':{
+    'XYZ':{
         'mode':'msg_xfer',
         'user':'test_name',
         'password':'passw0rd'

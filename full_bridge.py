@@ -2,8 +2,9 @@
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
-#   GPS/Data - Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#   GPS/Data - Copyright (C) 2021 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #   Annotated modifications Copyright (C) 2021 Xavier FRS2013
+#   Static position by IU7IGU
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -242,7 +243,7 @@ def sos_write(dmr_id, time, message):
             sos_file.close()
     logger.info('Saved SOS.')
 def send_app_request(url, message, source_id):
-    url = url + '/app'
+    #url = url + '/app'
     #Load current AUTH token list
     auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
     the_token = str(hashlib.md5(str(time()).encode('utf-8')).hexdigest())
@@ -255,7 +256,7 @@ def send_app_request(url, message, source_id):
     app_request = {
     'mode':'app',
     'system_name':CONFIG['GPS_DATA']['MY_API_NAME'],
-    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'],
+    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
     'auth_token':the_token,
     'data':{
             'source_id':source_id,

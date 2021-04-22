@@ -34,8 +34,10 @@ msg_xfer = {
 }
 
 json_object = json.dumps(msg_xfer, indent = 4)
-print('App')
+print('-----------------------------------------')
+print('msg_xfer')
 print(json_object) 
+print('-----------------------------------------')
 
 app_request = {
     'mode':'app',
@@ -44,7 +46,6 @@ app_request = {
     'auth_token':'1234567899',
     'data':{
             'source_id':1234,
-            'destination_id':3153591,
             'slot':2,
             'msg_type':'unit',
             'msg_format':'motorola',
@@ -52,22 +53,25 @@ app_request = {
             }
 }
 
-json_object = json.dumps(app_request, indent = 4)  
+json_object = json.dumps(app_request, indent = 4)
+print('-----------------------------------------')
+print('app, request, sent to the APP server')
 print(json_object)
+print('-----------------------------------------')
 
 app_response = {
     'mode':'app',
     'system_name':'APP',
-    'auth_token':'1234567899',
+    'auth_token':'736a9ced7e7688c951490a7f8e1ebdd4',
     'data':{
-        1:{'source_id':1234,
+        1:{'source_app':'app_name',
             'destination_id':3153591,
             'slot':2,
             'msg_type':'unit',
             'msg_format':'motorola',
             'message':'text of the message'
               },
-        2:{'source_id':1234,
+        2:{'source_id':'app_name',
             'destination_id':3153591,
             'slot':2,
             'msg_type':'unit',
@@ -77,10 +81,12 @@ app_response = {
         }
 }
 
-json_object = json.dumps(app_response, indent = 4)  
+json_object = json.dumps(app_response, indent = 4)
+print('-----------------------------------------')
+print('app, response, sent to your dashboard')
 print(json_object)
-
-msg_xfer = {
+print('-----------------------------------------')
+raw_msg_xfer = {
     'mode':'raw',
     'system_name':'ABC',
     'response_url':'http://localhost:8093/api/',
