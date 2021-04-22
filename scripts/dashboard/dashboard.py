@@ -179,7 +179,7 @@ def aprs_to_latlon(x):
     minutes = x - 100*degrees
     return degrees + minutes/60 
 
-def user_setting_write(dmr_id, input_ssid, input_icon, input_comment):
+def user_setting_write(dmr_id, input_ssid, input_icon, input_comment, input_aprs):
     dmr_id = int(dmr_id)
     user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     new_dict = user_settings
@@ -406,11 +406,11 @@ def user_settings():
             ssid = user_settings[int(request.form.get('dmr_id'))][1]['ssid']
             icon = user_settings[int(request.form.get('dmr_id'))][2]['icon']
             comment = user_settings[int(request.form.get('dmr_id'))][3]['comment']
+            pin = user_settings[int(request.form.get('dmr_id'))][4]['pin']
             aprs_msg_status = str(user_settings[int(request.form.get('dmr_id'))][5]['APRS'])
             
-            try:
-                pin = user_settings[int(request.form.get('dmr_id'))][4]['pin']
-                
+            if pin != '':
+               
                 if ssid == '':
                     ssid = aprs_ssid
                 if icon == '':
@@ -464,7 +464,7 @@ def user_settings():
 
 
         """
-            except:
+            if pin == '':
                 user_result = """<h2 style="text-align: center;">No PIN set for """ + str(user_settings[int(user_id)][0]['call']) + """ - """ + request.form.get('dmr_id') + """</h2>
                 <p style="text-align: center;"><button onclick="history.back()">Back</button>
                         </p>"""
