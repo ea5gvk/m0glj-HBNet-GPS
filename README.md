@@ -1,5 +1,7 @@
 # This is the developement version that supports the sending of SMS. This is a work in progress and is not meant to be used in production at this time.
 
+# [Example external applications that use JSON API](https://github.com/kf7eel/hblink_sms_external_apps)
+
 # GPS/Data Application
 
 This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call. It is designed to work in a multi system/user network.
