@@ -8,3 +8,7 @@ pynmea2
 maidenhead
 flask
 folium
+libscrc
+requests
+json
+hashlib

@@ -97,6 +97,7 @@ print('-----------------------------------------')
 app_response = {
     'mode':'app',
     'app_name':'Test HBlink App',
+    'app_shortcut':'APP',
     'auth_token':'736a9ced7e7688c951490a7f8e1ebdd4',
     'data':{
         1:{'source_app':'app_name',
