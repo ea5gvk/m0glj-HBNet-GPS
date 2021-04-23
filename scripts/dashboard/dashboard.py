@@ -220,6 +220,71 @@ def help():
 def about():
     #return get_data()
     return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+
+@app.route('/external_apps')
+def external_apps():
+    access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+    msg_lst = ''
+    app_lst = ''
+    for i_msg in access_systems.items():
+        if i_msg[1]['mode'] == 'msg_xfer':
+            msg_lst = msg_lst + ''' 
+        <tr>
+        <td style="text-align: center;">&nbsp;''' + i_msg[1]['network_name'] + '''</td>
+        <td style="text-align: center;">&nbsp;<strong>?''' + str(i_msg[0]) + '''</strong></td>
+        <td style="text-align: center;"><a href="''' + i_msg[1]['url'] + '''">''' + i_msg[1]['url'] + '''</a></td>
+        </tr> '''
+    for i_app in access_systems.items():
+        if i_app[1]['mode'] == 'app':
+            app_lst = app_lst + ''' 
+        <tr>
+        <td style="text-align: center;">&nbsp;''' + i_app[1]['app_name'] + '''</td>
+        <td style="text-align: center;">&nbsp;<strong>?''' + str(i_app[0]) + '''</strong></td>
+        <td style="text-align: center;"><a href="''' + i_app[1]['website'] + '''">''' + i_app[1]['website'] + '''</a></td>
+        </tr> '''
+    content = '''
+    <p>&nbsp;</p>
+
+    <h2 style="text-align: center;">External Networks/Servers</h2>
+    <table style="border-color: black; width: 600px; margin-left: auto; margin-right: auto;" border="3">
+    <tbody>
+    <tr>
+    <td style="text-align: center;">
+    <h3>Network/Server</h3>
+    </td>
+    <td style="text-align: center;">
+    <h3>Shortcut</h3>
+    </td>
+    <td style="text-align: center;">
+    <h3>URL</h3>
+    </td>
+    </tr>
+    ''' + msg_lst + '''
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
+    <h2 style="text-align: center;">&nbsp;External Applications</h2>
+    <table style="border-color: black; width: 600px; margin-left: auto; margin-right: auto;" border="3">
+    <tbody>
+    <tr>
+    <td style="text-align: center;">
+    <h3>Application</h3>
+    </td>
+    <td style="text-align: center;">
+    <h3>Shortcut</h3>
+    </td>
+    <td style="text-align: center;">
+    <h3>Website</h3>
+    </td>
+    </tr>
+    ''' + app_lst + '''
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
+    '''
+##    content = 'yo'
+    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+
 @app.route('/view_map')
 def view_map():
     reload_time = request.args.get('reload')
@@ -769,8 +834,33 @@ def api(api_mode=None):
                     message = jsonify(message='System not authorized')
                     return make_response(message, 401)
             if api_data['auth_type'] == 'public':
-                    message = jsonify(message='Not implemented')
-                    return make_response(message, 403)
+##                auth_file = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+##                for token in auth_file:
+##                    print()
+##                    print(token)
+##                    print(api_data['auth_token'])
+##                    print()
+##                    if token == api_data['auth_token']:
+##                        
+##                        auth_file.remove(api_data['auth_token'])
+##                        for i in api_data['data'].items():
+##                            sms_data = i[1]
+##                            if sms_data['slot'] == 0:
+##                                send_slot = int(unit_sms_ts) - 1
+##                            if sms_data['slot'] == 1:
+##                                send_slot = 0
+##                            if sms_data['slot'] == 2:
+##                                send_slot = 1
+##                            send_sms(False, sms_data['destination_id'], 0000, 0000, 'unit', send_slot, sms_data['message'])
+##                        new_auth_file = auth_file
+##                        with open(auth_token_file, 'w') as auth_token:
+##                            auth_token.write(str(auth_file))
+##                            auth_token.close()
+
+                    return jsonify(
+                            mode=api_data['mode'],
+                            status='GNot implemented yet',
+                        )
             else:
                 message = jsonify(message='Not an authentication method')
                 return make_response(message, 400)

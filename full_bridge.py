@@ -273,11 +273,11 @@ def send_app_request(url, message, source_id):
 
     
 def send_msg_xfer(url, user, password, message, source_id, dest_id):
-    url = url + '/msg_xfer'
+    url = url + '/api/msg_xfer'
     msg_xfer = {
     'mode':'msg_xfer',
     'system_shortcut':CONFIG['GPS_DATA']['MY_API_NAME'],
-    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'],
+    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
     'auth_type':'private',
     'credentials': {
         'user':user,
