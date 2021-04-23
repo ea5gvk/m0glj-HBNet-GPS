@@ -1,20 +1,31 @@
 {
+# Shortcut used in SMS message
     'XYZ':{
+        # Mode of transfer, this case, message transfer
         'mode':'msg_xfer',
+        # Name of the server/network
         'network_name':'My HBlink Server',
-        'url':'http://example.net/api',
+        # URL to the dashboard of the server/network
+        'url':'http://example.net/',
+        # Username and password given to you by network operator
         'user':'test_name',
         'password':'passw0rd'
         },
-    'APP':{
+    # Shortcut used in SMS message
+    'BBD':{
+        # Mode for application, operates differently than msg_xfer
         'mode':'app',
-        'app_name':'Test app',
+        # Name of external application
+        'app_name':'Bulletin Board',
+        # Endpoint URL of API
         'url':'http://localhost:8080/post',
+        # Website for users to get info
+        'website':'http://hbl.ink',
         },
     'ABC':{
         'mode':'msg_xfer',
         'network_name':'Regional HBlink Network 1',
-        'url':'http://localhost:8092/api',
+        'url':'http://localhost:8092/',
         'user':'test_name',
         'password':'passw0rd'
         }

@@ -203,7 +203,7 @@ def user_setting_write(dmr_id, input_ssid, input_icon, input_comment, input_aprs
 def index():
     value = Markup('<strong>The HTML String</strong>')
     #return get_data()
-    return render_template('index.html', title = dashboard_title, logo = logo, emergency = check_emergency())
+    return render_template('index.html', title = dashboard_title, logo = logo, emergency = check_emergency(), api = use_api)
 @app.route('/bulletin_board')
 def dash_bb():
     return get_bb_data()
@@ -215,11 +215,11 @@ def dash_loc():
 @app.route('/help/')
 def help():
     #return get_data()
-    return render_template('help.html', title = dashboard_title, logo = logo, description = description, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
+    return render_template('help.html', title = dashboard_title, logo = logo, description = description, api = use_api, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
 @app.route('/about/')
 def about():
     #return get_data()
-    return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+    return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, api = use_api, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
 
 @app.route('/external_apps')
 def external_apps():
@@ -244,7 +244,7 @@ def external_apps():
         </tr> '''
     content = '''
     <p>&nbsp;</p>
-
+    External applications and other HBLink networks that can be accessed via SMS from this gateway:
     <h2 style="text-align: center;">External Networks/Servers</h2>
     <table style="border-color: black; width: 600px; margin-left: auto; margin-right: auto;" border="3">
     <tbody>
@@ -283,7 +283,7 @@ def external_apps():
     <p>&nbsp;</p>
     '''
 ##    content = 'yo'
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content), api = use_api)
 
 @app.route('/view_map')
 def view_map():
@@ -459,7 +459,7 @@ def view_map():
     
 @app.route('/map/')
 def map():
-    return render_template('map.html', title = dashboard_title, logo = logo)
+    return render_template('map.html', title = dashboard_title, logo = logo, api = use_api)
 
 @app.route('/user', methods = ['GET', 'POST'])
 def user_settings():
@@ -651,7 +651,7 @@ def user_settings():
                 <p style="text-align: center;"><button onclick="history.back()">Back</button>
                         </p>'''
         
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(user_result))
+    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(user_result), api = use_api)
 
 @app.route('/mailbox')
 def mailbox():
@@ -727,7 +727,7 @@ def mailbox():
                 <p>&nbsp;</p>
 
                 """
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(mail_content))
+    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(mail_content), api = use_api)
 
 
 @app.route('/bulletin_rss.xml')
@@ -791,7 +791,7 @@ def mail_rss():
 def api(api_mode=None):
     if request.method == 'GET':
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
-        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(api_content))
+        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(api_content), api = use_api)
     if use_api == 'True' or use_api == "true":
         access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
         authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())

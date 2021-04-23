@@ -8,6 +8,9 @@
 <td style="text-align: center;"><button onclick="window.location.href='/map';"> Station Map </button></td>
 <td style="text-align: center;"><button onclick="window.location.href='/mailbox';"> The Mailbox </button></td>
 <td style="text-align: center;"><button onclick="window.location.href='/user';"> User Settings </button></td>
+{% if api %}
+<td style="text-align: center;"><button onclick="window.location.href='/external_apps';"> External Applications </button></td>
+{% endif %}
 <td style="text-align: center;"><button onclick="window.location.href='/help';"> Dashboard Help </button></td>
 <td style="text-align: center;"><button onclick="window.location.href='/about';"> Gateway Contact </button></td>
 </tr>
