@@ -81,7 +81,7 @@ def get_loc_data():
                     last_known_loc_list.append(e['call'])
                     display_number = display_number - 1
                     tmp_loc = tmp_loc + '''<tr>
-    <td style="text-align: center;"><a href="view_map?track=''' + e['call'] + '''"target="_blank"><strong>''' + e['call'] + '''</strong></a></td>
+    <td style="text-align: center;"><a href="''' + dashboard_url + '''/view_map?track=''' + e['call'] + '''"target="_blank"><strong>''' + e['call'] + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lat']) + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + str(e['lon']) + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + loc_time + '''&nbsp;</td>
@@ -203,7 +203,7 @@ def user_setting_write(dmr_id, input_ssid, input_icon, input_comment, input_aprs
 def index():
     value = Markup('<strong>The HTML String</strong>')
     #return get_data()
-    return render_template('index.html', title = dashboard_title, logo = logo, emergency = check_emergency(), api = use_api)
+    return render_template('index.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, emergency = check_emergency(), api = use_api)
 @app.route('/bulletin_board')
 def dash_bb():
     return get_bb_data()
@@ -215,11 +215,11 @@ def dash_loc():
 @app.route('/help/')
 def help():
     #return get_data()
-    return render_template('help.html', title = dashboard_title, logo = logo, description = description, api = use_api, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
+    return render_template('help.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, description = description, api = use_api, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
 @app.route('/about/')
 def about():
     #return get_data()
-    return render_template('about.html', title = dashboard_title, logo = logo, contact_name = contact_name, api = use_api, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
+    return render_template('about.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, contact_name = contact_name, api = use_api, contact_call = contact_call, contact_email = contact_email, contact_website = contact_website)
 
 @app.route('/external_apps')
 def external_apps():
@@ -283,7 +283,7 @@ def external_apps():
     <p>&nbsp;</p>
     '''
 ##    content = 'yo'
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content), api = use_api)
+    return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(content), api = use_api)
 
 @app.route('/view_map')
 def view_map():
@@ -390,7 +390,7 @@ def view_map():
         content = """<h1 style="text-align: center;">Station not found.</h1>
                   #<p style="text-align: center;"><button onclick="self.close()">Close Window</button>
                 #</p>"""
-        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+        return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(content))
 
     if not track_call:
         folium_map = folium.Map(location=(map_center_lat, map_center_lon), tiles=map_theme, zoom_start=int(zoom_level))
@@ -431,7 +431,7 @@ def view_map():
                 </tr>
                 """ + loc_comment + """
                 <tr>
-                <td style="text-align: center;"><strong><A href="view_map?track=""" + user_coord['call'] + """" target="_blank">Track Station</A></strong></td>
+                <td style="text-align: center;"><strong><A href='""" + dashboard_url + """/view_map?track=""" + user_coord['call'] + """' target="_blank">Track Station</A></strong></td>
                 </tr>
                 </tbody>
                 </table>
@@ -459,7 +459,7 @@ def view_map():
     
 @app.route('/map/')
 def map():
-    return render_template('map.html', title = dashboard_title, logo = logo, api = use_api)
+    return render_template('map.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, api = use_api)
 
 @app.route('/user', methods = ['GET', 'POST'])
 def user_settings():
@@ -651,7 +651,7 @@ def user_settings():
                 <p style="text-align: center;"><button onclick="history.back()">Back</button>
                         </p>'''
         
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(user_result), api = use_api)
+    return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(user_result), api = use_api)
 
 @app.route('/mailbox')
 def mailbox():
@@ -659,7 +659,7 @@ def mailbox():
     if not recipient:
         mail_content = """
         <p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a specially formatted SMS to <strong>""" + data_call_id + """</strong>.
-        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign (without APRS SSID) below to check for messages. See the <a href="help">help</a> page for more information.</p>
+        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign (without APRS SSID) below to check for messages. See the <a href='""" + dashboard_url + """/help">help</a> page for more information.</p>
         <form action="mailbox" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
@@ -727,7 +727,7 @@ def mailbox():
                 <p>&nbsp;</p>
 
                 """
-    return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(mail_content), api = use_api)
+    return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(mail_content), api = use_api)
 
 
 @app.route('/bulletin_rss.xml')
@@ -739,7 +739,7 @@ def bb_rss():
         <rss version="2.0">
         <channel>
           <title>""" + dashboard_title + """ - Bulletin Board Feed</title>
-          <link>""" + rss_link + """</link>
+          <link>""" + dashboard_url + """</link>
           <description>This is the Bulletin Board feed from """ + dashboard_title + """</description>"""
         for entry in dash_bb:
             if type(entry['time']) == str:
@@ -749,7 +749,7 @@ def bb_rss():
             post_data = post_data + """
              <item>
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
-                <link>""" + rss_link + """</link>
+                <link>""" + dashboard_url + """</link>
                 <description>""" + entry['bulletin'] + """ - """ + loc_time + """</description>
                 <pubDate>""" + datetime.fromtimestamp(entry['time']).strftime('%a, %d %b %y') +"""</pubDate>
              </item>
@@ -768,7 +768,7 @@ def mail_rss():
     <rss version="2.0">
     <channel>
       <title>""" + dashboard_title + """ - Mailbox Feed for """ + recipient + """</title>
-      <link>""" + rss_link + """</link>
+      <link>""" + dashboard_url + """</link>
       <description>This is a Mailbox feed from """ + dashboard_title + """ for """ + recipient + """.</description>"""
     for entry in mailbox_file:
         if type(entry['time']) == str:
@@ -779,7 +779,7 @@ def mail_rss():
             post_data = post_data + """
              <item>
                 <title>""" + entry['call'] + ' - ' + str(entry['dmr_id']) + """</title>
-                <link>""" + rss_link + """</link>
+                <link>""" + dashboard_url + """</link>
                 <description>""" + entry['message'] + """ - """ + loc_time + """</description>
                 <pubDate>""" + datetime.fromtimestamp(entry['time']).strftime('%a, %d %b %y') +"""</pubDate>
               </item>
@@ -791,7 +791,7 @@ def mail_rss():
 def api(api_mode=None):
     if request.method == 'GET':
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
-        return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(api_content), api = use_api)
+        return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(api_content), api = use_api)
     if use_api == 'True' or use_api == "true":
         access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
         authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
@@ -958,7 +958,7 @@ if __name__ == '__main__':
     time_format = parser.get('GPS_DATA', 'TIME_FORMAT')
 
     # RSS feed link, shows in the link section of each RSS item.
-    rss_link = parser.get('GPS_DATA', 'DASHBOARD_URL')
+    dashboard_url = parser.get('GPS_DATA', 'DASHBOARD_URL')
 
     # Default APRS comment for users.
     default_comment = parser.get('GPS_DATA', 'USER_APRS_COMMENT')

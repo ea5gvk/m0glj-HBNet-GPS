@@ -4,15 +4,15 @@
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
-<td style="text-align: center;"><button onclick="window.location.href='/';"> Dashboard Home </button></td>
-<td style="text-align: center;"><button onclick="window.location.href='/map';"> Station Map </button></td>
-<td style="text-align: center;"><button onclick="window.location.href='/mailbox';"> The Mailbox </button></td>
-<td style="text-align: center;"><button onclick="window.location.href='/user';"> User Settings </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/';"> Dashboard Home </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/map';"> Station Map </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/mailbox';"> The Mailbox </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/user';"> User Settings </button></td>
 {% if api %}
-<td style="text-align: center;"><button onclick="window.location.href='/external_apps';"> External Applications </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/external_apps';"> External Applications </button></td>
 {% endif %}
-<td style="text-align: center;"><button onclick="window.location.href='/help';"> Dashboard Help </button></td>
-<td style="text-align: center;"><button onclick="window.location.href='/about';"> Gateway Contact </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/help';"> Dashboard Help </button></td>
+<td style="text-align: center;"><button onclick="window.location.href='{{dashboard_url}}/about';"> Gateway Contact </button></td>
 </tr>
 </tbody>
 </table>
