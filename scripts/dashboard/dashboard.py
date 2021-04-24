@@ -659,7 +659,7 @@ def mailbox():
     if not recipient:
         mail_content = """
         <p>The Mailbox is a place where users can leave messages via DMR SMS. A user can leave a message for someone else by sending a specially formatted SMS to <strong>""" + data_call_id + """</strong>.
-        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign (without APRS SSID) below to check for messages. See the <a href='""" + dashboard_url + """/help">help</a> page for more information.</p>
+        The message recipient can then use the mailbox to check for messages. You can also check for APRS mesages addressed to your DMR radio. Enter your call sign (without APRS SSID) below to check for messages. See the <a href='""" + dashboard_url + """/help'>help</a> page for more information.</p>
         <form action="mailbox" method="get">
         <table style="margin-left: auto; margin-right: auto;">
         <tbody>
