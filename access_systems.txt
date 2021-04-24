@@ -3,6 +3,8 @@
     'XYZ':{
         # Mode of transfer, this case, message transfer
         'mode':'msg_xfer',
+        # Public or Private auth
+        'auth_type':'public',
         # Name of the server/network
         'network_name':'My HBlink Server',
         # URL to the dashboard of the server/network
@@ -22,11 +24,10 @@
         # Website for users to get info
         'website':'http://hbl.ink',
         },
-    'ABC':{
+    'HBL':{
         'mode':'msg_xfer',
-        'network_name':'Regional HBlink Network 1',
-        'url':'http://localhost:8092/',
-        'user':'test_name',
-        'password':'passw0rd'
+        'auth_type':'public',
+        'network_name':'KF7EEL Development Server',
+        'url':'http://hbl.ink/d-aprs/',
         }
 }
