@@ -16,9 +16,9 @@
         # Mode for application, operates differently than msg_xfer
         'mode':'app',
         # Name of external application
-        'app_name':'Bulletin Board',
+        'app_name':'Multi Network Bulletin Board',
         # Endpoint URL of API
-        'url':'http://localhost:8080/post',
+        'url':'http://hbl.ink/bb/post',
         # Website for users to get info
         'website':'http://hbl.ink',
         },

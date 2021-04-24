@@ -874,7 +874,7 @@ def aprs_process(packet):
 def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid):
     global AIS
     AIS = aprslib.IS(aprs_rx_login, passwd=int(aprs_passcode), host=aprs_server, port=int(aprs_port))
-    user_settings = ast.literal_eval(os.popen('cat ' + './user_settings.txt').read())
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
     AIS.set_filter(aprs_filter)#parser.get('GPS_DATA', 'APRS_FILTER'))
     try:
         if 'N0CALL' in aprs_callsign:
@@ -2388,7 +2388,9 @@ if __name__ == '__main__':
         logger.info('APRS callsighn set to N0CALL, packet not sent.')
         pass
     else:
-        threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,)).start()
+        aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
+        aprs_thread.daemon = True
+        aprs_thread.start()
     #logger.info(UNIT_MAP)
     #global authorized_users, other_systems
     #from .scripts.dashboard.authorized_apps import authorized_users, other_systems
