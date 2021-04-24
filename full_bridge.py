@@ -885,9 +885,9 @@ def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, u
         else:
             AIS.connect()
             print('Connecting to APRS-IS')
-            if int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME'] == 0:
+            if int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME']) == 0:
                    logger.info('APRS beacon disabled')
-            if int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME'] != 0:
+            if int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME']) != 0:
                 aprs_beacon=task.LoopingCall(aprs_beacon_send)
                 aprs_beacon.start(int(CONFIG['GPS_DATA']['IGATE_BEACON_TIME'])*60)
             AIS.consumer(aprs_process, raw=True, immortal=False)
