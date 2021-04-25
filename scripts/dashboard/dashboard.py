@@ -276,6 +276,7 @@ def external_apps():
             app_lst = app_lst + ''' 
         <tr>
         <td style="text-align: center;">&nbsp;''' + i_app[1]['app_name'] + '''</td>
+        <td style="text-align: center;">&nbsp;''' + i_app[1]['app_description'] + '''</td>
         <td style="text-align: center;">&nbsp;<strong>?''' + str(i_app[0]) + '''</strong></td>
         <td style="text-align: center;"><a href="''' + i_app[1]['website'] + '''">''' + i_app[1]['website'] + '''</a></td>
         </tr> '''
@@ -306,6 +307,9 @@ def external_apps():
     <tr>
     <td style="text-align: center;">
     <h3>Application</h3>
+    </td>
+    <td style="text-align: center;">
+    <h3>Description</h3>
     </td>
     <td style="text-align: center;">
     <h3>Shortcut</h3>
