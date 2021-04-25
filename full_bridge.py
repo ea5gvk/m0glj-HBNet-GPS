@@ -479,7 +479,6 @@ def process_sms(_rf_src, sms):
             if user_settings[int_id(_rf_src)][3]['comment'] != '':	
                 comment = user_settings[int_id(_rf_src)][3]['comment']	
         aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
-        pos_count + 1
         logger.info(aprs_loc_packet)
         logger.info('User comment: ' + comment)
         logger.info('User SSID: ' + ssid)
@@ -918,7 +917,7 @@ def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, u
         logger.info(e)
 # Sends beacon packet for gateway
 def aprs_beacon_send():
-    beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT'] # + ' GPS Sent: ' + str(pos_count)
+    beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT']
     aprs_send(beacon_packet)
     logger.info(beacon_packet)
 
@@ -2022,7 +2021,6 @@ class routerHBP(HBSYSTEM):
                         float(lat_deg) < 91
                         float(lon_deg) < 121
                         aprs_send(aprs_loc_packet)
-                        pos_count + 1
                         dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
                         #logger.info('Sent APRS packet')
                     except Exception as error_exception:
@@ -2109,7 +2107,6 @@ class routerHBP(HBSYSTEM):
                                     if user_settings[int_id(_rf_src)][3]['comment'] != '':	
                                         comment = user_settings[int_id(_rf_src)][3]['comment']	
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
-                                pos_count + 1
                                 logger.info(aprs_loc_packet)
                                 logger.info('User comment: ' + comment)
                                 logger.info('User SSID: ' + ssid)
@@ -2117,7 +2114,6 @@ class routerHBP(HBSYSTEM):
                             except Exception as error_exception:
                                 logger.info('Error or user settings file not found, proceeding with default settings.')
                                 aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                                pos_count + 1
                                 logger.info(error_exception)
                                 logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                             try:
@@ -2236,7 +2232,6 @@ class bridgeReportFactory(reportFactory):
 #************************************************
 
 if __name__ == '__main__':
-    global pos_count
     import argparse
     import sys
     import os
