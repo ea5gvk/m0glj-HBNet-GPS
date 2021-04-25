@@ -2,6 +2,7 @@
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   Copyright 2021, Eric, KF7EEL <KF7EEL@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by

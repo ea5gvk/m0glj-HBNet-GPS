@@ -107,11 +107,11 @@ import json
 import hashlib
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
-__author__     = 'Cortney T. Buffington, N0MJS'
+__author__     = 'Cortney T. Buffington, N0MJS, Eric Craw, KF7EEL'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
-__credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT'
+__credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT, Xavier FRS2013'
 __license__    = 'GNU GPLv3'
-__maintainer__ = 'Cort Buffington, N0MJS'
+__maintainer__ = 'Eric Craw, KF7EEL'
 __email__      = 'n0mjs@me.com'
 
 # Module gobal varaibles
@@ -2308,6 +2308,8 @@ if __name__ == '__main__':
             user_bb_file.close()
     #Only create if API enabled
     if use_api == True:
+        # Generate the apps dictionary
+        generate_apps()
         logger.info('Dashboard API enabled')
             #API variables
         auth_token_file = CONFIG['GPS_DATA']['AUTHORIZED_TOKENS_FILE']
@@ -2416,8 +2418,5 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
-    #logger.info(UNIT_MAP)
-    #global authorized_users, other_systems
-    #from .scripts.dashboard.authorized_apps import authorized_users, other_systems
-    logger.info(generate_apps())
+
     reactor.run()

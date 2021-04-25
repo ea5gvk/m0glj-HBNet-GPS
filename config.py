@@ -106,7 +106,6 @@ def build_config(_config_file):
     CONFIG['GLOBAL'] = {}
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
-    CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
 
@@ -138,49 +137,6 @@ def build_config(_config_file):
                     'LOG_HANDLERS': config.get(section, 'LOG_HANDLERS'),
                     'LOG_LEVEL': config.get(section, 'LOG_LEVEL'),
                     'LOG_NAME': config.get(section, 'LOG_NAME')
-                })
-                if not CONFIG['LOGGER']['LOG_FILE']:
-                    CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
-
-            elif section == 'GPS_DATA':
-                CONFIG['GPS_DATA'].update({
-                    'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
-                    'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
-                    'CALL_TYPE': config.get(section, 'CALL_TYPE'),
-                    'UNIT_SMS_TS': config.get(section, 'UNIT_SMS_TS'),
-                    'USER_APRS_COMMENT': config.get(section, 'USER_APRS_COMMENT'),
-                    'APRS_LOGIN_CALL': config.get(section, 'APRS_LOGIN_CALL'),
-                    'APRS_LOGIN_PASSCODE': config.get(section, 'APRS_LOGIN_PASSCODE'),
-                    'APRS_SERVER': config.get(section, 'APRS_SERVER'),
-                    'APRS_PORT': config.get(section, 'APRS_PORT'),
-                    'APRS_FILTER': config.get(section, 'APRS_FILTER'),
-                    'IGATE_BEACON_TIME': config.get(section, 'IGATE_BEACON_TIME'),
-                    'IGATE_BEACON_ICON': config.get(section, 'IGATE_BEACON_ICON'),
-                    'IGATE_BEACON_COMMENT': config.get(section, 'IGATE_BEACON_COMMENT'),
-                    'IGATE_LATITUDE': config.get(section, 'IGATE_LATITUDE'),
-                    'IGATE_LONGITUDE': config.get(section, 'IGATE_LONGITUDE'),
-                    'APRS_STATIC_REPORT_INTERVAL': config.get(section, 'APRS_STATIC_REPORT_INTERVAL'),
-                    'APRS_STATIC_MESSAGE': config.get(section, 'APRS_STATIC_MESSAGE'),
-                    'EMAIL_SENDER': config.get(section, 'EMAIL_SENDER'),
-                    'EMAIL_PASSWORD': config.get(section, 'EMAIL_PASSWORD'),
-                    'SMTP_SERVER': config.get(section, 'SMTP_SERVER'),
-                    'SMTP_PORT': config.get(section, 'SMTP_PORT'),
-                    'LOCATION_FILE': config.get(section, 'LOCATION_FILE'),
-                    'BULLETIN_BOARD_FILE': config.get(section, 'BULLETIN_BOARD_FILE'),
-                    'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
-                    'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
-                    'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
-                    'USE_API': config.getboolean(section, 'USE_API'),
-                    'AUTHORIZED_TOKENS_FILE': config.get(section, 'AUTHORIZED_TOKENS_FILE'),
-                    'AUTHORIZED_USERS_FILE': config.get(section, 'AUTHORIZED_USERS_FILE'),
-                    'ACCESS_SYSTEMS_FILE': config.get(section, 'ACCESS_SYSTEMS_FILE'),
-                    'USE_PUBLIC_APPS': config.getboolean(section, 'USE_PUBLIC_APPS'),
-                    'PUBLIC_APPS_LIST': config.get(section, 'PUBLIC_APPS_LIST'),
-                    'MY_API_NAME': config.get(section, 'MY_API_NAME'),
-                    'DASHBOARD_URL': config.get(section, 'DASHBOARD_URL'),
-                    'SERVER_NAME': config.get(section, 'SERVER_NAME'),
-
-
                 })
                 if not CONFIG['LOGGER']['LOG_FILE']:
                     CONFIG['LOGGER']['LOG_FILE'] = '/dev/null'
@@ -226,7 +182,7 @@ def build_config(_config_file):
                         'SOFTWARE_ID': bytes(config.get(section, 'SOFTWARE_ID').ljust(40)[:40], 'utf-8'),
                         'PACKAGE_ID': bytes(config.get(section, 'PACKAGE_ID').ljust(40)[:40], 'utf-8'),
                         'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
-                        'OPTIONS': bytes(config.get(section, 'OPTIONS'), 'utf-8'),
+                        'OPTIONS': b''.join([b'Type=HBlink;', bytes(config.get(section, 'OPTIONS'), 'utf-8')]),
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
@@ -293,7 +249,6 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
-                        'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),

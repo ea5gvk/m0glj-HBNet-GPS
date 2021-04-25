@@ -69,8 +69,63 @@ Input the DMR ID and SYSTEM of a subscriber that you would like to have always h
 This will not flood all systems.
 '''
 STATIC_UNIT = [
-     [ 9099, 'D-APRS']
+     [ 9099, 'MASTER-1']
     ]
+
+'''
+Manually specify other networks/servers that are authorized to send SMS to your server
+'''
+
+authorized_users = {
+##    'DEF':{
+##        'mode':'msg_xfer',
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        },
+##    'XYZ':{
+##        'mode':'msg_xfer',
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        }
+}
+
+'''
+List of external servers/networks or external applications that your users can access. The list below can be used in conjunction
+with or instead of the public list.
+'''
+
+local_systems = {
+# Shortcut used in SMS message
+##    'XYZ':{
+        # Mode of transfer, this case, message transfer
+##        'mode':'msg_xfer',
+        # Public or Private auth
+##        'auth_type':'public',
+        # Name of the server/network
+##        'network_name':'My HBlink Server',
+        # URL to the dashboard of the server/network
+##        'url':'http://example.net/',
+        # Username and password given to you by network operator
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        },
+    # Shortcut used in SMS message
+##    'BBD':{
+        # Mode for application, operates differently than msg_xfer
+##        'mode':'app',
+        # Name of external application
+##        'app_name':'Multi Network Bulletin Board',
+        # Endpoint URL of API
+##        'url':'http://hbl.ink/bb/post',
+        # Website for users to get info
+##        'website':'http://hbl.ink',
+##        },
+}
+
+
+
+
+
 
 '''
 This is for testing the syntax of the file. It won't eliminate all errors, but running this file
