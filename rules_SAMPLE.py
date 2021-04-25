@@ -74,6 +74,57 @@ STATIC_UNIT = [
      [ 9099, 'D-APRS']
     ]
 
+authorized_users = {
+##    'DEF':{
+##        'mode':'msg_xfer',
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        },
+##    'DEF':{
+##        'mode':'msg_xfer',
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        }
+}
+
+local_systems = {
+# Shortcut used in SMS message
+##    'XYZ':{
+##        # Mode of transfer, this case, message transfer
+##        'mode':'msg_xfer',
+##        # Public or Private auth
+##        'auth_type':'public',
+##        # Name of the server/network
+##        'network_name':'My HBlink Server',
+##        # URL to the dashboard of the server/network
+##        'url':'http://example.net/',
+##        # Username and password given to you by network operator
+##        'user':'test_name',
+##        'password':'passw0rd'
+##        },
+##    # Shortcut used in SMS message
+##    'BBD':{
+##        # Mode for application, operates differently than msg_xfer
+##        'mode':'app',
+##        # Name of external application
+##        'app_name':'Multi Network Bulletin Board',
+##        # Endpoint URL of API
+##        'url':'http://hbl.ink/bb/post',
+##        # Website for users to get info
+##        'website':'http://hbl.ink',
+##        },
+##    'HBL':{
+##        'mode':'msg_xfer',
+##        'auth_type':'public',
+##        'network_name':'KF7EEL Development Server',
+##        'url':'http://hbl.ink/d-aprs/',
+##        }
+}
+
+
+'''
+
+}
 
 '''
 This is for testing the syntax of the file. It won't eliminate all errors, but running this file

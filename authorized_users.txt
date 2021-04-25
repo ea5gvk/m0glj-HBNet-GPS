@@ -1,9 +1,0 @@
-# This file contains the access credentials of other servers/networks that can
-# send messages to this server.
-{
-    'DEF':{
-        'mode':'msg_xfer',
-        'user':'test_name',
-        'password':'passw0rd'
-        }
-}

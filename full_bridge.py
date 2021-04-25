@@ -48,7 +48,7 @@ from twisted.internet import reactor, task
 from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases
 from dmr_utils3.utils import bytes_3, int_id, get_alias, bytes_4
 from dmr_utils3 import decode, bptc, const
-import config
+import sms_aprs_config
 import log
 from const import *
 
@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 import traceback
 
 # Import UNIT time from rules.py
-from rules import UNIT_TIME, STATIC_UNIT
+from rules import UNIT_TIME, STATIC_UNIT, local_apps, authorized_users
 
 # modules from gps_data.py
 from bitarray import bitarray
@@ -309,17 +309,27 @@ def send_email(to_email, email_subject, email_message):
     smtp_server.close()
 
 def generate_apps():
-    global combined
-    local_acess_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+    global access_systems
+    #local_apps = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
     public_systems_file = requests.get(CONFIG['GPS_DATA']['PUBLIC_APPS_LIST'])
     public_apps = ast.literal_eval(public_systems_file.text)
-    combined = public_apps.items() + local_acess_systems.items()
-    print(type(public_apps))
-    print(type(local_acess_systems))
-    print()
-    print(combined)
+    access_systems = {}
+    #combined = public_apps.items() + local_acess_systems.items()
+    if CONFIG['GPS_DATA']['USE_PUBLIC_APPS'] == True:
+        for i in public_apps.items():
+            key = str(i[0])
+            access_systems[key] = i[1]
+    for i in local_apps.items():
+        key = str(i[0])
+        access_systems[key] = i[1]
+    print(access_systems)
+    
+    #print(type(public_apps))
+    #print(type(local_acess_systems))
+    #print()
+    #print(combined)
     #print(local_acess_systems.update(public_apps))
-    return combined
+    return access_systems
 
 # Thanks for this forum post for this - https://stackoverflow.com/questions/2579535/convert-dd-decimal-degrees-to-dms-degrees-minutes-seconds-in-python
 
@@ -489,8 +499,8 @@ def process_sms(_rf_src, sms):
         print(use_api)
         if use_api == True:
             auth_tokens = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
-            access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-            authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+            #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+            #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
             system = parse_sms[0][1:]
             #print(access_systems[system])
             #print(authorized_users)
@@ -2233,17 +2243,17 @@ if __name__ == '__main__':
 
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hblink.cfg)')
+    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually full_bridge.cfg)')
     parser.add_argument('-r', '--rules', action='store', dest='RULES_FILE', help='/full/path/to/rules.file (usually rules.py)')
     parser.add_argument('-l', '--logging', action='store', dest='LOG_LEVEL', help='Override config file logging level.')
     cli_args = parser.parse_args()
 
     # Ensure we have a path for the config file, if one wasn't specified, then use the default (top of file)
     if not cli_args.CONFIG_FILE:
-        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hblink.cfg'
+        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/full_bridge.cfg'
 
     # Call the external routine to build the configuration dictionary
-    CONFIG = config.build_config(cli_args.CONFIG_FILE)
+    CONFIG = sms_aprs_config.build_config(cli_args.CONFIG_FILE)
 
     data_id = int(CONFIG['GPS_DATA']['DATA_DMR_ID'])
     #echo_id = int(CONFIG['GPS_DATA']['ECHO_DMR_ID'])
@@ -2303,8 +2313,8 @@ if __name__ == '__main__':
             #API variables
         auth_token_file = CONFIG['GPS_DATA']['AUTHORIZED_TOKENS_FILE']
         use_api = CONFIG['GPS_DATA']['USE_API']
-        access_systems_file = CONFIG['GPS_DATA']['ACCESS_SYSTEMS_FILE']
-        authorized_users_file = CONFIG['GPS_DATA']['AUTHORIZED_USERS_FILE']
+        #access_systems_file = CONFIG['GPS_DATA']['ACCESS_SYSTEMS_FILE']
+        #authorized_users_file = CONFIG['GPS_DATA']['AUTHORIZED_USERS_FILE']
         if Path(auth_token_file).is_file():
             pass
         else:
