@@ -170,7 +170,7 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time, comment):
-    dash_entries = ast.literal_eval(os.popen('cat /tmp/gps_data_user_loc.txt').read())
+    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
     dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
 # Clear old entries
     list_index = 0
