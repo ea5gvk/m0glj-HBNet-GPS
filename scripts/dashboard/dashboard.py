@@ -821,7 +821,7 @@ def api(api_mode=None):
     if request.method == 'GET':
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
         return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(api_content), api = use_api)
-    if use_api == 'True' or use_api == "true":
+    if use_api == True: #'True' or use_api == "true":
         #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
         #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
         api_data = request.json
@@ -930,7 +930,7 @@ def api(api_mode=None):
         else:
             message = jsonify(message='Mode not found')
             return make_response(message, 404)
-    if use_api == "False" or use_api == "false":
+    if use_api == False: #"False" or use_api == "false":
             message = jsonify(message='API is disabled for this server')
             return make_response(message, 502)
     ##    except Exception as e:
@@ -1010,6 +1010,10 @@ if __name__ == '__main__':
     print(type(use_api))
     unit_sms_ts = parser.get('GPS_DATA', 'UNIT_SMS_TS')
     if use_api == 'True':
+        use_api = True
+    if use_api == 'False':
+        use_api = False
+    if use_api == True:
         generate_apps()
         if Path(auth_token_file).is_file():
             pass
@@ -1022,21 +1026,6 @@ if __name__ == '__main__':
             unit_sms_ts = 1
         if unit_sms_ts == 1:
             unit_sms_ts = 0
-##        try:
-            #global authorized_users, other_systems
-            #from authorized_apps import authorized_users, access_systems
-            #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-            #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
-            
-##        except Exception as e:
-##            print(e)
-
-    # API settings
-    #authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
-    # Default SMS TS for unit calls
-    
-    
-    
     ########################
     
     app.run(debug = True, port=dash_port, host=dash_host)
