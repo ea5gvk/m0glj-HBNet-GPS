@@ -360,15 +360,15 @@ def user_setting_write(dmr_id, setting, value):
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
             if setting.upper() == 'APRS ON':
                 user_dict[dmr_id][5] = {'APRS': True}
-                send_sms(False, dmr_id, data_id, 0000, 'unit', 'APRS MSG TX/RX Enabled')
+                send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
             if setting.upper() == 'APRS OFF':
                 user_dict[dmr_id][5] = {'APRS': False}
-                send_sms(False, dmr_id, data_id, 0000, 'unit', 'APRS MSG TX/RX Disabled')
+                send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
             if setting.upper() == 'PIN':
                 #try:
                     #if user_dict[dmr_id]:
                 user_dict[dmr_id][4]['pin'] = value
-                send_sms(False, dmr_id, data_id, 0000, 'unit',  'You can now use your pin on the dashboard.')
+                send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
                     #if not user_dict[dmr_id]:
                     #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
                 #except:
@@ -390,10 +390,10 @@ def process_sms(_rf_src, sms):
     logger.info(parse_sms)
     if parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
-        send_sms(False, int_id(_rf_src), data_id, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+        send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
     elif parse_sms[0] == 'TEST':
         logger.info('It works!')
-        send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'It works')
+        send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'It works')
     elif '@ICON' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms))
     elif '@SSID' in parse_sms[0]:
@@ -519,7 +519,7 @@ def process_sms(_rf_src, sms):
                 
                 
         if use_api == False:
-            send_sms(False, int_id(_rf_src), data_id, 0000, 'unit', 'API not enabled. Contact server admin.')
+            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
     elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
         #Example SMS text: @ARMDS A-This is a test.
         s = ' '
@@ -545,9 +545,9 @@ def process_sms(_rf_src, sms):
                     logger.info(error_exception)
                     logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
             else:
-                send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
         except Exception as e:
-            send_sms(False, int_id(_rf_src), data_id, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -724,8 +724,8 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
                 the_mmdvm_pkt = mmdvm_encapsulate(dst_id, src_id, peer_id, cap_in, _slot, _call_type, 7, rand_seq, i)#(bytes.fromhex(re.sub("b'|'", '', str(orig_cap[cap_in][20:-4])))))
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
-        with open('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
-            packet_write_file.write(str(mmdvm_send_seq))
+    with open('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
+        packet_write_file.write(str(mmdvm_send_seq))
 
     return mmdvm_send_seq
 
@@ -828,9 +828,8 @@ def data_que_send():
     try:
         #logger.info(UNIT_MAP)
         for packet_file in os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/'):
- 
+            logger.info('Sending SMS')
             snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + packet_file).read())
-
             for data in snd_seq:
                 # Get dest id
                 dst_id = bytes.fromhex(str(data[10:16])[2:-1])
@@ -881,7 +880,7 @@ def aprs_process(packet):
                         ssid = user_ssid
                     if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
                         mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
-                        send_sms(False, sms_id, data_id, 0000, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
+                        send_sms(False, sms_id, 0000, 0000, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
                         try:
                             if 'msgNo' in aprslib.parse(packet):
                                 #sleep(1)

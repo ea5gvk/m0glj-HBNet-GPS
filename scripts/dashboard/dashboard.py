@@ -209,32 +209,20 @@ def generate_apps():
     mod.loader.exec_module(rules)
     local_apps = rules.local_apps
     authorized_users = rules.authorized_users
+    print(authorized_users)
 
-    #rules_data = ast.literal_eval(os.popen('cat ' + parser.get('GPS_DATA', 'RULES_PATH')).read())
-    #rules_data
     public_systems_file = requests.get(parser.get('GPS_DATA', 'PUBLIC_APPS_LIST'))
     public_apps = ast.literal_eval(public_systems_file.text)
     access_systems = {}
-    #combined = public_apps.items() + local_acess_systems.items()
     print(type(parser.get('GPS_DATA', 'USE_PUBLIC_APPS')))
     if parser.get('GPS_DATA', 'USE_PUBLIC_APPS') == 'True':
         for i in public_apps.items():
             key = str(i[0])
             access_systems[key] = i[1]
-    for i in local_apps.items():
-        key = str(i[0])
-        access_systems[key] = i[1]
-    print(access_systems)
-    print(authorized_users)
-    print(local_apps)
-    #print(rules_data)
-    
-    #print(type(public_apps))
-    #print(type(local_acess_systems))
-    #print()
-    #print(combined)
-    #print(local_acess_systems.update(public_apps))
-    #return access_systems
+        for i in local_apps.items():
+            key = str(i[0])
+            access_systems[key] = i[1]
+
 
 @app.route('/')
 def index():
@@ -1018,9 +1006,11 @@ if __name__ == '__main__':
     #authorized_users_file = parser.get('GPS_DATA', 'AUTHORIZED_USERS_FILE')
 
     que_dir = '/tmp/.hblink_data_que_' + str(parser.get('GPS_DATA', 'APRS_LOGIN_CALL').upper()) + '/'
-    generate_apps()
     #Only create if API enabled
-    if use_api == True:
+    print(type(use_api))
+    unit_sms_ts = parser.get('GPS_DATA', 'UNIT_SMS_TS')
+    if use_api == 'True':
+        generate_apps()
         if Path(auth_token_file).is_file():
             pass
         else:
@@ -1032,19 +1022,19 @@ if __name__ == '__main__':
             unit_sms_ts = 1
         if unit_sms_ts == 1:
             unit_sms_ts = 0
-        try:
+##        try:
             #global authorized_users, other_systems
             #from authorized_apps import authorized_users, access_systems
             #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
             #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
-            print('generaty')
-        except Exception as e:
-            print(e)
+            
+##        except Exception as e:
+##            print(e)
 
     # API settings
     #authorized_apps_file = parser.get('GPS_DATA', 'AUTHORIZED_APPS_FILE')
     # Default SMS TS for unit calls
-    unit_sms_ts = parser.get('GPS_DATA', 'UNIT_SMS_TS')
+    
     
     
     ########################
