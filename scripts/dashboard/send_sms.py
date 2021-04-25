@@ -167,7 +167,7 @@ def dmr_encode(packet_list, _slot):
     return send_seq
 
 
-def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
+def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string, que_dir):
     rand_seq = random.randint(1, 999999)
     block_seq = block_sequence(dmr_string)
     dmr_list = dmr_encode(block_seq, _slot)
@@ -197,12 +197,12 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
                 the_mmdvm_pkt = mmdvm_encapsulate(dst_id, src_id, peer_id, cap_in, _slot, _call_type, 7, rand_seq, i)#(bytes.fromhex(re.sub("b'|'", '', str(orig_cap[cap_in][20:-4])))))
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
-    with open('/tmp/.hblink_data_que/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
+    with open(que_dir + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
                 packet_write_file.write(str(mmdvm_send_seq))
 
     return mmdvm_send_seq
 try:
-    Path('/tmp/.hblink_data_que/').mkdir(parents=True, exist_ok=True)
+    Path(que_dir).mkdir(parents=True, exist_ok=True)
 except:
     pass
 
@@ -271,7 +271,7 @@ def gen_header(to_id, from_id, call_type):
         seq_header = '824A' + to_id + from_id + '9550'
     return seq_header
 
-def send_sms(csbk, to_id, from_id, peer_id, call_type, slot, msg):
+def send_sms(csbk, to_id, from_id, peer_id, call_type, slot, msg, que_dir):
     global use_csbk
     #to_id = str(hex(to_id))[2:].zfill(6)
     #from_id = str(hex(from_id))[2:].zfill(6)
@@ -287,10 +287,10 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, slot, msg):
         new_call_type = 0
     if csbk == 'yes':
         use_csbk = True
-        create_sms_seq(to_id, from_id, peer_id, int(slot), new_call_type, csbk_gen(to_id, from_id) + create_crc16(gen_header(to_id, from_id, new_call_type)) + create_crc32(format_sms(msg, to_id, from_id)))
+        create_sms_seq(to_id, from_id, peer_id, int(slot), new_call_type, csbk_gen(to_id, from_id) + create_crc16(gen_header(to_id, from_id, new_call_type)) + create_crc32(format_sms(msg, to_id, from_id)), que_dir)
     else:
         use_csbk = False
-        create_sms_seq(to_id, from_id, peer_id, int(slot), new_call_type, create_crc16(gen_header(to_id, from_id, new_call_type)) + create_crc32(format_sms(msg, to_id, from_id)))
+        create_sms_seq(to_id, from_id, peer_id, int(slot), new_call_type, create_crc16(gen_header(to_id, from_id, new_call_type)) + create_crc32(format_sms(msg, to_id, from_id)), que_dir)
     print('Call type: ' + call_type)
     print('Destination: ' + str(to_id))
     print('Source: ' + str(from_id))

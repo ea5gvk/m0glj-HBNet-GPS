@@ -31,6 +31,8 @@ from datetime import datetime
 import argparse
 from configparser import ConfigParser
 from send_sms import *
+import importlib.util
+import requests
 
 
 
@@ -199,6 +201,41 @@ def user_setting_write(dmr_id, input_ssid, input_icon, input_comment, input_aprs
         user_dict_file.close()
         
 
+
+def generate_apps():
+    global access_systems, authorized_users
+    mod = importlib.util.spec_from_file_location("rules_data", parser.get('GPS_DATA', 'RULES_PATH'))
+    rules = importlib.util.module_from_spec(mod)
+    mod.loader.exec_module(rules)
+    local_apps = rules.local_apps
+    authorized_users = rules.authorized_users
+
+    #rules_data = ast.literal_eval(os.popen('cat ' + parser.get('GPS_DATA', 'RULES_PATH')).read())
+    #rules_data
+    public_systems_file = requests.get(parser.get('GPS_DATA', 'PUBLIC_APPS_LIST'))
+    public_apps = ast.literal_eval(public_systems_file.text)
+    access_systems = {}
+    #combined = public_apps.items() + local_acess_systems.items()
+    print(type(parser.get('GPS_DATA', 'USE_PUBLIC_APPS')))
+    if parser.get('GPS_DATA', 'USE_PUBLIC_APPS') == 'True':
+        for i in public_apps.items():
+            key = str(i[0])
+            access_systems[key] = i[1]
+    for i in local_apps.items():
+        key = str(i[0])
+        access_systems[key] = i[1]
+    print(access_systems)
+    print(authorized_users)
+    print(local_apps)
+    #print(rules_data)
+    
+    #print(type(public_apps))
+    #print(type(local_acess_systems))
+    #print()
+    #print(combined)
+    #print(local_acess_systems.update(public_apps))
+    #return access_systems
+
 @app.route('/')
 def index():
     value = Markup('<strong>The HTML String</strong>')
@@ -223,7 +260,7 @@ def about():
 
 @app.route('/external_apps')
 def external_apps():
-    access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+    #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
     msg_lst = ''
     app_lst = ''
     for i_msg in access_systems.items():
@@ -793,8 +830,8 @@ def api(api_mode=None):
         api_content = '<h3 style="text-align: center;"><strong>API Enabled: ' + str(use_api) + '</strong></h3>'
         return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(api_content), api = use_api)
     if use_api == 'True' or use_api == "true":
-        access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-        authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+        #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+        #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
         api_data = request.json
         #print(type(api_data))
         #print((api_data))
@@ -822,7 +859,7 @@ def api(api_mode=None):
                                 send_slot = 0
                             if sms_data['slot'] == 2:
                                 send_slot = 1
-                            send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'])
+                            send_sms(False, sms_data['destination_id'], sms_data['source_id'], 0000, 'unit', send_slot, sms_data['message'], que_dir)
                         return jsonify(
                             mode=api_data['mode'],
                             status='Generated SMS',
@@ -883,7 +920,7 @@ def api(api_mode=None):
                             send_slot = 0
                         if sms_data['slot'] == 2:
                             send_slot = 1
-                        send_sms(False, sms_data['destination_id'], 0000, 0000, 'unit', send_slot, sms_data['message'])
+                        send_sms(False, sms_data['destination_id'], 0000, 0000, 'unit', send_slot, sms_data['message'], que_dir)
                     new_auth_file = auth_file
                     with open(auth_token_file, 'w') as auth_token:
                         auth_token.write(str(auth_file))
@@ -973,9 +1010,11 @@ if __name__ == '__main__':
 
     auth_token_file = parser.get('GPS_DATA', 'AUTHORIZED_TOKENS_FILE')
     use_api = parser.get('GPS_DATA', 'USE_API')
-    access_systems_file = parser.get('GPS_DATA', 'ACCESS_SYSTEMS_FILE')
-    authorized_users_file = parser.get('GPS_DATA', 'AUTHORIZED_USERS_FILE')
+    #access_systems_file = parser.get('GPS_DATA', 'ACCESS_SYSTEMS_FILE')
+    #authorized_users_file = parser.get('GPS_DATA', 'AUTHORIZED_USERS_FILE')
 
+    que_dir = '/tmp/.hblink_data_que_' + str(parser.get('GPS_DATA', 'APRS_LOGIN_CALL').upper()) + '/'
+    generate_apps()
     #Only create if API enabled
     if use_api == True:
         if Path(auth_token_file).is_file():
@@ -992,8 +1031,9 @@ if __name__ == '__main__':
         try:
             #global authorized_users, other_systems
             #from authorized_apps import authorized_users, access_systems
-            access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-            authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+            #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+            #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+            print('generaty')
         except Exception as e:
             print(e)
 

@@ -255,7 +255,7 @@ def send_app_request(url, message, source_id):
         auth_token.close()
     app_request = {
     'mode':'app',
-    'system_shortcut':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'system_shortcut':CONFIG['GPS_DATA']['MY_SERVER_SHORTCUT'],
     'server_name':CONFIG['GPS_DATA']['SERVER_NAME'],
     'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
     'auth_token':the_token,
@@ -276,7 +276,7 @@ def send_msg_xfer(url, user, password, message, source_id, dest_id):
     url = url + '/api/msg_xfer'
     msg_xfer = {
     'mode':'msg_xfer',
-    'system_shortcut':CONFIG['GPS_DATA']['MY_API_NAME'],
+    'system_shortcut':CONFIG['GPS_DATA']['MY_SERVER_SHORTCUT'],
     'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
     'auth_type':'private',
     'credentials': {
@@ -724,7 +724,7 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
                 the_mmdvm_pkt = mmdvm_encapsulate(dst_id, src_id, peer_id, cap_in, _slot, _call_type, 7, rand_seq, i)#(bytes.fromhex(re.sub("b'|'", '', str(orig_cap[cap_in][20:-4])))))
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
-        with open('/tmp/.hblink_data_que/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
+        with open('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
             packet_write_file.write(str(mmdvm_send_seq))
 
     return mmdvm_send_seq
@@ -827,9 +827,9 @@ def data_que_send():
     #logger.info('Check SMS que')
     try:
         #logger.info(UNIT_MAP)
-        for packet_file in os.listdir('/tmp/.hblink_data_que/'):
+        for packet_file in os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/'):
  
-            snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que/' + packet_file).read())
+            snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + packet_file).read())
 
             for data in snd_seq:
                 # Get dest id
@@ -856,7 +856,7 @@ def data_que_send():
                                 reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
                                 logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
       
-            os.system('rm /tmp/.hblink_data_que/' + packet_file)
+            os.system('rm /tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + packet_file)
 
                     #routerHBP.send_peer('MASTER-2', bytes.fromhex(re.sub("b'|'", '', str(data))))
     ##            os.system('rm /tmp/.hblink_data_que/' + packet_file)
@@ -2331,7 +2331,7 @@ if __name__ == '__main__':
             mailbox_file.write("[]")
             mailbox_file.close()
     try:
-        Path('/tmp/.hblink_data_que/').mkdir(parents=True, exist_ok=True)
+        Path('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/').mkdir(parents=True, exist_ok=True)
     except:
         logger.info('Unable to create data que directory')
         pass

@@ -80,11 +80,11 @@ authorized_users = {
 ##        'user':'test_name',
 ##        'password':'passw0rd'
 ##        },
-##    'DEF':{
-##        'mode':'msg_xfer',
-##        'user':'test_name',
-##        'password':'passw0rd'
-##        }
+    'XYZ':{
+        'mode':'msg_xfer',
+        'user':'test_name',
+        'password':'passw0rd'
+        }
 }
 
 local_systems = {
