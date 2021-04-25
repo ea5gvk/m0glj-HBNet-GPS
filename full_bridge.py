@@ -308,6 +308,19 @@ def send_email(to_email, email_subject, email_message):
     smtp_server.sendmail(sender_address, to_email, message)
     smtp_server.close()
 
+def generate_apps():
+    global combined
+    local_acess_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+    public_systems_file = requests.get(CONFIG['GPS_DATA']['PUBLIC_APPS_LIST'])
+    public_apps = ast.literal_eval(public_systems_file.text)
+    combined = public_apps.items() + local_acess_systems.items()
+    print(type(public_apps))
+    print(type(local_acess_systems))
+    print()
+    print(combined)
+    #print(local_acess_systems.update(public_apps))
+    return combined
+
 # Thanks for this forum post for this - https://stackoverflow.com/questions/2579535/convert-dd-decimal-degrees-to-dms-degrees-minutes-seconds-in-python
 
 def decdeg2dms(dd):
@@ -2397,4 +2410,5 @@ if __name__ == '__main__':
     #logger.info(UNIT_MAP)
     #global authorized_users, other_systems
     #from .scripts.dashboard.authorized_apps import authorized_users, other_systems
+    logger.info(generate_apps())
     reactor.run()

@@ -174,6 +174,8 @@ def build_config(_config_file):
                     'AUTHORIZED_TOKENS_FILE': config.get(section, 'AUTHORIZED_TOKENS_FILE'),
                     'AUTHORIZED_USERS_FILE': config.get(section, 'AUTHORIZED_USERS_FILE'),
                     'ACCESS_SYSTEMS_FILE': config.get(section, 'ACCESS_SYSTEMS_FILE'),
+                    'USE_PUBLIC_APPS': config.getboolean(section, 'USE_PUBLIC_APPS'),
+                    'PUBLIC_APPS_LIST': config.get(section, 'PUBLIC_APPS_LIST'),
                     'MY_API_NAME': config.get(section, 'MY_API_NAME'),
                     'DASHBOARD_URL': config.get(section, 'DASHBOARD_URL'),
                     'SERVER_NAME': config.get(section, 'SERVER_NAME'),
