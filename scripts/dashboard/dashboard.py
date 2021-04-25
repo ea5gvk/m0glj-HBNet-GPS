@@ -414,7 +414,7 @@ def view_map():
                     <p style="text-align: center;"><button onclick="self.close()">Close</button><!--<button onclick="history.back()">Back</button>-->
                     </p>
                      """ + map_view
-            return render_template('generic.html', title = dashboard_title, logo = logo, content = Markup(content))
+            return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(content))
     except Exception as e:
         content = """<h1 style="text-align: center;">Station not found.</h1>
                   #<p style="text-align: center;"><button onclick="self.close()">Close Window</button>
