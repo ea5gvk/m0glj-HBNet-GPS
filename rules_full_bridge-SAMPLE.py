@@ -33,17 +33,13 @@ configuration file.
 '''
 
 BRIDGES = {
-##    'ENGLISH': [
-##            {'SYSTEM': 'CHANGE_ME-1',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
-##            {'SYSTEM': 'CHANGE_ME-2',    'TS': 1, 'TGID': 13,   'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [3,], 'OFF': [8,10], 'RESET': []},
-##        ],
-##    'STATEWIDE': [
-##            {'SYSTEM': 'CHANGE_ME-1',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
-##            {'SYSTEM': 'CHANGE_ME-2',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
-##        ],
+    'STATEWIDE': [
+            {'SYSTEM': 'MASTER-1',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
+            {'SYSTEM': 'PEER-2',    'TS': 2, 'TGID': 3129, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'NONE', 'ON': [4,], 'OFF': [7,10], 'RESET': []},
+        ],
     'ECHO': [
             {'SYSTEM': 'MASTER-1',    'TS': 2, 'TGID': 9999,    'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [9999,], 'OFF': [9,10], 'RESET': []},
-            {'SYSTEM': 'ECHO',    'TS': 2, 'TGID': 9999, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [9999,], 'OFF': [9,10], 'RESET': []},
+            {'SYSTEM': 'PEER-1',    'TS': 2, 'TGID': 9999, 'ACTIVE': True, 'TIMEOUT': 2, 'TO_TYPE': 'ON',  'ON': [9999,], 'OFF': [9,10], 'RESET': []},
         ]
 }
 
@@ -69,15 +65,15 @@ Input the DMR ID and SYSTEM of a subscriber that you would like to have always h
 This will not flood all systems.
 '''
 STATIC_UNIT = [
-     [ 9099, 'MASTER-1']
-    ]
+#     [ 9099, 'MASTER-1']
+              ]
 
 '''
 Manually specify other networks/servers that are authorized to send SMS to your server
 '''
 
 authorized_users = {
-##    'DEF':{
+##    'ABC':{
 ##        'mode':'msg_xfer',
 ##        'user':'test_name',
 ##        'password':'passw0rd'

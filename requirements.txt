@@ -10,5 +10,4 @@ flask
 folium
 libscrc
 requests
-json
-hashlib
+

@@ -100,15 +100,13 @@ app_response = {
     'app_shortcut':'APP',
     'auth_token':'736a9ced7e7688c951490a7f8e1ebdd4',
     'data':{
-        1:{'source_app':'app_name',
-            'destination_id':3153591,
+        1:{ 'destination_id':3153591,
             'slot':2,
             'msg_type':'unit',
             'msg_format':'motorola',
             'message':'text of the message'
               },
-        2:{'source_id':'app_name',
-            'destination_id':3153591,
+        2:{ 'destination_id':3153591,
             'slot':2,
             'msg_type':'unit',
             'msg_format':'motorola',

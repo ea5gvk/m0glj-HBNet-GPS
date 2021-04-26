@@ -936,8 +936,12 @@ UNIT_MAP = {}
 time_20 = 630720000
 
 # Build a UNIT_MAP based on values in STATIC_MAP.
-for i in STATIC_UNIT:
+try:
+    for i in STATIC_UNIT:
 	UNIT_MAP[bytes_3(i[0])] = i[1], time() + time_20, i[2]
+# If empty, return empty dictionary
+except:
+    UNIT_MAP = {}
 
 # Timed loop used for reporting HBP status
 #
@@ -1829,6 +1833,8 @@ class routerHBP(HBSYSTEM):
                 
             _target_status = systems[_target].STATUS
             _target_system = self._CONFIG['SYSTEMS'][_target]
+##            print(self._targets)
+            #print(_target_system)
             
             if self._CONFIG['SYSTEMS'][_target]['MODE'] == 'OPENBRIDGE':
                 if (_stream_id not in _target_status):
