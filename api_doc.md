@@ -35,6 +35,4 @@ There are presently 3 modes for data  exchange, "msg_xfer", "app", and "raw". ms
             "message": "text of the 2nd message"
         }
     }
-}
-
-`
+}`
