@@ -1,11 +1,10 @@
+# Configuration
 
 ## full_bridge.cfg
 
 DATA_DMR_ID and CALL_TYPE, the DMR ID of the gateway. Call type specifies if you want to receive private data or group data. can be set to both to receive private and group data. Options: unit, group, both.
 
-### UNIT_SMS_TS
-
-This is the default timeslot that an SMS is sent on. Every time a user keys the radio, whether a private call or talkgroup, the server saves the timeslot that the user is on. By default, an SMS is routed to the last known timeslot of a user. When the last timeslot is not know, UNIT_SMS_TS is used. For example, if the user has not transmitted in a long time, and APRS message is received, the generated SMS will be sent on UNIT_SMS_TS.
+UNIT_SMS_TS. This is the default timeslot that an SMS is sent on. Every time a user keys the radio, whether a private call or talkgroup, the server saves the timeslot that the user is on. By default, an SMS is routed to the last known timeslot of a user. When the last timeslot is not know, UNIT_SMS_TS is used. For example, if the user has not transmitted in a long time, and APRS message is received, the generated SMS will be sent on UNIT_SMS_TS.
 
 ### APRS Configuration
 
@@ -61,6 +60,8 @@ MAP_CENTER_LAT, MAP_CENTER_LON, ZOOM_LEVEL. The Latitude and Longitude to center
 
 MAP_THEME, theme of the map. The following are options for map themes and just work, you should use one of these: “OpenStreetMap”, “Stamen” (Terrain, Toner, and Watercolor). List and preview of some map themes at [http://leaflet-extras.github.io/leaflet-providers/preview/](List and preview of some map themes at http://leaflet-extras.github.io/leaflet-providers/preview/).
 
+
+----
 
 ## rules.py
 
