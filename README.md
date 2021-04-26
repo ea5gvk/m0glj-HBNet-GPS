@@ -1,85 +1,74 @@
-# This is the developement version that supports the sending of SMS. This is a work in progress and is not meant to be used in production at this time.
+##### This is the development version that supports the sending of SMS. This is a work in progress and is not meant to be used in production at this time. This will become the 2nd genreation of the project.
 
-# [Example external applications that use JSON API](https://github.com/kf7eel/hblink_sms_external_apps)
+# HBLink3 with APRS/SMS Features
 
-# GPS/Data Application
+This is a **fork** of the [HBLink project](https://hblink-org.github.io/) that supports APRS and DMR SMS functions.
 
-This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call. It is designed to work in a multi system/user network.
+This repository contains everything needed to setup an HBLink server with APRS/SMS features.
 
-Files modified from original master branch of HBLink3:
+## Features
 
-* bridge.py
-* config.py 
+* Decode GPS locations and upload APRS position packets
+* Each user/DMR ID can customize APRS options (SSID, icon, comment)
+* Send and receive APRS messages as DMR SMS
+* Ability to receive data as a private call or group call
+* Trigger a command or script via DMR SMS
+* Optional web dashboard to show APRS packets uploaded
+* Use built in API to send SMS to other HBLink servers
+* Use external applications (see [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html))
 
 #### Required modules
 
 * pynmea2
 * aprslib
 * maidenhead
+* libscrc
 
 #### Optional Modules
 * Flask - Required for dashboard
-* smtplib - Required for sending email. If pip fails to install module, it may already be installed as most Linux distributions have this module by default.
-* traceback - If pip fails to install module, it may already be installed as most Linux distrobutions have this module by default.
-* slixmpp - Required for upcoming XMPP gateway.
 * folium - Required for mapping on dashboard.
 
-This should work for DMR radios that send location data as a UTF-8 NMEA sentence. I am hopping to add support for more radios in the future.
-
-### Differences in branches
-
-* **GPS**: Contains the GPS/Data Application.
-* **aprs_features**: Contains the GPS/Data Application and a modified version of the APRS implementation for repeaters and hotspots by **IU7IGU**. (See [https://github.com/iu7igu/hblink3-aprs](https://github.com/iu7igu/hblink3-aprs) for his work). I combined these for convenience.
+# Radio Compatibility
 
 ## Confirmed working:
 Actually tested
 
- | Radio | GPS | SMS |
- |-------|:---:|:---:|
- | Anytone D878| YES | YES |
- | Anytone D578| YES | YES |
- | BTech DMR-6x2 | YES | Most likely |
- | MD-380 (MD380tools, no GPS) | - | YES |
- | MD-380 (stock firmware, GPS) | YES | Most likely |
- | MD-390 (stock firmware) | YES | YES |
- | Retevis RT73* | YES | YES |
- | Ailunce HD1 | YES | YES |
+ | Radio | GPS | SMS Decode | SMS Encode |
+ |-------|:---:|:---:|:---:|
+ | Anytone D878| YES | YES | YES |
+ | Anytone D578| YES | YES | Most Likely |
+ | BTech DMR-6x2 | YES | Most likely | Not Tested |
+ | MD-380 (MD380tools, no GPS) | - | YES | WIP |
+ | MD-380 (stock firmware, GPS) | YES | Most likely | Not Tested |
+ | MD-390 (stock firmware) | YES | YES |  Not Tested |
+ | Retevis RT73* | YES | YES |  Not Tested |
+ | Ailunce HD1 | YES | YES |  Not Tested |
  
  *RT73 must have unconfirmed data setting enabled.
 
 ## Highly suspected to work:
 Not tested yet, but will most likely work.
 
- | Radio | GPS | SMS |
- |-------|:---:|:---:|
- | Anytone D868 | Most likely | Most likely |
- | TYT MD-2017 | Most likely | Likely |
- | TYT MD-9600 | Most likely | Likely |
- | Retevis RT8 | Most likely | Likely |
+ | Radio | GPS | SMS Decode | SMS Encode |
+ |-------|:---:|:---:|:---:|
+ | Anytone D868 | Most likely | Most Likely | Most Likely |
+ | TYT MD-2017 | Most likely | Likely | Unknown |
+ | TYT MD-9600 | Most likely | Likely | Unknown |
+ | Retevis RT8 | Most likely | Likely | Unknown |
  
  
 ## Tested, but with issues.
   Tested, but with bugs present.
   
- | Radio | GPS | SMS |
- |-------|:---:|:---:|
- | Alinco DJ-MD5TGP | WIP | Most likely |
- | Motorola DP3601| WIP | WIP |
+ | Radio | GPS | SMS Decode | SMS Encode 
+ |-------|:---:|:---:|:---:|
+ | Alinco DJ-MD5TGP | WIP | Most likely | Not Tested |
+ | Motorola DP3601| WIP | WIP | Not Tested |
 
 
 ## Would like to test:
 
 Connect Systems GPS enabled radios
-
-## Features
-
-* Decode GPS locations and upload APRS position packets
-* Each user/DMR ID can customize APRS position
-* Ability to receive data as a private call or group call
-* Trigger a command or script via DMR SMS
-* Optional web dashboard to show APRS packets uploaded
-* Display bulletins sent via SMS on web dashboard
-
 
 ## How it works
 
@@ -100,17 +89,29 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
 |**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
 |**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
-|**@[CALLSIGN W/ SSID] A-[MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 A-This is a test.`|
-|**[EMAIL ADDRESS] E-[MESSAGE]**|Send an email to an email address.|`test@example.org E-This is a test.`| 
+|**@[CALLSIGN W/ SSID] [MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 This is a test.`|
+|**[EMAIL ADDRESS] [MESSAGE]**|Send an email to an email address.|`test@example.org This is a test.`| 
+|**@REM MAIL**|Remove all mail (APRS messages, SMS, etc) addressed to you.|`@REM MAIL`|
+**@NOTICE**|Used to prominantly display a notice, similar to EMERGENCY activation.|`@NOTICE Server going down at 1800`|
+|**@SOS**|EMERGENCY activation displays a banner on the main dashboard page.|`THIS IS AN EMERGENCY. @SOS`|
+|**@REM SOS**|Removes an EMERGENCY or notice.|`@REM SOS`|
+|**ID**|Responds by send an SMS containing your DMR ID.|`ID`|
+|**TEST**| Responds with "This is a test." as an SMS.|`TEST`|
+|**?[Network Shortcut] [DMR ID] [Message]**| Send an SMS to a user on another network.|`?XYZ 123456789 This is a test`|
+|?[App Shortcut] [Input]|Send SMS to an external application.|`?BBD This is a test post.`|
+|**@APRS ON**|Enable sending and receiving of APRS messages.|`@APRS ON`|
+|**@APRS OFF**|Disable sending and receiving of APRS messages.|`@APRS OFF`|
 
 
 
 Send a DMR SMS to the configured dmr_data_id in the application with the desired command followed by the value. For example, to change your icon to a dog, the command would be `@ICON /p` (see the icon table for values). Changing your SSID is as simple as `@SSID 7`, and `@COM Testing 123` will change the comment. 
 
-Sending `@BB Test` will result in a post to the bulletin board with the messaage of "Test".
+Sending `@BB Test` will result in a post to the bulletin board with the message of "Test".
 
 
-**To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the strored comment. Any position now reports sent will have the default settings.
+**To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the stored comment. Any position now reports sent will have the default settings.
+
+## API
 
 
 ## Web Dashboard
@@ -119,7 +120,7 @@ The web dashboard is completely optional. Python module flask is required for th
 
 ## APRS messaging
 
-**At this time, only sending of messages from DMR SMS to APRS-IS is supported.** I find this feature very pointless because it will only go one way, but someone else may find it important. **Messages from sent from APRS-IS to DMR SMS will not work.** I have not written the code for this yet. It will likley be a long time before this is a possibility.
+You can send and receive APRS messages via DMR SMS. APRS messages received by the gateway are automatically sent to your DMR ID as a private SMS.
 
 ## APRS TOCALL
 
@@ -127,7 +128,7 @@ The project was granted a [tocall](http://www.aprs.org/aprs11/tocalls.txt) of **
 
 * **APHBL3** - HBlink3 D-APRS gateway
 * **APHBLD** - DMRlink D-APRS gateway (the IPSC version of the project)
-* **_APHBLS_** - Planned, but not in use: HBLink3 via KISS TNC
+
 
 ## Configuration
 
