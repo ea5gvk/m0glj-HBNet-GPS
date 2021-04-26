@@ -1,4 +1,4 @@
-## [Home](https://kf7eel.github.io/hblink3/) | [Configuration](/hblink3/config_doc.html) | [HBlink Website](https://hblink-org.github.io/)
+## [Home](https://kf7eel.github.io/hblink3/) | [Configuration](/hblink3/config_doc.html) | [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html) | [HBlink Website](https://hblink-org.github.io/)
 
 # Configuration
 
