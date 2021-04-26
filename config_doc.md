@@ -1,3 +1,5 @@
+## [Home](https://kf7eel.github.io/hblink3/) | [Configuration](/hblink3/config_doc.html) | [HBlink Website](https://hblink-org.github.io/)
+
 # Configuration
 
 ## full_bridge.cfg
