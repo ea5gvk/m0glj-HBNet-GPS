@@ -62,10 +62,11 @@ UNIT_TIME = 1
 
 '''
 Input the DMR ID and SYSTEM of a subscriber that you would like to have always have private calls routed.
-This will not flood all systems.
+This will not flood all systems. The last item in the entry is the timeslot. It has no effect on STATIC_UNIT. It
+is only there to prevent an error in another function.
 '''
 STATIC_UNIT = [
-#     [ 9099, 'MASTER-1']
+#     [ 9099, 'MASTER-1', 2]
               ]
 
 '''
