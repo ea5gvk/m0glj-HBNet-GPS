@@ -1,8 +1,7 @@
 # GPS/Data Application
 ----
 
-## [Home](https://kf7eel.github.io/hblink3/) | [Configuration](/hblink3/config_doc.html) | [HBlink Website](https://hblink-org.github.io/)
-
+## [Home](https://kf7eel.github.io/hblink3/) | [Configuration](/hblink3/config_doc.html) | [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html) | [HBlink Website](https://hblink-org.github.io/)
 ----
 This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call. It is designed to work in a multi system/user network.
 
