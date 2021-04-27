@@ -49,6 +49,23 @@ list the names of each system that should bridge unit to unit (individual) calls
 
 UNIT = ['MASTER-1', 'PEER-1']
 
+# Leave commented out, unless you want all SYSTEMS to receive UNIT calls
+##def build_unit():
+##    
+##    # Edit these 2 
+##    config_file = '/tmp/hblink-SAMPLE.cfg'
+##    EXCLUDE_FROM_UNIT = ['OBP-1', 'PEER-1']
+##    ######################################
+##    import config
+##    CONFIG = config.build_config(config_file)
+##    UNIT = []
+##    for i in CONFIG['SYSTEMS'].items():
+##        if i[1]['ENABLED'] == True and i[1]['MODE'] != 'XLXPEER':
+##            UNIT.append(i[0])
+##    return UNIT
+##
+##UNIT = build_unit()
+
 '''
 Unit Call flood timeout:
 The amount of time to keep sending private calls to a single system before
