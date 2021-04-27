@@ -98,7 +98,7 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 |**ID**|Responds by send an SMS containing your DMR ID.|`ID`|
 |**TEST**| Responds with "This is a test." as an SMS.|`TEST`|
 |**?[Network Shortcut] [DMR ID] [Message]**| Send an SMS to a user on another network.|`?XYZ 123456789 This is a test`|
-|?[App Shortcut] [Input]|Send SMS to an external application.|`?BBD This is a test post.`|
+|**?[App Shortcut] [Input]**|Send SMS to an external application.|`?BBD This is a test post.`|
 |**@APRS ON**|Enable sending and receiving of APRS messages.|`@APRS ON`|
 |**@APRS OFF**|Disable sending and receiving of APRS messages.|`@APRS OFF`|
 
@@ -112,6 +112,9 @@ Sending `@BB Test` will result in a post to the bulletin board with the message 
 **To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the stored comment. Any position now reports sent will have the default settings.
 
 ## API
+API description here.
+
+See [API documentation](https://kf7eel.github.io/hblink3/).
 
 
 ## Web Dashboard
