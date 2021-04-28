@@ -324,11 +324,6 @@ def generate_apps():
         access_systems[key] = i[1]
     print(access_systems)
     
-    #print(type(public_apps))
-    #print(type(local_acess_systems))
-    #print()
-    #print(combined)
-    #print(local_acess_systems.update(public_apps))
     return access_systems
 
 # Thanks for this forum post for this - https://stackoverflow.com/questions/2579535/convert-dd-decimal-degrees-to-dms-degrees-minutes-seconds-in-python
@@ -341,7 +336,7 @@ def decdeg2dms(dd):
    degrees = degrees if is_positive else -degrees
    return (degrees,minutes,seconds)
 
-def user_setting_write(dmr_id, setting, value):
+def user_setting_write(dmr_id, setting, value, call_type):
 ##    try:
     # Open file and load as dict for modification
         logger.info(setting.upper())
@@ -360,15 +355,24 @@ def user_setting_write(dmr_id, setting, value):
                 user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
             if setting.upper() == 'APRS ON':
                 user_dict[dmr_id][5] = {'APRS': True}
-                send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
+                if call_type == 'unit':
+                    send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
+                if call_type == 'vcsbk':
+                    send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Enabled')
             if setting.upper() == 'APRS OFF':
                 user_dict[dmr_id][5] = {'APRS': False}
-                send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
+                if call_type == 'unit':
+                    send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
+                if call_type == 'vcsbk':
+                    send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Disabled')
             if setting.upper() == 'PIN':
                 #try:
                     #if user_dict[dmr_id]:
                 user_dict[dmr_id][4]['pin'] = value
-                send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
+                if call_type == 'unit':
+                    send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
+                if call_type == 'vcsbk':
+                    send_sms(False, 9, 0000, 0000, 'group',  'You can now use your pin on the dashboard.')
                     #if not user_dict[dmr_id]:
                     #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
                 #except:
@@ -385,28 +389,35 @@ def user_setting_write(dmr_id, setting, value):
             
 # Process SMS, do something bases on message
 
-def process_sms(_rf_src, sms):
+def process_sms(_rf_src, sms, call_type):
+    logger.info(call_type)
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
     if parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
-        send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+        if call_type == 'unit':
+            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+        if call_type == 'vcsbk':
+            send_sms(False, 9, 0000, 0000, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
     elif parse_sms[0] == 'TEST':
         logger.info('It works!')
-        send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'It works')
+        if call_type == 'unit':
+            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'It works')
+        if call_type == 'vcsbk':
+            send_sms(False, 9, 0000, 0000, 'group',  'It works')
     elif '@ICON' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms))
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms), call_type)
     elif '@SSID' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms))
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms), call_type)
     elif '@COM' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms))
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms), call_type)
     elif '@PIN' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)))    
+        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)), call_type)    
     # Write blank entry to cause APRS receive to look for packets for this station.
     elif '@APRS ON' in sms or '@APRS on' in sms:
-        user_setting_write(int_id(_rf_src), 'APRS ON', True)
+        user_setting_write(int_id(_rf_src), 'APRS ON', True, call_type)
     elif '@APRS OFF' in sms or '@APRS off' in sms:
-        user_setting_write(int_id(_rf_src), 'APRS OFF', False)
+        user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms))
     elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
@@ -519,7 +530,11 @@ def process_sms(_rf_src, sms):
                 
                 
         if use_api == False:
-            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
+            if call_type == 'unit':
+                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
+            if call_type == 'vcsbk':
+                send_sms(False, 9, 0000, 0000, 'group', 'API not enabled. Contact server admin.')
+
     elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
         #Example SMS text: @ARMDS A-This is a test.
         s = ' '
@@ -545,9 +560,17 @@ def process_sms(_rf_src, sms):
                     logger.info(error_exception)
                     logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
             else:
-                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+                if call_type == 'unit':
+                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+                if call_type == 'vcsbk':
+                    send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+                
         except Exception as e:
-            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+            if call_type == 'unit':
+                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+            if call_type == 'vcsbk':
+                send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+
     try:
         if sms in cmd_list:
             logger.info('Executing command/script.')
@@ -597,7 +620,8 @@ def create_crc32(fragment_input):
     while c > 0:
         crc = crc + pre_crc[c-2:c]
         c = c - 2
-    crc = crc.zfill(8)
+    #crc = crc.zfill(8)
+    crc = crc.ljust(8, '0')
     # Return original data and append CRC32
     print('Output: ' + fragment_input + crc)
     return fragment_input + crc
@@ -829,6 +853,7 @@ def data_que_send():
         #logger.info(UNIT_MAP)
         for packet_file in os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/'):
             logger.info('Sending SMS')
+            logger.info(os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/'))
             snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_' + str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL']).upper() + '/' + packet_file).read())
             for data in snd_seq:
                 # Get dest id
@@ -920,7 +945,119 @@ def aprs_beacon_send():
     beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT']
     aprs_send(beacon_packet)
     logger.info(beacon_packet)
-
+    
+### APRS Static positions - by IU7IGU
+##def sendAprs():
+##    #AIS = aprslib.IS(str(file_config['APRS']['CALLSIGN']), passwd=aprslib.passcode(str(file_config['APRS']['CALLSIGN'])), host=str(file_config['APRS']['SERVER']), port=14580)
+##    #AIS.connect()
+##    f = open('nom_aprs', 'r')
+##    lines = f.readlines()
+##    if lines:
+##        for line in lines:
+##            if line != ' ':
+##                lat_verso = ''
+##                lon_verso = ''
+##                dati = line.split(":")
+##                d1_c = int(float(dati[4]))
+##                d2_c = int(float(dati[5]))
+##                                
+##                if d1_c < 0:
+##                    d1 = abs(d1_c)
+##                    dm1=abs(float(dati[4])) - d1
+##                    dm1_s= float(dm1) * 60
+##                    dm1_u="{:.4f}".format(dm1_s)
+##                    if int(str(dm1_s).split(".")[0]) < 10:
+##                        if d1 < 10 and d1 > -10:
+##                            lat_utile='0'+str(d1)+'0'+str(dm1_u)
+##                        else:
+##                            lat_utile = str(d1)+'0'+str(dm1_u)
+##                    else:
+##                        if d1 < 10 and d1 > -10:
+##                            lat_utile='0'+str(d1)+str(dm1_u)
+##                        else:
+##                            lat_utile = str(d1)+str(dm1_u)
+##
+##                    lat_verso = 'S'
+##                
+##                else:
+##                    d1 = int(float(dati[4]))
+##                    dm1=float(dati[4]) - d1
+##                    dm1_s= float(dm1) * 60
+##                    dm1_u="{:.4f}".format(dm1_s)
+##                    if int(str(dm1_s).split(".")[0]) < 10:
+##                        if int(str(dm1_s).split(".")[0]) < 10:
+##                            if d1 < 10 and d1 > -10:
+##                                lat_utile='0'+str(d1)+'0'+str(dm1_u)
+##                            else:
+##                                lat_utile = str(d1)+'0'+str(dm1_u)
+##                    else:
+##                        if d1 < 10 and d1 > -10:
+##                            lat_utile='0'+str(d1)+str(dm1_u)
+##                        else:
+##                            lat_utile = str(d1)+str(dm1_u)
+##                    lat_verso = 'N'
+##                                    
+##                                
+##                if d2_c < 0:
+##                    d2=abs(d2_c)
+##                    dm2=abs(float(dati[5])) - d2
+##                    dm2_s= float(dm2) * 60
+##                    dm2_u="{:.3f}".format(dm2_s)
+##                    if int(str(dm2_s).split(".")[0]) < 10:
+##                        if d2 < 10 and d2 > -10:
+##                            lon_utile = '00'+str(d2)+'0'+str(dm2_u)
+##                        elif d2 < 100:
+##                            lon_utile = '0'+str(d2)+'0'+str(dm2_u)
+##                        else:
+##                            lon_utile = str(d2)+'0'+str(dm2_s)
+##                    else:
+##                        if d2 < 10 and d2 > -10:
+##                            lon_utile = '00'+str(d2)+str(dm2_u)
+##                        elif d2 < 100:
+##                            lon_utile = '0'+str(d2)+str(dm2_u)
+##                        else:
+##                            lon_utile = str(d2)+str(dm2_u)
+##                    lon_verso = 'W'
+##                                    
+##                else:
+##                    d2=int(float(dati[5]))
+##                    dm2=float(dati[5]) - d2
+##                    dm2_s= float(dm2) * 60
+##                    dm2_u="{:.3f}".format(dm2_s)
+##                    if int(str(dm2_s).split(".")[0]) < 10:
+##                        if d2 < 10 and d2 > -10:
+##                            lon_utile = '00'+str(d2)+'0'+str(dm2_u)
+##                        elif d2 < 100:
+##                            lon_utile = '0'+str(d2)+'0'+str(dm2_u)
+##                        else:
+##                            lon_utile = str(d2)+'0'+str(dm2_s)
+##                    else:
+##                        if d2 < 10 and d2 > -10:
+##                            lon_utile = '00'+str(d2)+str(dm2_u)
+##                        elif d2 < 100:
+##                            lon_utile = '0'+str(d2)+str(dm2_u)
+##                        else:
+##                            lon_utile = str(d2)+str(dm2_u)
+##                    lon_verso = 'E'
+##                                    
+##                rx_utile = dati[2][0:3]+'.'+dati[2][3:]
+##                tx_utile = dati[3][0:3]+'.'+dati[3][3:]
+##                                    
+##                #AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:-2]+lat_verso+"/"+str(lon_utile)[:-1]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)+' TX: '+str(tx_utile))
+##                #AIS.sendall(str(dati[0])+">APRS,TCPIP*,qAC,"+str(file_config['APRS']['CALLSIGN'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(file_config['APRS']['MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8'))
+##                aprs_send(str(dati[0])+">APRS,TCPIP*,qAC,"+str(CONFIG['GPS_DATA']['APRS_LOGIN_CALL'])+":!"+str(lat_utile)[:7]+lat_verso+"/"+str(lon_utile)[:8]+lon_verso+"r"+str(file_config['GPS_DATA']['APRS_STATIC_MESSAGE'])+' RX: '+str(rx_utile)[:8]+' TX: '+str(tx_utile)[:8]) # + ' CC: ' + str(_this_peer['COLORCODE']).decode('UTF-8')
+##                logging.info('APRS INVIATO/APRS Sent')
+##
+##def aprs_upload(config):                                                  
+##    if  CONFIG['APRS']['ENABLED']:                                                
+##        if int(config['APRS']['REPORT_INTERVAL']) >= 10:
+##            l=task.LoopingCall(sendAprs)
+##            interval_time = int(int(config['APRS']['REPORT_INTERVAL'])*60)
+##            l.start(interval_time)
+##        else:
+##            l=task.LoopingCall(sendAprs)
+##            l.start(15*60)
+##            logger.info('Report Time APRS to short')
 
 ########### HBlink stuff below #########################
 
@@ -936,22 +1073,13 @@ UNIT_MAP = {}
 time_20 = 630720000
 
 # Build a UNIT_MAP based on values in STATIC_MAP.
-try:
+def build_unit_map(CONFIG):
     for i in STATIC_UNIT:
-        UNIT_MAP[bytes_3(i[0])] = i[1], time() + time_20, i[2]
-# If empty, return empty dictionary
-except:
-    UNIT_MAP = {}
+        UNIT_MAP[bytes_3(i[0])] = i[1], time() + time_20, int(CONFIG['GPS_DATA']['UNIT_SMS_TS'])
+    return UNIT_MAP
 
+        
 def build_unit(CONFIG):
-    
-    # Edit these 2 
-    #config_file = '/tmp/hblink-SAMPLE.cfg'
-    #EXCLUDE_FROM_UNIT = ['OBP-1', 'PEER-1']
-    ######################################
-    #import config
-    #CONFIG = config.build_config(config_file)
-    #exclude = rules_module.EXCLUDE_FROM_UNIT
     UNIT = []
     for i in CONFIG['SYSTEMS'].items():
         if i[1]['ENABLED'] == True and i[1]['MODE'] != 'XLXPEER' and i[0] not in exclude:
@@ -2433,7 +2561,7 @@ class routerHBP(HBSYSTEM):
                                 sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
                                 msg_found = re.sub('.*\n', '', sms)
                                 logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
-                                process_sms(_rf_src, msg_found)
+                                process_sms(_rf_src, msg_found, _call_type)
                                 #packet_assembly = ''
                                 pass
                                 #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
@@ -2555,8 +2683,6 @@ if __name__ == '__main__':
     user_settings_file = CONFIG['GPS_DATA']['USER_SETTINGS_FILE']
 
     use_api = CONFIG['GPS_DATA']['USE_API']
-    # Count the number of positions igeted, initialize
-    pos_count = 0
 
     # Check if user_settings (for APRS settings of users) exists. Creat it if not.
     if Path(user_settings_file).is_file():
@@ -2652,6 +2778,7 @@ if __name__ == '__main__':
     # Get rule parameter for private calls
     #UNIT = rules_module.UNIT
     UNIT = build_unit(CONFIG)
+    UNIT_MAP = build_unit_map(CONFIG)
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -2695,5 +2822,7 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
-    print(UNIT)
+        # Create file for static positions - by IU7IGU
+##        open("nom_aprs","w").close
+    logger.info('Unit calls will be bridged to: ' + str(UNIT))
     reactor.run()
