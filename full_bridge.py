@@ -943,6 +943,23 @@ try:
 except:
     UNIT_MAP = {}
 
+def build_unit(CONFIG):
+    
+    # Edit these 2 
+    #config_file = '/tmp/hblink-SAMPLE.cfg'
+    #EXCLUDE_FROM_UNIT = ['OBP-1', 'PEER-1']
+    ######################################
+    #import config
+    #CONFIG = config.build_config(config_file)
+    #exclude = rules_module.EXCLUDE_FROM_UNIT
+    UNIT = []
+    for i in CONFIG['SYSTEMS'].items():
+        if i[1]['ENABLED'] == True and i[1]['MODE'] != 'XLXPEER' and i[0] not in exclude:
+            UNIT.append(i[0])
+    return UNIT
+
+#UNIT = build_unit()
+
 # Timed loop used for reporting HBP status
 #
 # REPORT BASED ON THE TYPE SELECTED IN THE MAIN CONFIG FILE
@@ -2630,9 +2647,11 @@ if __name__ == '__main__':
 
     # Build the routing rules file
     BRIDGES = make_bridges(rules_module.BRIDGES)
+    exclude = rules_module.EXCLUDE_FROM_UNIT
     
     # Get rule parameter for private calls
-    UNIT = rules_module.UNIT
+    #UNIT = rules_module.UNIT
+    UNIT = build_unit(CONFIG)
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -2676,5 +2695,5 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
-
+    print(UNIT)
     reactor.run()
