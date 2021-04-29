@@ -1,3 +1,5 @@
+### The sms_dev branch contains the next "version" of this APRS/SMS enabled HBLink project. It is still under heavy development and not ready for production. You can see it [here](https://github.com/kf7eel/hblink3/tree/sms_dev). The example/development server can be found at [https://hbl.ink](https://hbl.ink).
+
 # GPS/Data Application
 
 This repository contains everything needed to decode DMR GPS packets and SMS for HBLink3. This application can act as a master or peer and receive data as a group call or private call. It is designed to work in a multi system/user network.
