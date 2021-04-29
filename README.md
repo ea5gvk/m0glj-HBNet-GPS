@@ -15,7 +15,7 @@ This repository contains everything needed to setup an HBLink server with APRS/S
 * Trigger a command or script via DMR SMS
 * Optional web dashboard to show APRS packets uploaded
 * Use built in API to send SMS to other HBLink servers
-* Use external applications (see [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html))
+* Use [external applications](https://github.com/kf7eel/hblink_sms_external_apps) (see [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html))
 
 #### Required modules
 
