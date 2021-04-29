@@ -6,6 +6,8 @@ This is a **fork** of the [HBLink project](https://hblink-org.github.io/) that s
 
 This repository contains everything needed to setup an HBLink server with APRS/SMS features.
 
+The development server can be found at [https://hbl.ink](https://hbl.ink).
+
 ## Features
 
 * Decode GPS locations and upload APRS position packets
