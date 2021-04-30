@@ -16,8 +16,10 @@ The development server can be found at [https://hbl.ink](https://hbl.ink).
 * Ability to receive data as a private call or group call
 * Trigger a command or script via DMR SMS
 * Optional web dashboard to show APRS packets uploaded
+* See location of radios on dashboard map
 * Use built in API to send SMS to other HBLink servers
-* Use [external applications](https://github.com/kf7eel/hblink_sms_external_apps) (see [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html))
+* Ability to disable APRS and just use dashboard map
+* Use [external applications](https://github.com/kf7eel/hblink_sms_external_apps) (see [API Documentation](https://kf7eel.github.io/hblink3/api_doc.html)) for weather reports, email, and other information.
 
 #### Required modules
 
@@ -86,23 +88,23 @@ The comment, SSID, and icon can be set for each individual user/DMR ID the appli
 
  | Command | Description | Example |
  |-------|:---:|:---:|
-|**@SSID**|Change SSID of user callsign.|`@SSID 7`|
-|**@ICON**|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`@icon /p`|
-|**@COM**|Change the comment of the APRS.|`@COM This is a test comment.`|
-|**@MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`@MH DN97uk`| 
-|**@BB**|Post a bulliten to the web dashboard.|`@BB This is a test bulletin.`|
+|**SSID**|Change SSID of user callsign.|`SSID 7`|
+|**ICON**|Change the icon of the APRS position. *See [http://aprs.net/vm/DOS/SYMBOLS.HTM](http://aprs.net/vm/DOS/SYMBOLS.HTM) for icon list.|`icon /p`|
+|**COM**|Change the comment of the APRS.|`COM This is a test comment.`|
+|**MH**|Set you location by maidenhead grid square. Designed for radios with no GPS or that are not compatable yet.|`MH DN97uk`| 
+|**BB**|Post a bulliten to the web dashboard.|`BB This is a test bulletin.`|
 |**@[CALLSIGN W/ SSID] [MESSAGE]**|Send a message to another station via APRS.|`@N0CALL-15 This is a test.`|
 |**[EMAIL ADDRESS] [MESSAGE]**|Send an email to an email address.|`test@example.org This is a test.`| 
-|**@REM MAIL**|Remove all mail (APRS messages, SMS, etc) addressed to you.|`@REM MAIL`|
+|**REM MAIL**|Remove all mail (APRS messages, SMS, etc) addressed to you.|`REM MAIL`|
 **@NOTICE**|Used to prominantly display a notice, similar to EMERGENCY activation.|`@NOTICE Server going down at 1800`|
 |**@SOS**|EMERGENCY activation displays a banner on the main dashboard page.|`THIS IS AN EMERGENCY. @SOS`|
-|**@REM SOS**|Removes an EMERGENCY or notice.|`@REM SOS`|
+|**REM SOS**|Removes an EMERGENCY or notice.|`REM SOS`|
 |**ID**|Responds by send an SMS containing your DMR ID.|`ID`|
 |**TEST**| Responds with "This is a test." as an SMS.|`TEST`|
 |**?[Network Shortcut] [DMR ID] [Message]**| Send an SMS to a user on another network.|`?XYZ 123456789 This is a test`|
 |**?[App Shortcut] [Input]**|Send SMS to an external application.|`?BBD This is a test post.`|
-|**@APRS ON**|Enable sending and receiving of APRS messages.|`@APRS ON`|
-|**@APRS OFF**|Disable sending and receiving of APRS messages.|`@APRS OFF`|
+|**APRS ON**|Enable sending and receiving of APRS messages.|`@APRS ON`|
+|**APRS OFF**|Disable sending and receiving of APRS messages.|`@APRS OFF`|
 
 
 
@@ -114,9 +116,13 @@ Sending `@BB Test` will result in a post to the bulletin board with the message 
 **To remove any of the stored values, just send the appropriate command without any input.** `@COM` will remove the stored comment, `@ICON` will remove the stored icon, and `@COM` will remove the stored comment. Any position now reports sent will have the default settings.
 
 ## API
-API description here.
+The API built in to the dashboard can be used to exchange SMS with other HBLink servers/networks or be used to access external applications that provide functionality via SMS. Multiple servers/networks can share a single external application.
+
+See [hbl.ink](https://hbl.ink) for publicly accessible external applications that you can use.
 
 See [API documentation](https://kf7eel.github.io/hblink3/).
+
+Repository for [external applications](https://github.com/kf7eel/hblink_sms_external_apps), if you want to host your own.
 
 
 ## Web Dashboard
@@ -154,6 +160,12 @@ See hblink_SAMPLE.cfg, rules_SAMPLE.py, and gps_data_SAMPLE.cfg for examples.
 **EI7IG** - For writing the page explaining MD-380 type GPS packets.
 
 **M0GLJ** - For assisting with Motorola testing.
+
+**W4DBG** - For early testing.
+
+**IW7EDX** - For contributing code.
+
+**Xavier FRS2013** - For contributing and cleaning up code.
 
 ## Resources for DMR data
 
