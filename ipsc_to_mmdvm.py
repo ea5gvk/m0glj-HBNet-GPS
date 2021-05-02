@@ -2,6 +2,7 @@
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   GPS/Data - Copyright (C) 2021 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -37,6 +38,7 @@ import config
 import log
 from const import *
 import re
+from pathlib import Path
 
 # Stuff for socket reporting
 import pickle
@@ -49,12 +51,12 @@ import ast, os, time
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
-__author__     = 'Cortney T. Buffington, N0MJS'
-__copyright__  = 'Copyright (c) 2016-2018 Cortney T. Buffington, N0MJS and the K0USY Group'
+__author__     = 'Eric Craw, KF7EEL'
+__copyright__  = 'Eric Craw, kf7eel@qsl.net'
 __credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT'
 __license__    = 'GNU GPLv3'
-__maintainer__ = 'Cort Buffington, N0MJS'
-__email__      = 'n0mjs@me.com'
+__maintainer__ = 'Eric Craw, kf7eel@qsl.net'
+__email__      = 'kf7eel@qsl.net'
 
 def build_unit(CONFIG):
     UNIT = []
@@ -65,54 +67,23 @@ def build_unit(CONFIG):
 # Functions
 def data_que_check():
     l=task.LoopingCall(data_que_send)
-    l.start(.1)
+    l.start(1)
 def data_que_send():
     #logger.info('Check SMS que')
     try:
         #logger.info(UNIT_MAP)
         for packet_file in os.listdir('/tmp/.hblink_data_que_ipsc/'):
             logger.info('Sending SMS')
-##            logger.info(os.listdir('/tmp/.hblink_data_que_ipsc/'))
             data_file = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_ipsc/' + str(packet_file)).read())
-            #print(ahex(data_file))
-            #print((data_file[2:-1]))
-            #print(bytes.fromhex(str(packet_file)))
-            print(bytes.fromhex(re.sub("b'|'", '', str(data_file))))
-            for i in UNIT:
-                systems[i].send_system(bytes.fromhex(re.sub("b'|'", '', str(data_file))))
-            #systems['PEER-1'].send_system(bytes.fromhex(re.sub("b'|'", '', str(data_file))))
-            os.system('rm /tmp/.hblink_data_que_ipsc/' + packet_file)
-            #time.sleep(0.2)
-##            for data in snd_seq:
-##                print(data)
-##                # Get dest id
-##                dst_id = bytes.fromhex(str(data[10:16])[2:-1])
-##                call_type = hex2bits(data)[121:122]
-##                # Handle UNIT calls
-##                if call_type[0] == True:
-##                # If destination ID in map, route call only there
-##                    if dst_id in UNIT_MAP:
-##                        data_target = UNIT_MAP[dst_id][0]
-##                        reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-##                        logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
-##                    # Flood all systems
-##                    elif dst_id not in UNIT_MAP:
-##                        for i in UNIT:
-##                            reactor.callFromThread(systems[i].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-##                            logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + i)
-##                # Handle group calls
-##                elif call_type[0] == False:
-##                    for i in BRIDGES.items():
-##                        for d in i[1]:
-##                            if dst_id == d['TGID']:
-##                                data_target = d['SYSTEM']
-##                                reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-##                                logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
-      
-##         os.system('rm /tmp/.hblink_data_que_ipsc/' + packet_file)
 
-                    #routerHBP.send_peer('MASTER-2', bytes.fromhex(re.sub("b'|'", '', str(data))))
-    ##            os.system('rm /tmp/.hblink_data_que/' + packet_file)
+            for i in data_file:
+                #print(bytes.fromhex(str(i)))
+                for d in UNIT:
+                    systems[d].send_system(bytes.fromhex(i))
+            os.system('rm /tmp/.hblink_data_que_ipsc/' + packet_file)
+
+            
+
     except Exception as e:
         logger.info(e)
 
@@ -158,9 +129,7 @@ def mmdvm_encapsulate(dst_id, src_id, peer_id, _seq, _slot, _call_type, _dtype_v
     #print(middle_guts)
     dmr_data = str(_dmr_data)[2:-1] #str(re.sub("b'|'", '', str(_dmr_data)))
     complete_packet = signature.encode() + seq + dest_id + source_id + via_id + middle_guts.tobytes() + stream_id + bytes.fromhex((dmr_data)) + bitarray('0000000000101111').tobytes()#bytes.fromhex(dmr_data)
-    #print('Complete: ' + type(ahex(complete_packet)))
-##    #print(hex2bits(ahex(complete_packet))[119:120])
-    #print(bitarray.frombytes(ahex(complete_packet)))
+
     return complete_packet
 
 def dmr_encode(packet_list, _slot):
@@ -306,11 +275,7 @@ if __name__ == '__main__':
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
         reactor.stop()
-    try:
-        Path('.hblink_data_que_ipsc/').mkdir(parents=True, exist_ok=True)
-    except:
-        logger.info('Unable to create data que directory')
-        pass
+    Path('/tmp/.hblink_data_que_ipsc/').mkdir(parents=True, exist_ok=True)
     UNIT = build_unit(CONFIG)
     data_que_check()
 
