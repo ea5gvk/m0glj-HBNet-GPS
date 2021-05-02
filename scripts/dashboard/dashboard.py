@@ -92,6 +92,52 @@ def get_loc_data():
     except:
        return str('<h1 style="text-align: center;">No data</h1>')
 
+def get_sms_data():
+    try:
+        dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
+        tmp_sms = ''
+        
+        sms_hdr = '''
+
+<tr>
+<td style="text-align: center;">
+<h2><strong>&nbsp;Source <br /></strong></h2>
+</td>
+<td style="text-align: center;">
+<h2>&nbsp;<strong>Destination</strong> </h2>
+</td>
+<td style="text-align: center;">
+<h2>&nbsp;<strong>SMS</strong> </h2>
+</td>
+<td style="text-align: center;">
+<h2>&nbsp;<strong>Local Time</strong>&nbsp;</h2>
+</td>
+</tr>
+    '''
+        
+        for e in dash_sms:
+            if type(e['time']) == str:
+                loc_time = str(e['time'])
+            if type(e['time']) == int or type(e['time']) == float:
+                loc_time = datetime.fromtimestamp(e['time']).strftime(time_format)
+            tmp_sms = tmp_sms + '''
+<tr>
+<td style="text-align: center;">
+<p><strong>&nbsp;''' + e['snd_call'] + '''&nbsp;<br /></strong>''' + e['snd_dmr_id'] + '''<strong><br /></strong></p>
+</td>
+<td style="text-align: center;">
+<p><strong>''' + e['rcv_call'] + '''</strong><br />''' + e['rcv_dmr_id'] + '''</p>
+</td>
+<td style="text-align: center;"><strong>&nbsp;''' + e['sms'] + '''&nbsp;</strong></td>
+<td style="text-align: center;">&nbsp;''' + loc_time + '''&nbsp;</td>
+</tr>
+'''
+
+        return str('<h1 style="text-align: center;">SMS</h1>' + tbl_hdr + sms_hdr + tmp_sms + tbl_ftr)
+    except:
+        return str('<h1 style="text-align: center;">No data</h1>')
+
+
 
 def get_bb_data():
     try:
@@ -241,6 +287,12 @@ def dash_loc():
 def help():
     #return get_data()
     return render_template('help.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, description = description, api = use_api, data_call_type = data_call_type, data_call_id = data_call_id, aprs_ssid = aprs_ssid)
+@app.route('/sms/')
+def dash_template_sms():
+    #return get_data()
+    #return render_template('sms.html', title = dashboard_title, logo = logo)
+    return render_template('generic.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, content = Markup(get_sms_data()))
+
 @app.route('/about/')
 def about():
     #return get_data()
@@ -1001,6 +1053,8 @@ if __name__ == '__main__':
     user_settings_file = parser.get('GPS_DATA', 'USER_SETTINGS_FILE')
 
     auth_token_file = parser.get('GPS_DATA', 'AUTHORIZED_TOKENS_FILE')
+    sms_file = parser.get('GPS_DATA', 'SMS_FILE')
+
     use_api = parser.get('GPS_DATA', 'USE_API')
     #access_systems_file = parser.get('GPS_DATA', 'ACCESS_SYSTEMS_FILE')
     #authorized_users_file = parser.get('GPS_DATA', 'AUTHORIZED_USERS_FILE')

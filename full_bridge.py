@@ -112,7 +112,7 @@ __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K
 __credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT, Xavier FRS2013'
 __license__    = 'GNU GPLv3'
 __maintainer__ = 'Eric Craw, KF7EEL'
-__email__      = 'n0mjs@me.com'
+__email__      = 'kf7eel@qsl.net'
 
 # Module gobal varaibles
 
@@ -205,6 +205,18 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
             user_bb_file.close()
     logger.info('User bulletin entry saved.')
     #logger.info(dash_bb)
+
+def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time):
+    #try:
+    dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
+   # except:
+    #    dash_entries = []
+    dash_sms.insert(0, {'snd_call': snd_call, 'rcv_call':rcv_call, 'snd_dmr_id': snd_dmr_id, 'rcv_dmr_id':rcv_dmr_id, 'time': time, 'sms':sms})
+    with open(sms_file, 'w') as user_sms_file:
+            user_sms_file.write(str(dash_sms[:25]))
+            user_sms_file.close()
+    logger.info('User SMS entry saved.')
+
 
 def mailbox_write(call, dmr_id, time, message, recipient):
     #try:
@@ -2343,80 +2355,81 @@ class routerHBP(HBSYSTEM):
         #logger.info(_rf_src)
         #logger.info((ba2num(bptc_decode(_data)[8:12])))
 ################################################################3###### CHNGED #########
-        if int_id(_dst_id) == data_id:
+##        if int_id(_dst_id) == data_id:
             #logger.info(type(_seq))
-            if type(_seq) is bytes:
-                pckt_seq = int.from_bytes(_seq, 'big')
-            else:
-                pckt_seq = _seq
-            # Try to classify header
-            # UDT header has DPF of 0101, which is 5.
-            # If 5 is at position 3, then this should be a UDT header for MD-380 type radios.
-            # Coordinates are usually in the very next block after the header, we will discard the rest.
-            #logger.info(ahex(bptc_decode(_data)[0:10]))
-            if _call_type == call_type and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0 or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0):
-                global udt_block
-                logger.info('MD-380 type UDT header detected. Very next packet should be location.')
-                hdr_type = '380'
-            if _dtype_vseq == 6 and hdr_type == '380' or _dtype_vseq == 'group' and hdr_type == '380':
-                udt_block = 1
-            if _dtype_vseq == 7 and hdr_type == '380':
-                udt_block = udt_block - 1
-                if udt_block == 0:
-                    logger.info('MD-380 type packet. This should contain the GPS location.')
-                    logger.info('Packet: ' + str(ahex(bptc_decode(_data))))
-                    if ba2num(bptc_decode(_data)[1:2]) == 1:
-                        lat_dir = 'N'
-                    if ba2num(bptc_decode(_data)[1:2]) == 0:
-                        lat_dir = 'S'
-                    if ba2num(bptc_decode(_data)[2:3]) == 1:
-                        lon_dir = 'E'
-                    if ba2num(bptc_decode(_data)[2:3]) == 0:
-                        lon_dir = 'W'
-                    lat_deg = ba2num(bptc_decode(_data)[11:18])
-                    lon_deg = ba2num(bptc_decode(_data)[38:46])
-                    lat_min = ba2num(bptc_decode(_data)[18:24])
-                    lon_min = ba2num(bptc_decode(_data)[46:52])
-                    lat_min_dec = str(ba2num(bptc_decode(_data)[24:38])).zfill(4)
-                    lon_min_dec = str(ba2num(bptc_decode(_data)[52:66])).zfill(4)
-                    # Old MD-380 coordinate format, keep here until new is confirmed working.
-                    #aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
-                    #aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
-                    # Fix for MD-380 by G7HIF
-                    aprs_lat = str(str(lat_deg) + str(lat_min).zfill(2) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
-                    aprs_lon = str(str(lon_deg) + str(lon_min).zfill(2) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+        if type(_seq) is bytes:
+            pckt_seq = int.from_bytes(_seq, 'big')
+        else:
+            pckt_seq = _seq
+        # Try to classify header
+        # UDT header has DPF of 0101, which is 5.
+        # If 5 is at position 3, then this should be a UDT header for MD-380 type radios.
+        # Coordinates are usually in the very next block after the header, we will discard the rest.
+        #logger.info(ahex(bptc_decode(_data)[0:10]))
+        if _call_type == call_type and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0 or (_call_type == 'vcsbk' and header_ID(_data)[3] == '5' and ba2num(bptc_decode(_data)[69:72]) == 0 and ba2num(bptc_decode(_data)[8:12]) == 0):
+            global udt_block
+            logger.info('MD-380 type UDT header detected. Very next packet should be location.')
+            hdr_type = '380'
+        if _dtype_vseq == 6 and hdr_type == '380' or _dtype_vseq == 'group' and hdr_type == '380':
+            udt_block = 1
+        if _dtype_vseq == 7 and hdr_type == '380':
+            udt_block = udt_block - 1
+            if udt_block == 0:
+                logger.info('MD-380 type packet. This should contain the GPS location.')
+                logger.info('Packet: ' + str(ahex(bptc_decode(_data))))
+                if ba2num(bptc_decode(_data)[1:2]) == 1:
+                    lat_dir = 'N'
+                if ba2num(bptc_decode(_data)[1:2]) == 0:
+                    lat_dir = 'S'
+                if ba2num(bptc_decode(_data)[2:3]) == 1:
+                    lon_dir = 'E'
+                if ba2num(bptc_decode(_data)[2:3]) == 0:
+                    lon_dir = 'W'
+                lat_deg = ba2num(bptc_decode(_data)[11:18])
+                lon_deg = ba2num(bptc_decode(_data)[38:46])
+                lat_min = ba2num(bptc_decode(_data)[18:24])
+                lon_min = ba2num(bptc_decode(_data)[46:52])
+                lat_min_dec = str(ba2num(bptc_decode(_data)[24:38])).zfill(4)
+                lon_min_dec = str(ba2num(bptc_decode(_data)[52:66])).zfill(4)
+                # Old MD-380 coordinate format, keep here until new is confirmed working.
+                #aprs_lat = str(str(lat_deg) + str(lat_min) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
+                #aprs_lon = str(str(lon_deg) + str(lon_min) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
+                # Fix for MD-380 by G7HIF
+                aprs_lat = str(str(lat_deg) + str(lat_min).zfill(2) + '.' + str(lat_min_dec)[0:2]).zfill(7) + lat_dir
+                aprs_lon = str(str(lon_deg) + str(lon_min).zfill(2) + '.' + str(lon_min_dec)[0:2]).zfill(8) + lon_dir
 
-                    # Form APRS packet
-                    #logger.info(aprs_loc_packet)
-                    logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
-                    # 14FRS2013 simplified and moved settings retrieval
-                    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-                    if int_id(_rf_src) not in user_settings:	
-                        ssid = str(user_ssid)	
+                # Form APRS packet
+                #logger.info(aprs_loc_packet)
+                logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
+                # 14FRS2013 simplified and moved settings retrieval
+                user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+                if int_id(_rf_src) not in user_settings:	
+                    ssid = str(user_ssid)	
+                    icon_table = '/'	
+                    icon_icon = '['	
+                    comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
+                else:	
+                    if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
+                        ssid = user_ssid	
+                    if user_settings[int_id(_rf_src)][3]['comment'] == '':	
+                        comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
+                    if user_settings[int_id(_rf_src)][2]['icon'] == '':	
                         icon_table = '/'	
                         icon_icon = '['	
-                        comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
-                    else:	
-                        if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
-                            ssid = user_ssid	
-                        if user_settings[int_id(_rf_src)][3]['comment'] == '':	
-                            comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
-                        if user_settings[int_id(_rf_src)][2]['icon'] == '':	
-                            icon_table = '/'	
-                            icon_icon = '['	
-                        if user_settings[int_id(_rf_src)][2]['icon'] != '':	
-                            icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
-                            icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
-                        if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
-                            ssid = user_settings[int_id(_rf_src)][1]['ssid']	
-                        if user_settings[int_id(_rf_src)][3]['comment'] != '':	
-                            comment = user_settings[int_id(_rf_src)][3]['comment']
-                    aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
-                    logger.info(aprs_loc_packet)
-                    logger.info('User comment: ' + comment)
-                    logger.info('User SSID: ' + ssid)
-                    logger.info('User icon: ' + icon_table + icon_icon)
-                    # Attempt to prevent malformed packets from being uploaded.
+                    if user_settings[int_id(_rf_src)][2]['icon'] != '':	
+                        icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
+                        icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
+                    if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
+                        ssid = user_settings[int_id(_rf_src)][1]['ssid']	
+                    if user_settings[int_id(_rf_src)][3]['comment'] != '':	
+                        comment = user_settings[int_id(_rf_src)][3]['comment']
+                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+                logger.info(aprs_loc_packet)
+                logger.info('User comment: ' + comment)
+                logger.info('User SSID: ' + ssid)
+                logger.info('User icon: ' + icon_table + icon_icon)
+                # Attempt to prevent malformed packets from being uploaded.
+                if int_id(_dst_id) == data_id:
                     try:
                         aprslib.parse(aprs_loc_packet)
                         float(lat_deg) < 91
@@ -2428,60 +2441,61 @@ class routerHBP(HBSYSTEM):
                         logger.info('Error. Failed to send packet. Packet may be malformed.')
                         logger.info(error_exception)
                         logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-                    udt_block = 1
-                    hdr_type = ''
-                else:
-                      pass
-            #NMEA type packets for Anytone like radios.
-            #if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
-            # 14FRS2013 contributed improved header filtering, KF7EEL added conditions to allow both call types at the same time
-            if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3 and call_type != 'unit') or (_call_type == 'group' and pckt_seq > 3 and call_type != 'unit') or (_call_type == 'group' and pckt_seq > 3 and call_type == 'both') or (_call_type == 'vcsbk' and pckt_seq > 3 and call_type == 'both') or (_call_type == 'unit' and pckt_seq > 3 and call_type == 'both'): #int.from_bytes(_seq, 'big') > 3 ):
-                global packet_assembly, btf
-                if _dtype_vseq == 6 or _dtype_vseq == 'group':
-                    global btf, hdr_start
-                    hdr_start = str(header_ID(_data))
-                    logger.info('Header from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
-                    logger.info(ahex(bptc_decode(_data)))
-                    logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
-                    btf = ba2num(bptc_decode(_data)[65:72])
-                    # Try resetting packet_assembly
+                udt_block = 1
+                hdr_type = ''
+            else:
+                  pass
+        #NMEA type packets for Anytone like radios.
+        #if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3): #int.from_bytes(_seq, 'big') > 3 ):
+        # 14FRS2013 contributed improved header filtering, KF7EEL added conditions to allow both call types at the same time
+        if _call_type == call_type or (_call_type == 'vcsbk' and pckt_seq > 3 and call_type != 'unit') or (_call_type == 'group' and pckt_seq > 3 and call_type != 'unit') or (_call_type == 'group' and pckt_seq > 3 and call_type == 'both') or (_call_type == 'vcsbk' and pckt_seq > 3 and call_type == 'both') or (_call_type == 'unit' and pckt_seq > 3 and call_type == 'both'): #int.from_bytes(_seq, 'big') > 3 ):
+            global packet_assembly, btf
+            if _dtype_vseq == 6 or _dtype_vseq == 'group':
+                global btf, hdr_start
+                hdr_start = str(header_ID(_data))
+                logger.info('Header from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)))
+                logger.info(ahex(bptc_decode(_data)))
+                logger.info('Blocks to follow: ' + str(ba2num(bptc_decode(_data)[65:72])))
+                btf = ba2num(bptc_decode(_data)[65:72])
+                # Try resetting packet_assembly
+                packet_assembly = ''
+            # Data blocks at 1/2 rate, see https://github.com/g4klx/MMDVM/blob/master/DMRDefines.h for data types. _dtype_seq defined here also
+            if _dtype_vseq == 7:
+                btf = btf - 1
+                logger.info('Block #: ' + str(btf))
+                #logger.info(_seq)
+                logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)) + '. Destination: ' + str(int_id(_dst_id)))
+                logger.info(ahex(bptc_decode(_data)))
+                if _seq == 0:
+                    n_packet_assembly = 0
                     packet_assembly = ''
-                # Data blocks at 1/2 rate, see https://github.com/g4klx/MMDVM/blob/master/DMRDefines.h for data types. _dtype_seq defined here also
-                if _dtype_vseq == 7:
-                    btf = btf - 1
-                    logger.info('Block #: ' + str(btf))
-                    #logger.info(_seq)
-                    logger.info('Data block from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + '. DMR ID: ' + str(int_id(_rf_src)) + '. Destination: ' + str(int_id(_dst_id)))
-                    logger.info(ahex(bptc_decode(_data)))
-                    if _seq == 0:
-                        n_packet_assembly = 0
-                        packet_assembly = ''
-                        
-                    #if btf < btf + 1:
-                    # 14FRS2013 removed condition, works great!
-                    n_packet_assembly = n_packet_assembly + 1
-                    packet_assembly = packet_assembly + str(bptc_decode(_data)) #str((decode_full_lc(b_packet)).strip('bitarray('))
-                    # Use block 0 as trigger. $GPRMC must also be in string to indicate NMEA.
-                    # This triggers the APRS upload
-                    if btf == 0:
-                        final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
-                        sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
-                        sms_hex_string = re.sub("b'|'", '', str(sms_hex))
-                        #NMEA GPS sentence
-                        if '$GPRMC' in final_packet or '$GNRMC' in final_packet:
-                            logger.info(final_packet + '\n')
-                            # Eliminate excess bytes based on NMEA type
-                            # GPRMC
-                            if 'GPRMC' in final_packet:
-                                logger.info('GPRMC location')
-                                #nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
-                                nmea_parse = re.sub('A\*.*|.*\$|\n.*', '', str(final_packet))
-                            # GNRMC
-                            if 'GNRMC' in final_packet:
-                                logger.info('GNRMC location')
-                                nmea_parse = re.sub('.*\$|\n.*|V\*.*', '', final_packet)
-                            loc = pynmea2.parse(nmea_parse, check=False)
-                            logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
+                    
+                #if btf < btf + 1:
+                # 14FRS2013 removed condition, works great!
+                n_packet_assembly = n_packet_assembly + 1
+                packet_assembly = packet_assembly + str(bptc_decode(_data)) #str((decode_full_lc(b_packet)).strip('bitarray('))
+                # Use block 0 as trigger. $GPRMC must also be in string to indicate NMEA.
+                # This triggers the APRS upload
+                if btf == 0:
+                    final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
+                    sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
+                    sms_hex_string = re.sub("b'|'", '', str(sms_hex))
+                    #NMEA GPS sentence
+                    if '$GPRMC' in final_packet or '$GNRMC' in final_packet:
+                        logger.info(final_packet + '\n')
+                        # Eliminate excess bytes based on NMEA type
+                        # GPRMC
+                        if 'GPRMC' in final_packet:
+                            logger.info('GPRMC location')
+                            #nmea_parse = re.sub('A\*.*|.*\$', '', str(final_packet))
+                            nmea_parse = re.sub('A\*.*|.*\$|\n.*', '', str(final_packet))
+                        # GNRMC
+                        if 'GNRMC' in final_packet:
+                            logger.info('GNRMC location')
+                            nmea_parse = re.sub('.*\$|\n.*|V\*.*', '', final_packet)
+                        loc = pynmea2.parse(nmea_parse, check=False)
+                        logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
+                        if int_id(_dst_id) == data_id:
                             try:
                                 # Begin APRS format and upload
                                 # Disable opening file for reading to reduce "collision" or reading and writing at same time.
@@ -2532,8 +2546,8 @@ class routerHBP(HBSYSTEM):
                             # Get callsign based on DMR ID
                             # End APRS-IS upload
                         # Assume this is an SMS message
-                        elif '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
-                            
+                    elif '$GPRMC' not in final_packet or '$GNRMC' not in final_packet:
+                        
 ####                            # Motorola type SMS header
 ##                            if '824a' in hdr_start or '024a' in hdr_start:
 ##                                logger.info('\nMotorola type SMS')
@@ -2552,26 +2566,42 @@ class routerHBP(HBSYSTEM):
 ##                                packet_assembly = ''
 ####                                
 ##                            else:
-                                logger.info('\nSMS detected. Attempting to parse.')
-                                #logger.info(final_packet)
-                                logger.info(sms_hex)
+                            logger.info('\nSMS detected. Attempting to parse.')
+                            #logger.info(final_packet)
+                            logger.info(sms_hex)
 ##                                logger.info(type(sms_hex))
-                                logger.info('Attempting to find command...')
+                            logger.info('Attempting to find command...')
 ##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
-                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
-                                msg_found = re.sub('.*\n', '', sms)
-                                logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
+                            sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
+                            msg_found = re.sub('.*\n', '', sms)
+                            logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
+                            if int_id(_dst_id) == data_id:
                                 process_sms(_rf_src, msg_found, _call_type)
-                                #packet_assembly = ''
+                            if int_id(_dst_id) != data_id:
+                                if '//' in sms or sms.count(',') > 4 or sms.count('.') > 3 or 'PIN' in sms:
+                                    logger.info('Not logging due to possible data error, or double slash.')
+                                else:
+                                    if int_id(_dst_id) == data_id:
+                                        logger.info('SMS command, not logging')
+                                    else:
+                                        logger.info('Log SMS to dashboard and subscriber mailbox')
+                                        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), msg_found, str(get_alias(int_id(_dst_id), subscriber_ids)).upper())
+                                        dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), str(int_id(_dst_id)), str(int_id(_rf_src)), msg_found, time())
+                                
+
+                                
+
+                                
+                            #packet_assembly = ''
                                 pass
-                                #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
-                            #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
-                        # Reset the packet assembly to prevent old data from returning.
-                        # 14FRS2013 moved variable reset
-                        hdr_start = ''
-                        n_packet_assembly = 0	
-                        packet_assembly = ''	
-                        btf = 0
+                            #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
+                        #logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(sms) + '\n')
+                    # Reset the packet assembly to prevent old data from returning.
+                    # 14FRS2013 moved variable reset
+                    hdr_start = ''
+                    n_packet_assembly = 0	
+                    packet_assembly = ''	
+                    btf = 0
                     #logger.info(_seq)
                     #packet_assembly = '' #logger.info(_dtype_vseq)
                 #logger.info(ahex(bptc_decode(_data)).decode('utf-8', 'ignore'))
@@ -2585,16 +2615,16 @@ class routerHBP(HBSYSTEM):
         if _call_type == 'group':
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             # If destination ID = to DATA_DMR_ID, process packet
-            if int_id(_dst_id) == data_id:
-                self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            #if int_id(_dst_id) == data_id:
+            self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
             # Used for dev, leave commented out
             #self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 
         elif _call_type == 'unit':
         # If destination ID = to DATA_DMR_ID, process packet
-            if int_id(_dst_id) == data_id:
+            #if int_id(_dst_id) == data_id:
                     #logger.info('btf' + str(btf))
-                    self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
             # Used for dev, leave commented out
             #self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 
@@ -2608,8 +2638,8 @@ class routerHBP(HBSYSTEM):
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             logger.debug('CSBK recieved, but HBlink does not process them currently. Packets routed to talkgroup.')
             # If destination ID = to DATA_DMR_ID, process packet
-            if int_id(_dst_id) == data_id:
-                self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            #if int_id(_dst_id) == data_id:
+            self.data_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
         else:
             logger.error('Unknown call type recieved -- not processed')
 
@@ -2679,6 +2709,7 @@ if __name__ == '__main__':
     loc_file = CONFIG['GPS_DATA']['LOCATION_FILE']
     the_mailbox_file = CONFIG['GPS_DATA']['MAILBOX_FILE']
     emergency_sos_file = CONFIG['GPS_DATA']['EMERGENCY_SOS_FILE']
+    sms_file = CONFIG['GPS_DATA']['SMS_FILE']
     # User APRS settings
     user_settings_file = CONFIG['GPS_DATA']['USER_SETTINGS_FILE']
 
@@ -2707,6 +2738,14 @@ if __name__ == '__main__':
         with open(bb_file, 'w') as user_bb_file:
             user_bb_file.write("[]")
             user_bb_file.close()
+            
+    if Path(sms_file).is_file():
+        pass
+    else:
+        Path(sms_file).touch()
+        with open(sms_file, 'w') as user_sms_file:
+            user_sms_file.write("[]")
+            user_sms_file.close()
     #Only create if API enabled
     if use_api == True:
         # Generate the apps dictionary

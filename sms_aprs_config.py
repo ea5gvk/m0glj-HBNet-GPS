@@ -168,6 +168,7 @@ def build_config(_config_file):
                     'LOCATION_FILE': config.get(section, 'LOCATION_FILE'),
                     'BULLETIN_BOARD_FILE': config.get(section, 'BULLETIN_BOARD_FILE'),
                     'MAILBOX_FILE': config.get(section, 'MAILBOX_FILE'),
+                    'SMS_FILE': config.get(section, 'SMS_FILE'),
                     'EMERGENCY_SOS_FILE': config.get(section, 'EMERGENCY_SOS_FILE'),
                     'USER_SETTINGS_FILE': config.get(section, 'USER_SETTINGS_FILE'),
                     'USE_API': config.getboolean(section, 'USE_API'),
