@@ -1,3 +1,5 @@
+
+### This is a branch of HBLink3 for development of a user authentication system for hotspots for PNW Digital.
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 
