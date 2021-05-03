@@ -55,6 +55,9 @@ from reporting_const import *
 import logging
 logger = logging.getLogger(__name__)
 
+# Used for user auth
+import os, ast
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
@@ -94,10 +97,23 @@ def hblink_handler(_signal, _frame):
 # on matching and the action specified.
 def acl_check(_id, _acl):
     id = int_id(_id)
+##    print('acl')
+##    print(_acl)
+##    print(type(_acl))
     for entry in _acl[1]:
         if entry[0] <= id <= entry[1]:
             return _acl[0]
     return not _acl[0]
+
+def check_db(_id):
+    print(user_db)
+    if int_id(_id) in user_db:
+        print('Found in DB')
+        return True
+    if int_id(_id) not in user_db:
+        print('Not found in DB')
+        return False
+    
 
 
 #************************************************
@@ -326,8 +342,12 @@ class HBSYSTEM(DatagramProtocol):
 
     # Aliased in __init__ to datagramReceived if system is a master
     def master_datagramReceived(self, _data, _sockaddr):
+        global user_db
         # Keep This Line Commented Unless HEAVILY Debugging!
         # logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_data))
+
+        # Place holder for DB function
+        user_db = ast.literal_eval(os.popen('cat ./db.txt').read())
 
         # Extract the command, which is various length, all but one 4 significant characters -- RPTCL
         _command = _data[:4]
@@ -405,7 +425,7 @@ class HBSYSTEM(DatagramProtocol):
             # Check to see if we've reached the maximum number of allowed peers
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
-                if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
+                if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and check_db(_peer_id):
                     # Build the configuration data strcuture for the peer
                     self._peers.update({_peer_id: {
                         'CONNECTION': 'RPTL-RECEIVED',
@@ -446,6 +466,7 @@ class HBSYSTEM(DatagramProtocol):
 
         elif _command == RPTK:    # Repeater has answered our login challenge
             _peer_id = _data[4:8]
+            print(int_id(_peer_id))
             if _peer_id in self._peers \
                         and self._peers[_peer_id]['CONNECTION'] == 'CHALLENGE_SENT' \
                         and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
@@ -453,7 +474,7 @@ class HBSYSTEM(DatagramProtocol):
                 _this_peer['LAST_PING'] = time()
                 _sent_hash = _data[8:]
                 _salt_str = bytes_4(_this_peer['SALT'])
-                _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
+                _calc_hash = bhex(sha256(_salt_str+user_db[int_id(_peer_id)]).hexdigest())
                 if _sent_hash == _calc_hash:
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
