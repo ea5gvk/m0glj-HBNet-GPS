@@ -107,6 +107,7 @@ def build_config(_config_file):
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
     CONFIG['ALIASES'] = {}
+    CONFIG['USER_MANAGER'] = {}
     CONFIG['SYSTEMS'] = {}
 
     try:
@@ -151,6 +152,12 @@ def build_config(_config_file):
                     'PEER_URL': config.get(section, 'PEER_URL'),
                     'SUBSCRIBER_URL': config.get(section, 'SUBSCRIBER_URL'),
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
+                })
+
+            elif section == 'USER_MANAGER':
+                CONFIG['USER_MANAGER'].update({
+                    'URL': config.get(section, 'URL'),
+                    'APPEND_INT': config.getint(section, 'APPEND_INT'),
                 })
 
             elif config.getboolean(section, 'ENABLED'):
@@ -249,6 +256,7 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
+                        'USE_USER_MAN': config.getboolean(section, 'USE_USER_MAN'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),

@@ -107,9 +107,10 @@ def acl_check(_id, _acl):
 
 def check_user_man(_id):
     #Change this to a config value
-    user_man_url = 'http://localhost:8080/auth'
+    user_man_url = _config['USE_USER_MAN']['URL']
+    print(int(str(int_id(_id))[:7]))
     auth_check = {
-    'id':int_id(_id)
+    'id':int(str(int_id(_id))[:7])
     }
     json_object = json.dumps(auth_check, indent = 4)
     req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
@@ -425,11 +426,24 @@ class HBSYSTEM(DatagramProtocol):
             # Check to see if we've reached the maximum number of allowed peers
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
-                self.ums_response = check_user_man(_peer_id)
-                
-                if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
-                        
-                    # Build the configuration data strcuture for the peer
+                if self._config['USE_USER_MAN'] == True:
+                    try:
+                        self.ums_response = check_user_man(_peer_id)
+                        print(self.ums_response)
+                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
+                            user_auth = self.ums_response['allow']
+                    except Exception as e:
+                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']):
+                            user_auth = True
+                            logger.info(e)
+                        else:
+                            user_auth = False
+                    print(user_auth)
+                if self._config['USE_USER_MAN'] == False:
+                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
+                        user_auth = True
+                if user_auth == True:
+                # Build the configuration data strcuture for the peer
                     self._peers.update({_peer_id: {
                         'CONNECTION': 'RPTL-RECEIVED',
                         'CONNECTED': time(),
@@ -477,16 +491,25 @@ class HBSYSTEM(DatagramProtocol):
                 _sent_hash = _data[8:]
                 _salt_str = bytes_4(_this_peer['SALT'])
                 #print(self.ums_response)
-                
-                if self.ums_response['mode'] == 'legacy':
-                    _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
-                if self.ums_response['mode'] == 'override':
-                    _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
-                if self.ums_response['mode'] == 'normal':
+                try:
+                    if self.ums_response['mode'] == 'legacy':
+                        _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
+                    if self.ums_response['mode'] == 'override':
+                        _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
+                    if self.ums_response['mode'] == 'normal':
+                        _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
+    ##                    print(int_id(_new_peer_id))
+                        calc_passphrase = base64.b64encode((_new_peer_id) + _config['USE_USER_MAN']['APPEND_INT'].to_bytes(2, 'big'))
+    ##                    print(calc_passphrase)
+                        _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
+                    ums_down = False
+                except Exception as e:
+                    # If UMS down, default to base 64 auth
+                    logger.info(e)
                     calc_passphrase = base64.b64encode((_peer_id) + int(1).to_bytes(2, 'big'))
                     _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-                    
-                if _sent_hash == _calc_hash:
+                    ums_down = True
+                if _sent_hash == _calc_hash or (ums_down == True and _sent_hash == _calc_hash):
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s has completed the login exchange successfully', self._system, _this_peer['RADIO_ID'])

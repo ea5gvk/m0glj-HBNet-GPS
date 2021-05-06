@@ -1,17 +1,24 @@
 from flask import Flask, render_template, request, Response, Markup, jsonify, make_response
 
 auth_dict = {
-    3153591:'hello'
+    3153591:''
     }
 
 
 
 app = Flask(__name__)
 
+@app.route('/')
+def index():
+    value = Markup('<strong>The HTML String</strong>')
+    return value
+    #return render_template('index.html', title = dashboard_title, dashboard_url = dashboard_url, logo = logo, emergency = check_emergency(), api = use_api)
+
+
 @app.route('/auth', methods=['POST'])
 def auth():
     hblink_req = request.json
-    print(type(auth_dict[hblink_req['id']]))
+    print((auth_dict[hblink_req['id']]))
     if hblink_req['id'] in auth_dict:
         if auth_dict[hblink_req['id']] == 0:
             response = jsonify(
@@ -29,7 +36,10 @@ def auth():
                     allow=True,
                     mode='override',
                     value=auth_dict[hblink_req['id']]
-                    )
+                        )
+    if hblink_req['id'] in auth_dict:
+        esponse = jsonify(
+                    allow=False)
     return response
 
 
