@@ -57,6 +57,9 @@ logger = logging.getLogger(__name__)
 
 # Used for user auth
 import os, ast
+import requests, json
+import base64
+
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
@@ -97,25 +100,22 @@ def hblink_handler(_signal, _frame):
 # on matching and the action specified.
 def acl_check(_id, _acl):
     id = int_id(_id)
-##    print('acl')
-##    print(_acl)
-##    print(type(_acl))
     for entry in _acl[1]:
         if entry[0] <= id <= entry[1]:
             return _acl[0]
     return not _acl[0]
 
-def check_db(_id):
-    print(user_db)
-    if int_id(_id) in user_db:
-        print('Found in DB')
-        return True
-    if int_id(_id) not in user_db:
-        print('Not found in DB')
-        return False
+def check_user_man(_id):
+    #Change this to a config value
+    user_man_url = 'http://localhost:8080/auth'
+    auth_check = {
+    'id':int_id(_id)
+    }
+    json_object = json.dumps(auth_check, indent = 4)
+    req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+    resp = json.loads(req.text)
+    return resp
     
-
-
 #************************************************
 #    OPENBRIDGE CLASS
 #************************************************
@@ -425,7 +425,10 @@ class HBSYSTEM(DatagramProtocol):
             # Check to see if we've reached the maximum number of allowed peers
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
-                if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and check_db(_peer_id):
+                self.ums_response = check_user_man(_peer_id)
+                
+                if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
+                        
                     # Build the configuration data strcuture for the peer
                     self._peers.update({_peer_id: {
                         'CONNECTION': 'RPTL-RECEIVED',
@@ -466,7 +469,6 @@ class HBSYSTEM(DatagramProtocol):
 
         elif _command == RPTK:    # Repeater has answered our login challenge
             _peer_id = _data[4:8]
-            print(int_id(_peer_id))
             if _peer_id in self._peers \
                         and self._peers[_peer_id]['CONNECTION'] == 'CHALLENGE_SENT' \
                         and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
@@ -474,7 +476,16 @@ class HBSYSTEM(DatagramProtocol):
                 _this_peer['LAST_PING'] = time()
                 _sent_hash = _data[8:]
                 _salt_str = bytes_4(_this_peer['SALT'])
-                _calc_hash = bhex(sha256(_salt_str+user_db[int_id(_peer_id)]).hexdigest())
+                #print(self.ums_response)
+                
+                if self.ums_response['mode'] == 'legacy':
+                    _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
+                if self.ums_response['mode'] == 'override':
+                    _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
+                if self.ums_response['mode'] == 'normal':
+                    calc_passphrase = base64.b64encode((_peer_id) + int(1).to_bytes(2, 'big'))
+                    _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
+                    
                 if _sent_hash == _calc_hash:
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
