@@ -238,9 +238,11 @@ class HBSYSTEM(DatagramProtocol):
     def check_user_man(self, _id):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
+        shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
         print(int(str(int_id(_id))[:7]))
         auth_check = {
-        'id':int(str(int_id(_id))[:7])
+        'id':int(str(int_id(_id))[:7]),
+        'secret':shared_secret
         }
         json_object = json.dumps(auth_check, indent = 4)
         try:

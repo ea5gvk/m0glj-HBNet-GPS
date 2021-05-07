@@ -158,6 +158,8 @@ def build_config(_config_file):
                 CONFIG['USER_MANAGER'].update({
                     'URL': config.get(section, 'URL'),
                     'APPEND_INT': config.getint(section, 'APPEND_INT'),
+                    'SHARED_SECRET': config.get(section, 'SHARED_SECRET'),
+
                 })
 
             elif config.getboolean(section, 'ENABLED'):
