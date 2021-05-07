@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, Response, Markup, jsonify, make_response
 
 auth_dict = {
-    3153591:''
+    3153591:0,
+    3153597:''
     }
 
 
@@ -18,7 +19,8 @@ def index():
 @app.route('/auth', methods=['POST'])
 def auth():
     hblink_req = request.json
-    print((auth_dict[hblink_req['id']]))
+    #print((auth_dict[hblink_req['id']]))
+    #try:
     if hblink_req['id'] in auth_dict:
         if auth_dict[hblink_req['id']] == 0:
             response = jsonify(
@@ -37,8 +39,9 @@ def auth():
                     mode='override',
                     value=auth_dict[hblink_req['id']]
                         )
-    if hblink_req['id'] in auth_dict:
-        esponse = jsonify(
+    if hblink_req['id'] not in auth_dict:
+##    except:
+        response = jsonify(
                     allow=False)
     return response
 

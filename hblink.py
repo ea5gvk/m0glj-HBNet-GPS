@@ -105,18 +105,7 @@ def acl_check(_id, _acl):
             return _acl[0]
     return not _acl[0]
 
-def check_user_man(_id):
-    #Change this to a config value
-    user_man_url = _config['USE_USER_MAN']['URL']
-    print(int(str(int_id(_id))[:7]))
-    auth_check = {
-    'id':int(str(int_id(_id))[:7])
-    }
-    json_object = json.dumps(auth_check, indent = 4)
-    req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
-    resp = json.loads(req.text)
-    return resp
-    
+   
 #************************************************
 #    OPENBRIDGE CLASS
 #************************************************
@@ -246,6 +235,20 @@ class HBSYSTEM(DatagramProtocol):
             self.maintenance_loop = self.peer_maintenance_loop
             self.datagramReceived = self.peer_datagramReceived
             self.dereg = self.peer_dereg
+    def check_user_man(self, _id):
+        #Change this to a config value
+        user_man_url = self._CONFIG['USER_MANAGER']['URL']
+        print(int(str(int_id(_id))[:7]))
+        auth_check = {
+        'id':int(str(int_id(_id))[:7])
+        }
+        json_object = json.dumps(auth_check, indent = 4)
+        try:
+            req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+            resp = json.loads(req.text)
+            return resp
+        except requests.ConnectionError:
+            return {'allow':True}
 
     def startProtocol(self):
         # Set up periodic loop for tracking pings from peers. Run every 'PING_TIME' seconds
@@ -426,18 +429,14 @@ class HBSYSTEM(DatagramProtocol):
             # Check to see if we've reached the maximum number of allowed peers
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
+                #print(self.check_user_man(_peer_id))
                 if self._config['USE_USER_MAN'] == True:
-                    try:
-                        self.ums_response = check_user_man(_peer_id)
-                        print(self.ums_response)
-                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
-                            user_auth = self.ums_response['allow']
-                    except Exception as e:
-                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']):
-                            user_auth = True
-                            logger.info(e)
-                        else:
-                            user_auth = False
+                    self.ums_response = self.check_user_man(_peer_id)
+##                    print(self.ums_response)
+                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
+                        user_auth = self.ums_response['allow']
+                    else:
+                        user_auth = False
                     print(user_auth)
                 if self._config['USE_USER_MAN'] == False:
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
@@ -490,7 +489,7 @@ class HBSYSTEM(DatagramProtocol):
                 _this_peer['LAST_PING'] = time()
                 _sent_hash = _data[8:]
                 _salt_str = bytes_4(_this_peer['SALT'])
-                #print(self.ums_response)
+                print(self.ums_response)
                 try:
                     if self.ums_response['mode'] == 'legacy':
                         _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
@@ -499,13 +498,13 @@ class HBSYSTEM(DatagramProtocol):
                     if self.ums_response['mode'] == 'normal':
                         _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
     ##                    print(int_id(_new_peer_id))
-                        calc_passphrase = base64.b64encode((_new_peer_id) + _config['USE_USER_MAN']['APPEND_INT'].to_bytes(2, 'big'))
-    ##                    print(calc_passphrase)
+                        calc_passphrase = base64.b64encode((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))
+                        print(calc_passphrase)
                         _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
                     ums_down = False
                 except Exception as e:
-                    # If UMS down, default to base 64 auth
-                    logger.info(e)
+##                    # If UMS down, default to base 64 auth
+##                    logger.info(e)
                     calc_passphrase = base64.b64encode((_peer_id) + int(1).to_bytes(2, 'big'))
                     _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
                     ums_down = True
