@@ -432,9 +432,6 @@ class HBSYSTEM(DatagramProtocol):
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
-                print('---')
-                print(self._config)
-                print('---')
                 if self._config['USE_USER_MAN'] == True:
                     self.ums_response = self.check_user_man(_peer_id)
 ##                    print(self.ums_response)
@@ -444,7 +441,7 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = False
                     print(user_auth)
                 if self._config['USE_USER_MAN'] == False:
-                    print('Falsae')
+                    print('False')
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
                         user_auth = True
                 if user_auth == True:
