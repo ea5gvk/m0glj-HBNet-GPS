@@ -44,7 +44,7 @@ class ConfigClass(object):
     SECRET_KEY = 'Change me'
 
     # Flask-SQLAlchemy settings
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///mmdvm_users.sqlite'    # File-based SQL database
+    SQLALCHEMY_DATABASE_URI = db_location    # File-based SQL database
     SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
 
     # Flask-User settings
@@ -176,7 +176,7 @@ def create_app():
         #content = Markup('<strong>The HTML String</strong>')
         #user_id = request.args.get('user_id')
         u = current_user
-        print(u.username)
+##        print(u.username)
         id_dict = ast.literal_eval(u.dmr_ids)
         #u = User.query.filter_by(username=user).first()
 ##        print(user_id)
@@ -216,22 +216,101 @@ def create_app():
 ##            """)
         content = 'Mem only'
         return render_template('flask_user_layout.html', markup_content = content, logo = logo)
+
+    
     # The Admin page requires an 'Admin' role.
-    @app.route('/admin')
+    @app.route('/admin', methods=['POST', 'GET'])
     @roles_required('Admin')    # Use of @roles_required decorator
     def admin_page():
-        return render_template_string("""
-                {% extends "flask_user_layout.html" %}
-                {% block content %}
-                    <h2>{%trans%}Admin Page{%endtrans%}</h2>
-                    <p><a href={{ url_for('user.register') }}>{%trans%}Register{%endtrans%}</a></p>
-                    <p><a href={{ url_for('user.login') }}>{%trans%}Sign in{%endtrans%}</a></p>
-                    <p><a href={{ url_for('home_page') }}>{%trans%}Home Page{%endtrans%}</a> (accessible to anyone)</p>
-                    <p><a href={{ url_for('member_page') }}>{%trans%}Member Page{%endtrans%}</a> (login_required: member@example.com / Password1)</p>
-                    <p><a href={{ url_for('admin_page') }}>{%trans%}Admin Page{%endtrans%}</a> (role_required: admin@example.com / Password1')</p>
-                    <p><a href={{ url_for('user.logout') }}>{%trans%}Sign out{%endtrans%}</a></p>
-                {% endblock %}
-                """)
+        #print(request.args.get('callsign'))
+##        if request.method == 'POST' and request.form.get('callsign'):
+##            #result = request.json
+##            callsign = request.form.get('callsign')
+##            u = User.query.filter_by(username=callsign).first()
+##            content = u.dmr_ids
+        if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
+            edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
+            if request.form.get('user_status') == "True":
+                edit_user.is_actived = 1
+            if request.form.get('user_status') == "False":
+                edit_user.is_actived = 0
+##            content = edit_user.is_active
+            db.session.commit()
+            
+        elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status'): # and request.form.get('user_status') :
+            callsign = request.form.get('callsign')
+            u = User.query.filter_by(username=callsign).first()
+            content = '''
+<td><form action="admin?callsign=''' + request.form.get('callsign') + '''" method="POST">
+<table style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr style="height: 62px;">
+<td style="text-align: center; height: 62px;">
+<h2><strong><label for="user_id">Enable/Disable</label></strong></h2>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><select name="user_status">
+<option selected="selected" value="''' + str(u.is_active) + '''">''' + str(u.is_active) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td></td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+</tr>
+</tbody>
+</table>
+</form></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+'''
+        else:
+            content = '''
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="3">
+<tbody>
+<tr>
+<td><form action="admin" method="POST">
+<table style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr style="height: 62px;">
+<td style="text-align: center; height: 62px;">
+<h2><strong><label for="user_id">Callsign</label></strong></h2>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><input id="callsign" name="callsign" type="text" /></td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+</tr>
+</tbody>
+</table>
+</form></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+'''
+        #    content = 'no found'
+##        return render_template_string("""
+##                {% extends "flask_user_layout.html" %}
+##                {% block content %}
+##                    <h2>{%trans%}Admin Page{%endtrans%}</h2>
+##                    <p><a href={{ url_for('user.register') }}>{%trans%}Register{%endtrans%}</a></p>
+##                    <p><a href={{ url_for('user.login') }}>{%trans%}Sign in{%endtrans%}</a></p>
+##                    <p><a href={{ url_for('home_page') }}>{%trans%}Home Page{%endtrans%}</a> (accessible to anyone)</p>
+##                    <p><a href={{ url_for('member_page') }}>{%trans%}Member Page{%endtrans%}</a> (login_required: member@example.com / Password1)</p>
+##                    <p><a href={{ url_for('admin_page') }}>{%trans%}Admin Page{%endtrans%}</a> (role_required: admin@example.com / Password1')</p>
+##                    <p><a href={{ url_for('user.logout') }}>{%trans%}Sign out{%endtrans%}</a></p>
+##                {% endblock %}
+##                """)
+        
+        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+
+    
 
     def authorized_peer(peer_id):
         try:
