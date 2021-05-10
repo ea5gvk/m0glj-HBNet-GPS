@@ -4,9 +4,9 @@ Settings for user management portal.
 '''
 
 # Title of the Dashboard
-title = 'PNW MMDVM User Portal'
+title = 'MMDVM User Portal'
 # Logo used on dashboard page
-logo = 'http://pnwdigital.net/images/Logos/PP-PNW-Logo-12b-Clean-250c.png'
+logo = 'https://github.com/HBLink-org/hblink3/raw/master/HBlink.png'
 # Port to run server
 ums_port = 8080
 # IP to run server on
