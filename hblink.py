@@ -432,6 +432,9 @@ class HBSYSTEM(DatagramProtocol):
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
+                print('---')
+                print(self._config)
+                print('---')
                 if self._config['USE_USER_MAN'] == True:
                     self.ums_response = self.check_user_man(_peer_id)
 ##                    print(self.ums_response)
@@ -441,6 +444,7 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = False
                     print(user_auth)
                 if self._config['USE_USER_MAN'] == False:
+                    print('Falsae')
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
                         user_auth = True
                 if user_auth == True:
@@ -491,25 +495,28 @@ class HBSYSTEM(DatagramProtocol):
                 _this_peer['LAST_PING'] = time()
                 _sent_hash = _data[8:]
                 _salt_str = bytes_4(_this_peer['SALT'])
-                print(self.ums_response)
-                try:
-                    if self.ums_response['mode'] == 'legacy':
-                        _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
-                    if self.ums_response['mode'] == 'override':
-                        _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
-                    if self.ums_response['mode'] == 'normal':
-                        _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
-    ##                    print(int_id(_new_peer_id))
-                        calc_passphrase = base64.b64encode((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))
-                        print(calc_passphrase)
+                #print(self.ums_response)
+                if self._config['USE_USER_MAN'] == True:
+                    try:
+                        if self.ums_response['mode'] == 'legacy':
+                            _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
+                        if self.ums_response['mode'] == 'override':
+                            _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
+                        if self.ums_response['mode'] == 'normal':
+                            _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
+        ##                    print(int_id(_new_peer_id))
+                            calc_passphrase = base64.b64encode((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))
+                            print(calc_passphrase)
+                            _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
+                        ums_down = False
+                    except Exception as e:
+    ##                    # If UMS down, default to base 64 auth
+    ##                    logger.info(e)
+                        calc_passphrase = base64.b64encode((_peer_id) + int(1).to_bytes(2, 'big'))
                         _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-                    ums_down = False
-                except Exception as e:
-##                    # If UMS down, default to base 64 auth
-##                    logger.info(e)
-                    calc_passphrase = base64.b64encode((_peer_id) + int(1).to_bytes(2, 'big'))
-                    _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-                    ums_down = True
+                        ums_down = True
+                if self._config['USE_USER_MAN'] == False:
+                    _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
                 if _sent_hash == _calc_hash or (ums_down == True and _sent_hash == _calc_hash):
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
