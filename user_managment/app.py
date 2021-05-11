@@ -17,10 +17,11 @@ import ast
 import json
 import datetime
 from flask_babelex import Babel
+import libscrc
 
 def gen_passphrase(dmr_id):
     _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
-    calc_passphrase = base64.b64encode((_new_peer_id) + append_int.to_bytes(2, 'big'))
+    calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
     return str(calc_passphrase)[2:-1]
 
 def get_ids(callsign):
@@ -41,7 +42,7 @@ class ConfigClass(object):
     """ Flask application config """
 
     # Flask settings
-    SECRET_KEY = 'Change me'
+    SECRET_KEY = 'HFJGKSDGHFJKDFSGHJGFHJ'
 
     # Flask-SQLAlchemy settings
     SQLALCHEMY_DATABASE_URI = db_location    # File-based SQL database
@@ -219,7 +220,7 @@ def create_app():
 
     
     # The Admin page requires an 'Admin' role.
-    @app.route('/admin', methods=['POST', 'GET'])
+    @app.route('/edit_user', methods=['POST', 'GET'])
     @roles_required('Admin')    # Use of @roles_required decorator
     def admin_page():
         #print(request.args.get('callsign'))
@@ -231,24 +232,34 @@ def create_app():
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
             edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             if request.form.get('user_status') == "True":
-                edit_user.is_actived = 1
+                edit_user.active = True
+                content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been enabled.</p>'''
             if request.form.get('user_status') == "False":
-                edit_user.is_actived = 0
-##            content = edit_user.is_active
-            db.session.commit()
+                edit_user.active = False
+                content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been disabled.</p>'''
+            if request.form.get('username') != edit_user.username:
+                print(request.form.get('username'))
+                #print(edit_user.username)
+                print('new uname')
+                edit_user.username = request.form.get('username')
+
+            #db.session.commit()
+            #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status'): # and request.form.get('user_status') :
             callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
             content = '''
-<td><form action="admin?callsign=''' + request.form.get('callsign') + '''" method="POST">
+<td><form action="edit_user?callsign=''' + request.form.get('callsign') + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>
 <tr style="height: 62px;">
 <td style="text-align: center; height: 62px;">
-<h2><strong><label for="user_id">Enable/Disable</label></strong></h2>
+<strong><label for="user_id">Enable/Disable</label></strong>
 </td>
 </tr>
+
+
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;"><select name="user_status">
 <option selected="selected" value="''' + str(u.is_active) + '''">''' + str(u.is_active) + '''</option>
@@ -256,6 +267,19 @@ def create_app():
 <option value="False">False</option>
 </select></td></td>
 </tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Username:</label><br>
+  <input type="text" id="username" name="username" value="''' + u.username + '''"><br>
+</td></tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Password: DO NOT USE YET</label><br>
+  <input type="text" id="password" name="password" value="''' + u.password + '''"><br>
+</td></tr>
+
 <tr style="height: 27px;">
 <td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
 </tr>
@@ -347,8 +371,12 @@ def create_app():
 ##        #tu.dmr_ids = 'jkgfldj'
 ##        #db.session.commit()
 ##        return str([u.is_active, login_passphrase[3153591]])
-
-        return str(authorized_peer(3153591)[0])
+        #edit_user = User.query.filter(User.username == 'bob').first()
+        #edit_user.active = False
+        
+        #db.session.commit()
+        print(type(current_user.has_roles))
+        return str(current_user.roles)
 
 
 
