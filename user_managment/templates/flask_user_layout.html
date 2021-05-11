@@ -44,13 +44,14 @@
 <td style="text-align: center;"><a href={{ url_for('user.login') }}>Sign in</a></td>
     {% endif %}
     {% if call_or_get(current_user.is_authenticated) %}
+            {% if call_or_get(current_user.has_roles('Admin')) %}
+<td style="text-align: center;"><a href={{url}}/edit_user>Edit a User</a></td>
+    <td style="text-align: center;"><a href={{url}}/add_admin>Add an Admin</a></td>
+            {% endif %}
 <td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>
 <td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
 <td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>
             {% endif %}
-
-
-    
 </tr>
 </tbody>
 </table>

@@ -174,26 +174,29 @@ def create_app():
     @app.route('/generate_passphrase', methods = ['GET'])
     @login_required
     def gen():
-        #content = Markup('<strong>The HTML String</strong>')
-        #user_id = request.args.get('user_id')
-        u = current_user
-##        print(u.username)
-        id_dict = ast.literal_eval(u.dmr_ids)
-        #u = User.query.filter_by(username=user).first()
-##        print(user_id)
-##        print(request.args.get('mode'))
-##        if request.args.get('mode') == 'generated':
-        content = ''
-        for i in id_dict.items():
-            if i[1] == '':
-                content = content + '''\n
-        <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-        <p style="text-align: center;"><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
-    '''
-            elif i[1] == 0:
-                content = content + '''\n<p style="text-align: center;">Using legacy auth</p>'''
-            else:
-                content = content + '''\n<p style="text-align: center;">Using custom auth passphrase: ''' + str(i[1]) + '''</p>'''
+        try:
+            #content = Markup('<strong>The HTML String</strong>')
+            #user_id = request.args.get('user_id')
+            u = current_user
+    ##        print(u.username)
+            id_dict = ast.literal_eval(u.dmr_ids)
+            #u = User.query.filter_by(username=user).first()
+    ##        print(user_id)
+    ##        print(request.args.get('mode'))
+    ##        if request.args.get('mode') == 'generated':
+            content = ''
+            for i in id_dict.items():
+                if i[1] == '':
+                    content = content + '''\n
+            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+            <p style="text-align: center;"><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+        '''
+                elif i[1] == 0:
+                    content = content + '''\n<p style="text-align: center;">Using legacy auth</p>'''
+                else:
+                    content = content + '''\n<p style="text-align: center;">Using custom auth passphrase: ''' + str(i[1]) + '''</p>'''
+        except:
+            content = Markup('<strong>No DMR IDs found or other error.</strong>')
         
             
         #return str(content)
@@ -231,19 +234,22 @@ def create_app():
 ##            content = u.dmr_ids
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
             edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
-            if request.form.get('user_status') == "True":
-                edit_user.active = True
-                content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been enabled.</p>'''
-            if request.form.get('user_status') == "False":
-                edit_user.active = False
-                content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been disabled.</p>'''
+            if request.form.get('user_status') != edit_user.active:
+                if request.form.get('user_status') == "True":
+                    edit_user.active = True
+                    content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been enabled.</p>'''
+                if request.form.get('user_status') == "False":
+                    edit_user.active = False
+                    content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been disabled.</p>'''
             if request.form.get('username') != edit_user.username:
                 print(request.form.get('username'))
                 #print(edit_user.username)
                 print('new uname')
                 edit_user.username = request.form.get('username')
-
-            #db.session.commit()
+            if request.form.get('dmr_ids') != edit_user.dmr_ids:
+                edit_user.dmr_ids = request.form.get('dmr_ids')
+                content = '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + request.args.get('callsign') + '''</strong></p>'''
+            db.session.commit()
             #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status'): # and request.form.get('user_status') :
@@ -262,7 +268,7 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;"><select name="user_status">
-<option selected="selected" value="''' + str(u.is_active) + '''">''' + str(u.is_active) + '''</option>
+<option selected="selected" value="''' + str(u.is_active) + '''">Current: ''' + str(u.is_active) + '''</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td></td>
@@ -278,6 +284,12 @@ def create_app():
 <td style="height: 51.1667px; text-align: center;">
   <label for="username">Password: DO NOT USE YET</label><br>
   <input type="text" id="password" name="password" value="''' + u.password + '''"><br>
+</td></tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">RAW Python Dictionary of IDs:</label><br>
+  <input type="text" id="dmr_ids" name="dmr_ids" value="''' + str(u.dmr_ids) + '''"><br>
 </td></tr>
 
 <tr style="height: 27px;">
@@ -296,7 +308,7 @@ def create_app():
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="3">
 <tbody>
 <tr>
-<td><form action="admin" method="POST">
+<td><form action="edit_user" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>
 <tr style="height: 62px;">
@@ -346,7 +358,7 @@ def create_app():
 
     @app.route('/test')
     def test_peer():
-##        #u = User.query.filter_by(username='kf7eel').first()
+        u = User.query.filter_by(username='kf7eel').first()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
 ##        #tu = User.query.all()
 ##        #tu = User.query().all()
@@ -375,12 +387,61 @@ def create_app():
         #edit_user.active = False
         
         #db.session.commit()
-        print(type(current_user.has_roles))
+        print((current_user.has_roles('Admin')))
+        u.roles.append(Role(name='Admin'))
+        print((current_user.has_roles('Admin')))
+        #db.session.commit()
+        db.session.add(u)
+        db.session.commit()
         return str(current_user.roles)
 
+    @app.route('/add_admin', methods=['POST', 'GET'])
+    @roles_required('Admin') 
+    def add_admin():
+        if request.method == 'GET':
+            content = '''
+<td><form action="add_admin" method="POST">
+<table style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Username:</label><br>
+  <input type="text" id="username" name="username"><br>
+</td></tr>
 
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Password:</label><br>
+  <input type="password" id="password" name="password" ><br>
+</td></tr>
 
-
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
+</tr>
+</tbody>
+</table>
+</form></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+'''
+        elif request.method == 'POST' and request.form.get('username'):
+            if not User.query.filter(User.username == request.form.get('username')).first():
+                user = User(
+                    username='admin',
+                    email_confirmed_at=datetime.datetime.utcnow(),
+                    password=user_manager.hash_password(request.form.get('password')),
+                )
+                user.roles.append(Role(name='Admin'))
+                user.roles.append(Role(name='User'))
+                db.session.add(user)
+                db.session.commit()
+                content = 'Created user ' + str(request.form.get('username'))
+            else:
+                content = 'Created user ' + str(request.form.get('Error'))
+                
+        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
 
     @app.route('/auth', methods=['POST'])
     def auth():
