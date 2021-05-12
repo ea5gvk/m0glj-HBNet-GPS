@@ -35,7 +35,7 @@ def gen_passphrase(dmr_id):
         return str(calc_passphrase)[-9:-1]
     elif use_short_passphrase ==False:
         return str(calc_passphrase)[2:-1]
-
+# Query radioid.net for list of IDs
 def get_ids(callsign):
     try:
         url = "https://www.radioid.net"
@@ -48,6 +48,32 @@ def get_ids(callsign):
         return str(id_list)
     except:
         return ''
+
+# Return string in NATO phonetics
+def convert_nato(string):
+    d_nato = { 'A': 'ALPHA', 'B': 'BRAVO', 'C': 'CHARLIE', 'D': 'DELTA',
+          'E': 'ECHO', 'F': 'FOXTROT', 'G': 'GOLF', 'H': 'HOTEL',
+          'I': 'INDIA', 'J': 'JULIETT','K': 'KILO', 'L': 'LIMA',
+         'M': 'MIKE', 'N': 'NOVEMBER','O': 'OSCAR', 'P': 'PAPA',
+         'Q': 'QUEBEC', 'R': 'ROMEO', 'S': 'SIERRA', 'T': 'TANGO',
+         'U': 'UNIFORM', 'V': 'VICTOR', 'W': 'WHISKEY', 'X': 'X-RAY',
+         'Y': 'YANKEE', 'Z': 'ZULU', '0': 'zero', '1': 'one',
+         '2': 'two', '3': 'three', '4': 'four', '5': 'five',
+         '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+         'a': 'alpha', 'b': 'bravo', 'c': 'charlie', 'd': 'delta',
+         'e': 'echo', 'f': 'foxtrot', 'g': 'golf', 'h': 'hotel',
+         'i': 'india', 'j': 'juliett','k': 'kilo', 'l': 'lima',
+         'm': 'mike', 'n': 'november','o': 'oscar', 'p': 'papa',
+         'q': 'quebec', 'r': 'romeo', 's': 'sierra', 't': 'tango',
+         'u': 'uniform', 'v': 'victor', 'w': 'whiskey', 'x': 'x-ray',
+         'y': 'yankee', 'z': 'Zulu'}
+    ns = ''
+    for c in string:
+        try:
+            ns = ns + d_nato[c] + ' '
+        except:
+            ns = ns + c + ' '
+    return ns
 
 # Class-based application configuration
 class ConfigClass(object):
@@ -249,24 +275,58 @@ def create_app():
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
             print(id_dict)
-            content = '<h4 style="text-align: center;"><a href="/generate_passphrase/pi-star">Click here</a> for automated Pi-Star script.</h4><p>&nbsp;</p>\n'
+            content = '\n'
             for i in id_dict.items():
                 if i[1] == '':
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
                     print(script_links)
                     content = content + '''\n
+<table style="width: 300px;" border="1">
+<tbody>
+<tr>
+<td>
             <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-            <p style="text-align: center;"><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+<hr />
+
+            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+
+</td>
+</tr>
+</tbody>
+</table>
             <p>&nbsp;</p>
         '''
                 elif i[1] == 0:
-                    content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-<p style="text-align: center;"><strong>''' + legacy_passphrase + '''</stong></p>
+                    content = content + '''
+<table style="width: 300px;" border="1">
+<tbody>
+<tr>
+<td>
+<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+<p style="text-align: center;">Copy and paste: <strong>''' + legacy_passphrase + '''</strong></p>
+<hr />
+<p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(legacy_passphrase) + '''</em></span></p>
+</td>
+</tr>
+</tbody>
+</table>
             <p>&nbsp;</p>'''
                 else:
-                    content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-<p style="text-align: center;"><strong>''' + str(i[1]) + '''</strong></p>
+                    content = content + '''
+<table style="width: 300px;" border="1">
+<tbody>
+<tr>
+<td>
+<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+<p style="text-align: center;">Copy and paste: <strong>''' + str(i[1]) + '''</strong></p>
+<hr />
+<p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(i[1])) + '''</em></span></p>
+</td>
+</tr>
+</tbody>
+</table>
             <p>&nbsp;</p>
 '''
             #content = content + '\n\n' + str(script_links[i[0]])
@@ -275,7 +335,7 @@ def create_app():
         
             
         #return str(content)
-        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+        return render_template('view_passphrase.html', markup_content = Markup(content), logo = logo)
 
     # The Members page is only accessible to authenticated users via the @login_required decorator
     @app.route('/members')

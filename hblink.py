@@ -495,6 +495,7 @@ class HBSYSTEM(DatagramProtocol):
                 _salt_str = bytes_4(_this_peer['SALT'])
                 #print(self.ums_response)
                 if self._config['USE_USER_MAN'] == True:
+##                    print(self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'])
                     try:
                         if self.ums_response['mode'] == 'legacy':
                             _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
@@ -503,16 +504,24 @@ class HBSYSTEM(DatagramProtocol):
                         if self.ums_response['mode'] == 'normal':
                             _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
         ##                    print(int_id(_new_peer_id))
-                            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
+                            #print(self._CONFIG['USER_MANAGER']['APPEND_INT'])
+                            if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == True:
+                                calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
                             #calc_passphrase = base64.b64encode((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))
-                            print(calc_passphrase)
+                                calc_passphrase = calc_passphrase[-8:]
+                            if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
+                                calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
                             _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
                         ums_down = False
                     except Exception as e:
     ##                    # If UMS down, default to base 64 auth
     ##                    logger.info(e)
                         _new_peer_id = bytes_4(int(str(int_id(_peer_id))[:7]))
-                        calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
+                        if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == True:
+                            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
+                            calc_passphrase = calc_passphrase[-8:]
+                        if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
+                            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
                         _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
                         ums_down = True
                 if self._config['USE_USER_MAN'] == False:
