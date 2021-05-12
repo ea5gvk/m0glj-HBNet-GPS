@@ -8,6 +8,8 @@ db_location = 'sqlite:///./users.db'
 # Legacy passphrase used in hblink.cfg
 legacy_passphrase = 'passw0rd'
 
+# Trim passphrases to 8 characters
+use_short_passphrase = False
 
 # Title of the Dashboard
 title = 'MMDVM User Portal'

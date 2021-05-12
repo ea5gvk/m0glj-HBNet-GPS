@@ -30,7 +30,11 @@ script_links = {}
 def gen_passphrase(dmr_id):
     _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
     calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
-    return str(calc_passphrase)[2:-1]
+    print(calc_passphrase)
+    if use_short_passphrase == True:
+        return str(calc_passphrase)[-9:-1]
+    elif use_short_passphrase ==False:
+        return str(calc_passphrase)[2:-1]
 
 def get_ids(callsign):
     try:
