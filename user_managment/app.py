@@ -258,7 +258,7 @@ def create_app():
         '''
                 elif i[1] == 0:
                     content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-<p style="text-align: center;">Using legacy authentication. Contact server admin for passphrase.</p>
+<p style="text-align: center;"><strong>''' + legacy_passphrase + '''</stong></p>
             <p>&nbsp;</p>'''
                 else:
                     content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
@@ -427,14 +427,18 @@ def create_app():
 
         if authorized_peer(dmr_id)[1] == '':
             passphrase = gen_passphrase(dmr_id)
-        if authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
+        elif authorized_peer(dmr_id)[1] == 0:
+            passphrase = legacy_passphrase
+        elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
             passphrase = authorized_peer(dmr_id)[1]
         #try:
-            if dmr_id in script_links and number == float(script_links[dmr_id]):
-                script_links.pop(dmr_id)
-                return str(gen_script(dmr_id, passphrase))
+        if dmr_id in script_links and number == float(script_links[dmr_id]):
+            script_links.pop(dmr_id)
+            return str(gen_script(dmr_id, passphrase))
         #except:
+            #else:
             #content = '<strong>Link used or other error.</strong>'
+            #return content
             #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
         
 

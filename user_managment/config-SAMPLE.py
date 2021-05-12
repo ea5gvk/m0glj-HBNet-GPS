@@ -2,6 +2,12 @@
 '''
 Settings for user management portal.
 '''
+# Database location
+db_location = 'sqlite:///./users.db'
+
+# Legacy passphrase used in hblink.cfg
+legacy_passphrase = 'passw0rd'
+
 
 # Title of the Dashboard
 title = 'MMDVM User Portal'
