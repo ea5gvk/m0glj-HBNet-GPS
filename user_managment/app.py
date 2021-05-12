@@ -15,9 +15,17 @@ from dmr_utils3.utils import int_id, bytes_4
 from config import *
 import ast
 import json
-import datetime
+import datetime, time
 from flask_babelex import Babel
 import libscrc
+import random
+try:
+    from gen_script_template import gen_script
+except:
+    pass
+
+
+script_links = {}
 
 def gen_passphrase(dmr_id):
     _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
@@ -170,6 +178,58 @@ def create_app():
 ##            {% endblock %}
 ##            """)
         return render_template('index.html', markup_content = content, logo = logo)
+
+    @app.route('/generate_passphrase/pi-star', methods = ['GET'])
+    @login_required
+    def gen_pi_star():
+        try:
+            u = current_user
+    ##        print(u.username)
+            id_dict = ast.literal_eval(u.dmr_ids)
+            #u = User.query.filter_by(username=user).first()
+    ##        print(user_id)
+    ##        print(request.args.get('mode'))
+    ##        if request.args.get('mode') == 'generated':
+            content = '''
+<table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td>
+<h2 style="text-align: center;"><strong>Pi-Star Instructions</strong></h2>
+<p>&nbsp;</p>
+<p><strong>1</strong>: Log into your Pi-Star device. <br /><strong>2</strong>: Change to Read-Write mode of the device by issuing the command:<u></u></p>
+<pre><u><strong>rpi-rw</strong></u></pre>
+<p><strong><br />3a: Change to the root user by issuing the command:<u></u></strong></p>
+<pre>sudo su -</pre>
+<p><strong><u></u> <br />3b: Now type <u>pwd</u> and verify you get a return indicating you are in the /root directory. If you are in the wrong directory, it is because you're not following the instructions and syntax above! This is a show stopper, and your attempt to load the files correctly, will fail !<br /><br />4: Issue one of the commands below for the chosen DMR ID:</strong></p>
+<p>Note: Link can be used only once. To run the script again, simply reload the page and paste a new command into the command line.</p>
+
+'''
+            for i in id_dict.items():
+                #if i[1] == '':
+                link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                script_links[i[0]] = link_num
+                content = content + '''\n
+        <p style="text-align: center;">DMR ID: <strong>''' + str(i[0]) + '''</strong>:</p>
+        <p style="text-align: center;"><strong><pre>bash <(curl -s "<a href="''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''">''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''</a>")</pre></strong></p>
+        <p>&nbsp;</p>
+    '''
+                #else:
+                #    content = content + '''\n<p style="text-align: center;">Error</p>'''
+            content = content + '''\n'<p><strong> <br />5: When asked for server ports, use the information above to populate the correct fields. <br />6: Reboot your Pi-Star device</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>'''
+        except:
+            content = Markup('<strong>No DMR IDs found or other error.</strong>')
+        
+            
+        #return str(content)
+        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+        
+
     
     @app.route('/generate_passphrase', methods = ['GET'])
     @login_required
@@ -184,17 +244,28 @@ def create_app():
     ##        print(user_id)
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
-            content = ''
+            print(id_dict)
+            content = '<h4 style="text-align: center;"><a href="/generate_passphrase/pi-star">Click here</a> for automated Pi-Star script.</h4><p>&nbsp;</p>\n'
             for i in id_dict.items():
                 if i[1] == '':
+                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                    script_links[i[0]] = link_num
+                    print(script_links)
                     content = content + '''\n
             <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
             <p style="text-align: center;"><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+            <p>&nbsp;</p>
         '''
                 elif i[1] == 0:
-                    content = content + '''\n<p style="text-align: center;">Using legacy auth</p>'''
+                    content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+<p style="text-align: center;">Using legacy authentication. Contact server admin for passphrase.</p>
+            <p>&nbsp;</p>'''
                 else:
-                    content = content + '''\n<p style="text-align: center;">Using custom auth passphrase: ''' + str(i[1]) + '''</p>'''
+                    content = content + '''\n<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+<p style="text-align: center;"><strong>''' + str(i[1]) + '''</strong></p>
+            <p>&nbsp;</p>
+'''
+            #content = content + '\n\n' + str(script_links[i[0]])
         except:
             content = Markup('<strong>No DMR IDs found or other error.</strong>')
         
@@ -346,7 +417,26 @@ def create_app():
         
         return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
 
-    
+    @app.route('/get_script')
+    def get_script():
+        dmr_id = int(request.args.get('dmr_id'))
+        number = float(request.args.get('number'))
+        #print(type(script_links[dmr_id]))
+        u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
+        #print(u.dmr_ids)
+
+        if authorized_peer(dmr_id)[1] == '':
+            passphrase = gen_passphrase(dmr_id)
+        if authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
+            passphrase = authorized_peer(dmr_id)[1]
+        #try:
+            if dmr_id in script_links and number == float(script_links[dmr_id]):
+                script_links.pop(dmr_id)
+                return str(gen_script(dmr_id, passphrase))
+        #except:
+            #content = '<strong>Link used or other error.</strong>'
+            #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
+        
 
     def authorized_peer(peer_id):
         try:
