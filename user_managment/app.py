@@ -356,6 +356,28 @@ def create_app():
         content = 'Mem only'
         return render_template('flask_user_layout.html', markup_content = content)
 
+
+
+    @app.route('/list_users')
+    @roles_required('Admin')
+    @login_required    # User must be authenticated
+    def list_users():
+        u = User.query.all()
+        u_list = '''<p>&nbsp;</p><table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+                    <tbody>'''
+        for i in u:
+            u_list = u_list + '''
+<tr>
+<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>''' + str(i.username) + '''</strong></a></td>
+<td style="width: 226.683px; text-align: center;">''' + str(i.is_active) + '''</td>
+<td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
+</tr>
+'''+ '\n'
+        content = u_list + '''</tbody>
+                              </table>
+                              <p>&nbsp;</p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
     
     # The Admin page requires an 'Admin' role.
     @app.route('/edit_user', methods=['POST', 'GET'])
@@ -368,30 +390,35 @@ def create_app():
 ##            u = User.query.filter_by(username=callsign).first()
 ##            content = u.dmr_ids
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
-            edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
+            user = request.args.get('callsign')
+            print(user)
+            edit_user = User.query.filter(User.username == user).first()
             if request.form.get('user_status') != edit_user.active:
                 if request.form.get('user_status') == "True":
                     edit_user.active = True
-                    content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been enabled.</p>'''
+                    content = '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been enabled.</p>'''
                 if request.form.get('user_status') == "False":
                     edit_user.active = False
-                    content = '''<p style="text-align: center;">User <strong>''' + request.args.get('callsign') + '''</strong> has been disabled.</p>'''
-            if request.form.get('username') != edit_user.username:
-                print(request.form.get('username'))
+                    content = '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>'''
+            if user != edit_user.username:
+                print(user)
                 #print(edit_user.username)
                 print('new uname')
-                edit_user.username = request.form.get('username')
+                edit_user.username = user
             if request.form.get('dmr_ids') != edit_user.dmr_ids:
                 edit_user.dmr_ids = request.form.get('dmr_ids')
-                content = '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + request.args.get('callsign') + '''</strong></p>'''
+                content = '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + str(user) + '''</strong></p>'''
             db.session.commit()
             #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             
-        elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status'): # and request.form.get('user_status') :
-            callsign = request.form.get('callsign')
+        elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
+            if request.args.get('callsign'):
+                callsign = request.args.get('callsign')
+            if request.form.get('callsign'):
+                callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
             content = '''
-<td><form action="edit_user?callsign=''' + request.form.get('callsign') + '''" method="POST">
+<td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>
 <tr style="height: 62px;">
@@ -403,7 +430,7 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;"><select name="user_status">
-<option selected="selected" value="''' + str(u.is_active) + '''">Current: ''' + str(u.is_active) + '''</option>
+<option selected="selected" value="''' + str(u.active) + '''">Current: ''' + str(u.active) + '''</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td></td>
@@ -518,7 +545,7 @@ def create_app():
     def test_peer():
         u = User.query.filter_by(username='kf7eel').first()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
-##        #tu = User.query.all()
+        #u = User.query.all()
 ##        #tu = User.query().all()
 ####        print((tu.dmr_ids))
 ####        #print(tu.dmr_ids)
@@ -545,13 +572,16 @@ def create_app():
         #edit_user.active = False
         
         #db.session.commit()
-        print((current_user.has_roles('Admin')))
-        u.roles.append(Role(name='Admin'))
-        print((current_user.has_roles('Admin')))
+        #print((current_user.has_roles('Admin')))
+        #u.roles.append(Role(name='Admin'))
+        #print((current_user.has_roles('Admin')))
         #db.session.commit()
-        db.session.add(u)
-        db.session.commit()
-        return str(current_user.roles)
+        #db.session.add(u)
+        #db.session.commit()
+        print(u.active)
+##        for i in u:
+##            print(i.username)
+        return str(u)
 
     @app.route('/add_admin', methods=['POST', 'GET'])
     @roles_required('Admin') 
