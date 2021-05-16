@@ -13,8 +13,6 @@ use_short_passphrase = False
 
 # Title of the Dashboard
 title = 'MMDVM User Portal'
-# Logo used on dashboard page
-logo = 'https://github.com/HBLink-org/hblink3/raw/master/HBlink.png'
 # Port to run server
 ums_port = 8080
 # IP to run server on

@@ -57,9 +57,9 @@ def convert_nato(string):
          'M': 'MIKE', 'N': 'NOVEMBER','O': 'OSCAR', 'P': 'PAPA',
          'Q': 'QUEBEC', 'R': 'ROMEO', 'S': 'SIERRA', 'T': 'TANGO',
          'U': 'UNIFORM', 'V': 'VICTOR', 'W': 'WHISKEY', 'X': 'X-RAY',
-         'Y': 'YANKEE', 'Z': 'ZULU', '0': 'zero', '1': 'one',
-         '2': 'two', '3': 'three', '4': 'four', '5': 'five',
-         '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+         'Y': 'YANKEE', 'Z': 'ZULU', '0': 'zero(0)', '1': 'one(1)',
+         '2': 'two(2)', '3': 'three(3)', '4': 'four(4)', '5': 'five(5)',
+         '6': 'six(6)', '7': 'seven(7)', '8': 'eight(8)', '9': 'nine(9)',
          'a': 'alpha', 'b': 'bravo', 'c': 'charlie', 'd': 'delta',
          'e': 'echo', 'f': 'foxtrot', 'g': 'golf', 'h': 'hotel',
          'i': 'india', 'j': 'juliett','k': 'kilo', 'l': 'lima',
@@ -207,7 +207,7 @@ def create_app():
 ##                <p><a href={{ url_for('user.logout') }}>Sign out</a></p>
 ##            {% endblock %}
 ##            """)
-        return render_template('index.html', markup_content = content, logo = logo)
+        return render_template('index.html', markup_content = content)
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required
@@ -257,7 +257,7 @@ def create_app():
         
             
         #return str(content)
-        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
         
 
     
@@ -280,7 +280,7 @@ def create_app():
                 if i[1] == '':
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
-                    print(script_links)
+                    #print(script_links)
                     content = content + '''\n
 <table style="width: 300px;" border="1">
 <tbody>
@@ -335,7 +335,7 @@ def create_app():
         
             
         #return str(content)
-        return render_template('view_passphrase.html', markup_content = Markup(content), logo = logo)
+        return render_template('view_passphrase.html', markup_content = Markup(content))
 
     # The Members page is only accessible to authenticated users via the @login_required decorator
     @app.route('/members')
@@ -354,7 +354,7 @@ def create_app():
 ##            {% endblock %}
 ##            """)
         content = 'Mem only'
-        return render_template('flask_user_layout.html', markup_content = content, logo = logo)
+        return render_template('flask_user_layout.html', markup_content = content)
 
     
     # The Admin page requires an 'Admin' role.
@@ -479,7 +479,7 @@ def create_app():
 ##                {% endblock %}
 ##                """)
         
-        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/get_script')
     def get_script():
@@ -599,7 +599,7 @@ def create_app():
             else:
                 content = 'Created user ' + str(request.form.get('Error'))
                 
-        return render_template('flask_user_layout.html', markup_content = Markup(content), logo = logo)
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/auth', methods=['POST'])
     def auth():
