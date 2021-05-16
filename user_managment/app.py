@@ -364,7 +364,12 @@ def create_app():
     def list_users():
         u = User.query.all()
         u_list = '''<p>&nbsp;</p><table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-                    <tbody>'''
+<tbody>
+<tr>
+<td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
+<td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
+<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
+</tr>'''
         for i in u:
             u_list = u_list + '''
 <tr>
@@ -393,21 +398,26 @@ def create_app():
             user = request.args.get('callsign')
             print(user)
             edit_user = User.query.filter(User.username == user).first()
+            content = ''
             if request.form.get('user_status') != edit_user.active:
                 if request.form.get('user_status') == "True":
                     edit_user.active = True
-                    content = '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been enabled.</p>'''
+                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been enabled.</p>\n'''
                 if request.form.get('user_status') == "False":
                     edit_user.active = False
-                    content = '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>'''
+                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
             if user != edit_user.username:
                 print(user)
                 #print(edit_user.username)
                 print('new uname')
                 edit_user.username = user
+
+            if request.form.get('password') != '':
+                edit_user.password = user_manager.hash_password(request.form.get('password'))
+                content = content + '''<p style="text-align: center;">Changed password for user: <strong>''' + str(user) + '''</strong></p>\n'''
             if request.form.get('dmr_ids') != edit_user.dmr_ids:
                 edit_user.dmr_ids = request.form.get('dmr_ids')
-                content = '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + str(user) + '''</strong></p>'''
+                content = content + '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + str(user) + '''</strong></p>\n'''
             db.session.commit()
             #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             
@@ -444,8 +454,8 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-  <label for="username">Password: DO NOT USE YET</label><br>
-  <input type="text" id="password" name="password" value="''' + u.password + '''"><br>
+  <label for="username">Password:</label><br>
+  <input type="text" id="password" name="password" value=""><br>
 </td></tr>
 
 <tr style="height: 51.1667px;">
