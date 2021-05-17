@@ -189,6 +189,11 @@ def create_app():
     def _after_user_registered_hook(sender, user, **extra):
         edit_user = User.query.filter(User.username == user.username).first()
         edit_user.dmr_ids = get_ids(user.username)
+        user_role = UserRoles(
+            user_id=edit_user.id,
+            role_id=2,
+            )
+        db.session.add(user_role)
         db.session.commit()       
         
     # The Home page is accessible to anyone
@@ -330,18 +335,6 @@ def create_app():
     @app.route('/members')
     @login_required    # User must be authenticated
     def member_page():
-        # String-based templates
-##        return render_template_string("""
-##            {% extends "flask_user_layout.html" %}
-##            {% block content %}
-##                <h2>Members page</h2>
-##                <p><a href={{ url_for('user.register') }}>Register</a></p>
-##                <p><a href={{ url_for('user.login') }}>Sign in</a></p>
-##                <p><a href={{ url_for('home_page') }}>Home page</a> (accessible to anyone)</p>
-##                <p><a href={{ url_for('member_page') }}>Member page</a> (login required)</p>
-##                <p><a href={{ url_for('user.logout') }}>Sign out</a></p>
-##            {% endblock %}
-##            """)
         content = 'Mem only'
         return render_template('flask_user_layout.html', markup_content = content)
 
@@ -414,6 +407,21 @@ def create_app():
             db.session.delete(delete_user)
             db.session.commit()
             content = '''<p style="text-align: center;">Deleted user: <strong>''' + str(delete_user.username) + '''</strong></p>\n'''
+
+        elif request.method == 'GET' and request.args.get('callsign') and request.args.get('make_user_admin') == 'true':
+            u = User.query.filter_by(username=request.args.get('callsign')).first()
+            u_role = UserRoles.query.filter_by(user_id=u.id).first()
+            u_role.role_id = 1
+            db.session.commit()
+            content = '''<p style="text-align: center;">User now Admin: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+           
+        elif request.method == 'GET' and request.args.get('callsign') and request.args.get('make_user_admin') == 'false':
+            u = User.query.filter_by(username=request.args.get('callsign')).first()
+            u_role = UserRoles.query.filter_by(user_id=u.id).first()
+            u_role.role_id = 2
+            db.session.commit()
+            content = '''<p style="text-align: center;">Admin now a user: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+
             
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
             if request.args.get('callsign'):
@@ -421,6 +429,15 @@ def create_app():
             if request.form.get('callsign'):
                 callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
+            u_role = UserRoles.query.filter_by(user_id=u.id).first()
+            if u_role.role_id == 2:
+                # Link to promote to Admin
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=true&callsign=' + str(u.username) + '''"><strong>Make Admin: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+            if u_role.role_id == 1:
+                # Link to promote to User
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><strong>Revert to user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+
+
             content = '''
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
@@ -470,6 +487,9 @@ def create_app():
 <p>&nbsp;</p>
 <p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&callsign=' + str(u.username) + '''"><strong>Deleted user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n
 <p>&nbsp;</p>
+''' + role_link + '''
+<p>&nbsp;</p>
+
 '''
         else:
             content = '''
@@ -536,7 +556,18 @@ def create_app():
 
     @app.route('/test')
     def test_peer():
-        u = User.query.filter_by(username='kf7eel').first()
+        #user = User(
+       #     username='admin3',
+       #     email_confirmed_at=datetime.datetime.utcnow(),
+       #     password=user_manager.hash_password('admin'),
+       # )
+        #user.roles.append(Role(name='Admin'))
+        #user.roles.append(Role(name='User'))
+        #user.add_roles('Admin')
+        #db.session.add(user)
+        #db.session.commit()
+        #u = User.query.filter_by(username='kf7eel').first()
+        #u = Role.query.all()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
         #u = User.query.all()
 ##        #tu = User.query().all()
@@ -571,9 +602,33 @@ def create_app():
         #db.session.commit()
         #db.session.add(u)
         #db.session.commit()
-        print(u.active)
+##        admin_role = UserRoles(
+##            user_id=3,
+##            role_id=1,
+##            )
+##        user_role = UserRoles(
+##            user_id=3,
+##            role_id=2,
+##            )
+##        db.session.add(user_role)
+##        db.session.add(admin_role)
+##        db.session.commit()
+        #print(role)
 ##        for i in u:
 ##            print(i.username)
+        u = User.query.filter_by(username='kf7eel').first()
+        print(u.id)
+        u_role = UserRoles.query.filter_by(user_id=u.id).first()
+        #if u_role.role_id == 2:
+        #    print('userhasjkdhfdsejksfdahjkdhjklhjkhjkl')
+##        print(u.has_roles('Admin'))
+        u_role.role_id = 1
+        print(u_role.user_id)
+        #u_role = UserRoles.query.filter_by(id=2).first().role_id
+        #u_role = 1
+        db.session.commit()
+        #u_role = UserRoles.query.filter_by(id=u.id).first().role_id
+        #print(u_role)
         return str(u)
 
     @app.route('/add_admin', methods=['POST', 'GET'])
