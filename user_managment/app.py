@@ -363,7 +363,7 @@ def create_app():
             u_list = u_list + '''
 <tr>
 <td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>''' + str(i.username) + '''</strong></a></td>
-<td style="width: 226.683px; text-align: center;">''' + str(i.is_active) + '''</td>
+<td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
 <td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
 </tr>
 '''+ '\n'
