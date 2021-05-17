@@ -45,7 +45,7 @@
     {% endif %}
     {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-<td style="text-align: center;"><a href={{url}}/edit_user>Find a User</a></td>
+<td style="text-align: center;"><a href={{url}}/add_user>Add a User</a></td>
     <td style="text-align: center;"><a href={{url}}/list_users>Edit Users</a></td>
             {% endif %}
 <td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>

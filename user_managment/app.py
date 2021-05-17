@@ -88,12 +88,11 @@ class ConfigClass(object):
 
     # Flask-User settings
     USER_APP_NAME = title      # Shown in and email templates and page footers
-    USER_ENABLE_EMAIL = False      # Disable email authentication
-    USER_ENABLE_USERNAME = True    # Enable username authentication
-    USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
-    USER_ENABLE_CHANGE_USERNAME = False
+    USER_EMAIL_SENDER_EMAIL = MAIL_DEFAULT_SENDER
 
 
+
+     
 # Setup Flask-User
 def create_app():
     """ Flask application factory """
@@ -120,7 +119,8 @@ def create_app():
         username = db.Column(db.String(100, collation='NOCASE'), nullable=False, unique=True)
         password = db.Column(db.String(255), nullable=False, server_default='')
         email_confirmed_at = db.Column(db.DateTime())
-
+        email = db.Column(db.String(255, collation='NOCASE'), nullable=False, unique=True)
+        
         # User information
         first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
@@ -152,6 +152,7 @@ def create_app():
     if not User.query.filter(User.username == 'admin').first():
         user = User(
             username='admin',
+            email='admin@no.reply',
             email_confirmed_at=datetime.datetime.utcnow(),
             password=user_manager.hash_password('admin'),
         )
@@ -159,30 +160,6 @@ def create_app():
         user.roles.append(Role(name='User'))
         db.session.add(user)
         db.session.commit()
-    
-##    from flask_user.forms import RegisterForm
-##    class CustomRegisterForm(RegisterForm):
-##        # Add a country field to the Register form
-##        call = StringField(('Callsign'))
-##
-##    # Customize the User profile form:
-##    from flask_user.forms import EditUserProfileForm
-##    class CustomUserProfileForm(EditUserProfileForm):
-##        # Add a country field to the UserProfile form
-##        call = StringField(('Callsign'))
-##
-##    # Customize Flask-User
-##    class CustomUserManager(UserManager):
-##
-##        def customize(self, app):
-##
-##            # Configure customized forms
-##            self.RegisterFormClass = CustomRegisterForm
-##            #self.UserProfileFormClass = CustomUserProfileForm
-##            # NB: assign:  xyz_form = XyzForm   -- the class!
-##            #   (and not:  xyz_form = XyzForm() -- the instance!)
-##        # Setup Flask-User and specify the User data-model
-    #user_manager = CustomUserManager(app, db, User)
 
     # Query radioid.net for list of DMR IDs, then add to DB
     @user_registered.connect_via(app)
@@ -268,7 +245,7 @@ def create_app():
     ##        print(user_id)
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
-            print(id_dict)
+            #print(id_dict)
             content = '\n'
             for i in id_dict.items():
                 if i[1] == '':
@@ -345,7 +322,7 @@ def create_app():
     @login_required    # User must be authenticated
     def list_users():
         u = User.query.all()
-        u_list = '''<p>&nbsp;</p><table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+        u_list = '''<p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>  <p>&nbsp;</p><table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
@@ -376,6 +353,8 @@ def create_app():
 ##            callsign = request.form.get('callsign')
 ##            u = User.query.filter_by(username=callsign).first()
 ##            content = u.dmr_ids
+        if request.method == 'POST' and request.args.get('callsign') == None:
+            content = 'Not found'
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
             user = request.args.get('callsign')
             #print(user)
@@ -387,13 +366,15 @@ def create_app():
                     content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been enabled.</p>\n'''
                 if request.form.get('user_status') == "False":
                     edit_user.active = False
-                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
-            if user != edit_user.username:
-                #print(user)
-                #print(edit_user.username)
-                #print('new uname')
-                edit_user.username = user
-
+##                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
+##            if user != edit_user.username:
+##                #print(user)
+##                #print(edit_user.username)
+##                #print('new uname')
+##                edit_user.username = user
+            if request.form.get('email') != edit_user.email:
+                edit_user.email = request.form.get('email')
+                content = content + '''<p style="text-align: center;">Changed email for user: <strong>''' + str(user) + ''' to ''' + request.form.get('email') + '''</strong></p>\n'''
             if request.form.get('password') != '':
                 edit_user.password = user_manager.hash_password(request.form.get('password'))
                 content = content + '''<p style="text-align: center;">Changed password for user: <strong>''' + str(user) + '''</strong></p>\n'''
@@ -421,21 +402,28 @@ def create_app():
             u_role.role_id = 2
             db.session.commit()
             content = '''<p style="text-align: center;">Admin now a user: <strong>''' + str(request.args.get('callsign') ) + '''</strong></p>\n'''
-
-            
+        elif request.method == 'GET' and request.args.get('callsign') and request.args.get('email_verified') == 'true':
+            edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
+            edit_user.email_confirmed_at = datetime.datetime.utcnow()
+            db.session.commit()
+            content = '''<p style="text-align: center;">Email verified for: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+                  
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
             if request.args.get('callsign'):
                 callsign = request.args.get('callsign')
             if request.form.get('callsign'):
                 callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
+            confirm_link = ''
+            if u.email_confirmed_at == None:
+                confirm_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?email_verified=true&callsign=' + str(u.username) + '''"><strong>Verify email -  <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
             u_role = UserRoles.query.filter_by(user_id=u.id).first()
             if u_role.role_id == 2:
                 # Link to promote to Admin
-                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=true&callsign=' + str(u.username) + '''"><strong>Make Admin: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=true&callsign=' + str(u.username) + '''"><strong>Give Admin role: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
             if u_role.role_id == 1:
                 # Link to promote to User
-                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><strong>Revert to user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><strong>Revert to User role: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
 
 
             content = '''
@@ -456,6 +444,12 @@ def create_app():
 <option value="False">False</option>
 </select></td></td>
 </tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Portal Email:</label><br>
+  <input type="text" id="email" name="email" value="''' + u.email + '''"><br>
+</td></tr>
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
@@ -487,6 +481,7 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 <p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&callsign=' + str(u.username) + '''"><strong>Deleted user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n
+''' + confirm_link + '''
 <p>&nbsp;</p>
 ''' + role_link + '''
 <p>&nbsp;</p>
@@ -651,12 +646,12 @@ def create_app():
         #print(u_role)
         return str(u)
 
-    @app.route('/add_admin', methods=['POST', 'GET'])
+    @app.route('/add_user', methods=['POST', 'GET'])
     @roles_required('Admin') 
     def add_admin():
         if request.method == 'GET':
             content = '''
-<td><form action="add_admin" method="POST">
+<td><form action="add_user" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>
 <tr style="height: 51.1667px;">
@@ -669,6 +664,12 @@ def create_app():
 <td style="height: 51.1667px; text-align: center;">
   <label for="username">Password:</label><br>
   <input type="password" id="password" name="password" ><br>
+</td></tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+  <label for="username">Email:</label><br>
+  <input type="text" id="email" name="email" ><br>
 </td></tr>
 
 <tr style="height: 27px;">
@@ -685,13 +686,20 @@ def create_app():
         elif request.method == 'POST' and request.form.get('username'):
             if not User.query.filter(User.username == request.form.get('username')).first():
                 user = User(
-                    username='admin',
+                    username=request.form.get('username'),
+                    email=request.form.get('email'),
                     email_confirmed_at=datetime.datetime.utcnow(),
                     password=user_manager.hash_password(request.form.get('password')),
+                    dmr_ids = get_ids(request.form.get('username'))
                 )
-                user.roles.append(Role(name='Admin'))
-                user.roles.append(Role(name='User'))
+                
                 db.session.add(user)
+                u = User.query.filter_by(username=request.form.get('username')).first()
+                user_role = UserRoles(
+                    user_id=u.id,
+                    role_id=2,
+                    )
+                db.session.add(user_role)
                 db.session.commit()
                 content = 'Created user ' + str(request.form.get('username'))
             else:

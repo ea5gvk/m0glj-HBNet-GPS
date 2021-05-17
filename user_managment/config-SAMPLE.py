@@ -24,6 +24,25 @@ append_int = 1
 
 shared_secrets = ['test']
 
+# Email settings
+MAIL_SERVER = 'smtp.gmail.com'
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USE_TLS = False
+MAIL_USERNAME = 'app@gmail.com'
+MAIL_PASSWORD = 'password'
+MAIL_DEFAULT_SENDER = '"' + title + '" <app@gmail.com>'
+
+# UMS settings
+USER_ENABLE_EMAIL = True
+USER_ENABLE_USERNAME = True    # Enable username authentication
+USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
+USER_ENABLE_CHANGE_USERNAME = False
+USER_ENABLE_MULTIPLE_EMAILS = True
+USER_ENABLE_CONFIRM_EMAIL = True
+USER_ENABLE_REGISTER = True
+USER_AUTO_LOGIN_AFTER_CONFIRM = False
+USER_SHOW_USERNAME_DOES_NOT_EXIST = True
 
 # Gateway contact info displayed on about page.
 contact_name = 'your name'
