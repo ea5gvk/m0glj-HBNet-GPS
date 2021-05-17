@@ -194,19 +194,8 @@ def create_app():
     # The Home page is accessible to anyone
     @app.route('/')
     def home_page():
-        content = Markup('<strong>The HTML String</strong>')
-        # String-based templates
-##        return render_template_string("""
-##            {% extends "flask_user_layout.html" %}
-##            {% block content %}
-##                <h2>Home page</h2>
-##                <p><a href={{ url_for('user.register') }}>Register</a></p>
-##                <p><a href={{ url_for('user.login') }}>Sign in</a></p>
-##                <p><a href={{ url_for('home_page') }}>Home page</a> (accessible to anyone)</p>
-##                <p><a href={{ url_for('member_page') }}>Member page</a> (login required)</p>
-##                <p><a href={{ url_for('user.logout') }}>Sign out</a></p>
-##            {% endblock %}
-##            """)
+        #content = Markup('<strong>The HTML String</strong>')
+
         return render_template('index.html', markup_content = content)
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
@@ -395,8 +384,8 @@ def create_app():
 ##            u = User.query.filter_by(username=callsign).first()
 ##            content = u.dmr_ids
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
-            #user = request.args.get('callsign')
-            print(user)
+            user = request.args.get('callsign')
+            #print(user)
             edit_user = User.query.filter(User.username == user).first()
             content = ''
             if request.form.get('user_status') != edit_user.active:
@@ -407,9 +396,9 @@ def create_app():
                     edit_user.active = False
                     content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
             if user != edit_user.username:
-                print(user)
+                #print(user)
                 #print(edit_user.username)
-                print('new uname')
+                #print('new uname')
                 edit_user.username = user
 
             if request.form.get('password') != '':
