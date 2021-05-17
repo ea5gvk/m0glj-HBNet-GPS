@@ -194,9 +194,9 @@ def create_app():
     # The Home page is accessible to anyone
     @app.route('/')
     def home_page():
-        #content = Markup('<strong>The HTML String</strong>')
+        #content = Markup('<strong>Index</strong>')
 
-        return render_template('index.html', markup_content = content)
+        return render_template('index.html') #, markup_content = content)
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required
