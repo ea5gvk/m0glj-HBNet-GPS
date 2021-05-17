@@ -395,7 +395,7 @@ def create_app():
 ##            u = User.query.filter_by(username=callsign).first()
 ##            content = u.dmr_ids
         if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
-            user = request.args.get('callsign')
+            #user = request.args.get('callsign')
             print(user)
             edit_user = User.query.filter(User.username == user).first()
             content = ''
@@ -420,6 +420,11 @@ def create_app():
                 content = content + '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + str(user) + '''</strong></p>\n'''
             db.session.commit()
             #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
+        elif request.method == 'GET' and request.args.get('callsign') and request.args.get('delete_user') == 'true':
+            delete_user = User.query.filter(User.username == request.args.get('callsign')).first()
+            db.session.delete(delete_user)
+            db.session.commit()
+            content = '''<p style="text-align: center;">Deleted user: <strong>''' + str(delete_user.username) + '''</strong></p>\n'''
             
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
             if request.args.get('callsign'):
@@ -474,6 +479,8 @@ def create_app():
 </tbody>
 </table>
 <p>&nbsp;</p>
+<p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&callsign=' + str(u.username) + '''"><strong>Deleted user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n
+<p>&nbsp;</p>
 '''
         else:
             content = '''
@@ -502,20 +509,7 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 '''
-        #    content = 'no found'
-##        return render_template_string("""
-##                {% extends "flask_user_layout.html" %}
-##                {% block content %}
-##                    <h2>{%trans%}Admin Page{%endtrans%}</h2>
-##                    <p><a href={{ url_for('user.register') }}>{%trans%}Register{%endtrans%}</a></p>
-##                    <p><a href={{ url_for('user.login') }}>{%trans%}Sign in{%endtrans%}</a></p>
-##                    <p><a href={{ url_for('home_page') }}>{%trans%}Home Page{%endtrans%}</a> (accessible to anyone)</p>
-##                    <p><a href={{ url_for('member_page') }}>{%trans%}Member Page{%endtrans%}</a> (login_required: member@example.com / Password1)</p>
-##                    <p><a href={{ url_for('admin_page') }}>{%trans%}Admin Page{%endtrans%}</a> (role_required: admin@example.com / Password1')</p>
-##                    <p><a href={{ url_for('user.logout') }}>{%trans%}Sign out{%endtrans%}</a></p>
-##                {% endblock %}
-##                """)
-        
+       
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/get_script')
