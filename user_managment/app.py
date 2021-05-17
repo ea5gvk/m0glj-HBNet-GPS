@@ -420,7 +420,7 @@ def create_app():
             u_role = UserRoles.query.filter_by(user_id=u.id).first()
             u_role.role_id = 2
             db.session.commit()
-            content = '''<p style="text-align: center;">Admin now a user: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+            content = '''<p style="text-align: center;">Admin now a user: <strong>''' + str(request.args.get('callsign') ) + '''</strong></p>\n'''
 
             
         elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
@@ -459,19 +459,19 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-  <label for="username">Username:</label><br>
+  <label for="username">Portal Username:</label><br>
   <input type="text" id="username" name="username" value="''' + u.username + '''"><br>
 </td></tr>
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-  <label for="username">Password:</label><br>
+  <label for="username">Portal Password:</label><br>
   <input type="text" id="password" name="password" value=""><br>
 </td></tr>
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-  <label for="username">RAW Python Dictionary of IDs:</label><br>
+  <label for="username">MMDVM Authentication Settings:</label><br>
   <input type="text" id="dmr_ids" name="dmr_ids" value="''' + str(u.dmr_ids) + '''"><br>
 </td></tr>
 
@@ -481,6 +481,7 @@ def create_app():
 </tbody>
 </table>
 </form></td>
+
 </tr>
 </tbody>
 </table>
@@ -489,6 +490,25 @@ def create_app():
 <p>&nbsp;</p>
 ''' + role_link + '''
 <p>&nbsp;</p>
+
+<h3 style="text-align: center;">&nbsp;Passphrase Authentication Method Key</h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 70.8px; text-align: center;"><strong>Calculated</strong></td>
+<td style="width: 103.45px; text-align: center;"><strong>Legacy (config)</strong></td>
+<td style="width: 77.7167px; text-align: center;"><strong>Custom</strong></td>
+</tr>
+<tr>
+<td style="text-align: center; width: 70.8px;">''</td>
+<td style="text-align: center; width: 103.45px;">0</td>
+<td style="text-align: center; width: 77.7167px;">'passphrase'</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: center;"><strong>{</strong>DMR ID<strong>:</strong> Method<strong>,</strong> 2nd DMR ID<strong>:</strong> Method<strong>}</strong></p>
+<p style="text-align: center;">Example:<br /><strong>{</strong>1234567<strong>: '',</strong> 134568<strong>: 0,</strong> 1234569<strong>: '</strong>passphr8s3<strong>'}</strong></p>
+
 
 '''
         else:
