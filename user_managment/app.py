@@ -41,13 +41,21 @@ def get_ids(callsign):
         url = "https://www.radioid.net"
         response = requests.get(url+"/api/dmr/user/?callsign=" + callsign)
         result = response.json()
+        print(result)
     #        id_list = []
         id_list = {}
+        f_name = result['results'][0]['fname']
+        l_name = result['results'][0]['surname']
+        try:
+            city = str(result['results'][0]['city'] + ', ' + result['results'][0]['state'] + ', ' + result['results'][0]['country'])
+        except:
+            city = result['results'][0]['country']
         for i in result['results']:
              id_list[i['id']] = ''
-        return str(id_list)
+        return str([id_list, f_name, l_name, city])
     except:
         return ''
+ 
 
 # Return string in NATO phonetics
 def convert_nato(string):
@@ -77,10 +85,11 @@ def convert_nato(string):
 
 # Class-based application configuration
 class ConfigClass(object):
+    from config import MAIL_SERVER, MAIL_PORT, MAIL_USE_SSL, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER, USER_ENABLE_EMAIL, USER_ENABLE_USERNAME, USER_REQUIRE_RETYPE_PASSWORD, USER_ENABLE_CHANGE_USERNAME, USER_ENABLE_MULTIPLE_EMAILS, USER_ENABLE_CONFIRM_EMAIL, USER_ENABLE_REGISTER, USER_AUTO_LOGIN_AFTER_CONFIRM, USER_SHOW_USERNAME_DOES_NOT_EXIST 
     """ Flask application config """
 
     # Flask settings
-    SECRET_KEY = 'HFJGKSDGHFJKDFSGHJGFHJ'
+    SECRET_KEY = secret_key
 
     # Flask-SQLAlchemy settings
     SQLALCHEMY_DATABASE_URI = db_location    # File-based SQL database
@@ -89,6 +98,8 @@ class ConfigClass(object):
     # Flask-User settings
     USER_APP_NAME = title      # Shown in and email templates and page footers
     USER_EMAIL_SENDER_EMAIL = MAIL_DEFAULT_SENDER
+    USER_EDIT_USER_PROFILE_TEMPLATE = 'flask_user/edit_user_profile.html'
+
 
 
 
@@ -125,6 +136,7 @@ def create_app():
         first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         dmr_ids = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        city = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         # Define the relationship to Role via UserRoles
         roles = db.relationship('Role', secondary='user_roles')
         
@@ -165,14 +177,28 @@ def create_app():
     @user_registered.connect_via(app)
     def _after_user_registered_hook(sender, user, **extra):
         edit_user = User.query.filter(User.username == user.username).first()
-        edit_user.dmr_ids = get_ids(user.username)
+        edit_user.dmr_ids = str(ast.literal_eval(get_ids(user.username))[0])
+        edit_user.first_name = str(ast.literal_eval(get_ids(user.username))[1])
+        edit_user.last_name = str(ast.literal_eval(get_ids(user.username))[2])
+        edit_user.city = str(ast.literal_eval(get_ids(user.username))[3])
         user_role = UserRoles(
             user_id=edit_user.id,
             role_id=2,
             )
         db.session.add(user_role)
+        edit_user.active = default_account_state
         db.session.commit()       
-        
+
+
+    def update_from_radioid(callsign):
+        edit_user = User.query.filter(User.username == callsign).first()
+        edit_user.dmr_ids = str(ast.literal_eval(get_ids(callsign))[0])
+        edit_user.first_name = str(ast.literal_eval(get_ids(callsign))[1])
+        edit_user.last_name = str(ast.literal_eval(get_ids(callsign))[2])
+        edit_user.city = str(ast.literal_eval(get_ids(callsign))[3])
+
+        db.session.commit()
+
     # The Home page is accessible to anyone
     @app.route('/')
     def home_page():
@@ -308,12 +334,31 @@ def create_app():
         #return str(content)
         return render_template('view_passphrase.html', markup_content = Markup(content))
 
-    # The Members page is only accessible to authenticated users via the @login_required decorator
-    @app.route('/members')
+##    # The Members page is only accessible to authenticated users via the @login_required decorator
+##    @app.route('/members')
+##    @login_required    # User must be authenticated
+##    def member_page():
+##        content = 'Mem only'
+##        return render_template('flask_user_layout.html', markup_content = content)
+    
+    @app.route('/update_ids', methods=['POST', 'GET'])
     @login_required    # User must be authenticated
-    def member_page():
-        content = 'Mem only'
-        return render_template('flask_user_layout.html', markup_content = content)
+    def update_info():
+        #print(request.args.get('callsign'))
+        #print(current_user.username)
+        if request.args.get('callsign') == current_user.username or request.args.get('callsign') and request.args.get('callsign') != current_user.username and current_user.has_roles('Admin'):
+            content = '<h3 style="text-align: center;"><strong>Updated your information.</strong></h3>'
+            update_from_radioid(request.args.get('callsign'))
+        else:
+            content = '''
+<p>Use this page to sync changes from <a href="https://www.radioid.net/">RadioID.net</a> with this system (such as a new DMR ID, name change, etc.).</p>
+<p>Updating your information from <a href="https://www.radioid.net/">RadioID.net</a> will <strong>overwrite any custom authentication passphrases</strong>, your city, and name in the database. Are you sure you want to continue?</p>
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><a href="update_ids?callsign=''' + current_user.username + '''">Yes, update my information.</a></h2>
+
+'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
 
 
 
@@ -348,6 +393,7 @@ def create_app():
     @roles_required('Admin')    # Use of @roles_required decorator
     def admin_page():
         #print(request.args.get('callsign'))
+        #print(request.args.get('callsign'))
 ##        if request.method == 'POST' and request.form.get('callsign'):
 ##            #result = request.json
 ##            callsign = request.form.get('callsign')
@@ -355,7 +401,7 @@ def create_app():
 ##            content = u.dmr_ids
         if request.method == 'POST' and request.args.get('callsign') == None:
             content = 'Not found'
-        if request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
+        elif request.method == 'POST' and request.args.get('callsign') and request.form.get('user_status'):
             user = request.args.get('callsign')
             #print(user)
             edit_user = User.query.filter(User.username == user).first()
@@ -408,7 +454,7 @@ def create_app():
             db.session.commit()
             content = '''<p style="text-align: center;">Email verified for: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
                   
-        elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'): # and request.form.get('user_status') :
+        elif request.method == 'POST' and request.form.get('callsign') and not request.form.get('user_status')  or request.method == 'GET' and request.args.get('callsign'):# and request.form.get('user_status') :
             if request.args.get('callsign'):
                 callsign = request.args.get('callsign')
             if request.form.get('callsign'):
@@ -427,6 +473,28 @@ def create_app():
 
 
             content = '''
+<p>&nbsp;</p>
+
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>First Name</strong></td>
+<td style="text-align: center;"><strong>Last Name</strong></td>
+</tr>
+<tr>
+<td>''' + u.first_name + '''</td>
+<td>''' + u.last_name + '''</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>City</strong></td>
+<td>''' + u.city + '''</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+
+<p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update user information from RadioID.net</a></strong></p>
+
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>

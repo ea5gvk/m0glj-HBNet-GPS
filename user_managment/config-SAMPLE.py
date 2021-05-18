@@ -34,6 +34,8 @@ MAIL_PASSWORD = 'password'
 MAIL_DEFAULT_SENDER = '"' + title + '" <app@gmail.com>'
 
 # UMS settings
+secret_key = 'SUPER SECRET LONG KEY'
+
 USER_ENABLE_EMAIL = True
 USER_ENABLE_USERNAME = True    # Enable username authentication
 USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
