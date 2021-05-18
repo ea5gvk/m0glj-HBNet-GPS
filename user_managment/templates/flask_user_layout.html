@@ -34,7 +34,7 @@
     <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBlink.png') }}" alt="Logo" width="300" height="144" /></p>
 <h1 style="text-align: center;">{{title}}</h1>
 <hr />
-<table style="width: 500px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
     
@@ -45,9 +45,11 @@
     {% endif %}
     {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-<td style="text-align: center;"><a href={{url}}/add_user>Add a User</a></td>
-    <td style="text-align: center;"><a href={{url}}/list_users>Edit Users</a></td>
+    <td style="text-align: center;"><a href={{url}}/add_user><strong>Add a User</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/list_users><strong>Edit Users</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/approve_users><strong>Waiting Approval</strong></a></td>
             {% endif %}
+<td style="text-align: center;"><a href={{url}}/help>Help</a></td>
 <td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>
 <td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
 <td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>

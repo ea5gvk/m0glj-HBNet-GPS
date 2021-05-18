@@ -30,7 +30,7 @@ script_links = {}
 def gen_passphrase(dmr_id):
     _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
     calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
-    print(calc_passphrase)
+##    print(calc_passphrase)
     if use_short_passphrase == True:
         return str(calc_passphrase)[-9:-1]
     elif use_short_passphrase ==False:
@@ -137,6 +137,8 @@ def create_app():
         last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         dmr_ids = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         city = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        #Used for initial approval
+        initial_admin_approved = db.Column('admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
         roles = db.relationship('Role', secondary='user_roles')
         
@@ -167,6 +169,7 @@ def create_app():
             email='admin@no.reply',
             email_confirmed_at=datetime.datetime.utcnow(),
             password=user_manager.hash_password('admin'),
+            initial_admin_approved = True
         )
         user.roles.append(Role(name='Admin'))
         user.roles.append(Role(name='User'))
@@ -186,7 +189,9 @@ def create_app():
             role_id=2,
             )
         db.session.add(user_role)
-        edit_user.active = default_account_state
+        if default_account_state == False:
+            edit_user.active = default_account_state
+            edit_user.initial_admin_approved = False
         db.session.commit()       
 
 
@@ -203,8 +208,13 @@ def create_app():
     @app.route('/')
     def home_page():
         #content = Markup('<strong>Index</strong>')
-
         return render_template('index.html') #, markup_content = content)
+    
+    @app.route('/help')
+    def help_page():
+        #content = Markup('<strong>Index</strong>')
+
+        return render_template('help.html')
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required
@@ -367,10 +377,11 @@ def create_app():
     @login_required    # User must be authenticated
     def list_users():
         u = User.query.all()
-        u_list = '''<p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>  <p>&nbsp;</p><table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+        u_list = '''<h2 style="text-align: center;"><strong>List/edit users:</strong></h2><p>&nbsp;</p><p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>  <p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
+<td style="width: 107px; text-align: center;"><strong>Name</strong></td>
 <td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
 <td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
 </tr>'''
@@ -378,6 +389,7 @@ def create_app():
             u_list = u_list + '''
 <tr>
 <td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>''' + str(i.username) + '''</strong></a></td>
+<td style="width: 226.683px; text-align: center;">''' + str(i.first_name) + ' ' + str(i.last_name) + '''</td>
 <td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
 <td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
 </tr>
@@ -387,6 +399,36 @@ def create_app():
                               <p>&nbsp;</p>'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
+    @app.route('/approve_users', methods=['POST', 'GET'])
+    @roles_required('Admin')    # Use of @roles_required decorator
+    def approve_list():
+        u = User.query.all()
+        wait_list = '''<h2 style="text-align: center;"><strong>Users waiting for approval:</strong></h2><p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
+<td style="width: 107px; text-align: center;"><strong>Name</strong></td>
+<td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
+<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
+</tr>'''
+        for i in u:
+            print(i.username)
+            print(i.initial_admin_approved)
+            if i.initial_admin_approved == False:
+                wait_list = wait_list+ '''
+<tr>
+<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''&admin_approve=true"><strong>''' + str(i.username) + '''</strong></a></td>
+<td style="width: 226.683px; text-align: center;">''' + str(i.first_name) + ' ' + str(i.last_name) + '''</td>
+<td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
+<td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
+</tr>
+'''+ '\n'
+            content = wait_list + '''</tbody>
+                              </table>
+                              <p>&nbsp;</p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+                
+
     
     # The Admin page requires an 'Admin' role.
     @app.route('/edit_user', methods=['POST', 'GET'])
@@ -448,6 +490,14 @@ def create_app():
             u_role.role_id = 2
             db.session.commit()
             content = '''<p style="text-align: center;">Admin now a user: <strong>''' + str(request.args.get('callsign') ) + '''</strong></p>\n'''
+            
+        elif request.method == 'GET' and request.args.get('callsign') and request.args.get('admin_approve') == 'true':
+            edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
+            edit_user.active = True
+            edit_user.initial_admin_approved = True
+            db.session.commit()
+            content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+            
         elif request.method == 'GET' and request.args.get('callsign') and request.args.get('email_verified') == 'true':
             edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
             edit_user.email_confirmed_at = datetime.datetime.utcnow()
@@ -652,7 +702,7 @@ def create_app():
         #u = User.query.filter_by(username='kf7eel').first()
         #u = Role.query.all()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
-        #u = User.query.all()
+        u = User.query.all()
 ##        #tu = User.query().all()
 ####        print((tu.dmr_ids))
 ####        #print(tu.dmr_ids)
@@ -699,17 +749,22 @@ def create_app():
         #print(role)
 ##        for i in u:
 ##            print(i.username)
-        u = User.query.filter_by(username='kf7eel').first()
-        print(u.id)
-        u_role = UserRoles.query.filter_by(user_id=u.id).first()
+        #u = User.query.filter_by(username='kf7eel').first()
+        #print(u.id)
+        #u_role = UserRoles.query.filter_by(user_id=u.id).first()
         #if u_role.role_id == 2:
         #    print('userhasjkdhfdsejksfdahjkdhjklhjkhjkl')
 ##        print(u.has_roles('Admin'))
-        u_role.role_id = 1
-        print(u_role.user_id)
+        #u_role.role_id = 1
+        print(u)
+        for i in u:
+            #print(i.initial_admin_approved)
+            if not i.initial_admin_approved:
+                print(i.username)
+        #    print(i)
         #u_role = UserRoles.query.filter_by(id=2).first().role_id
         #u_role = 1
-        db.session.commit()
+       # db.session.commit()
         #u_role = UserRoles.query.filter_by(id=u.id).first().role_id
         #print(u_role)
         return str(u)
