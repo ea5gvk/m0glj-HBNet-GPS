@@ -54,7 +54,7 @@ def get_ids(callsign):
              id_list[i['id']] = ''
         return str([id_list, f_name, l_name, city])
     except:
-        return ''
+        return str([{}, '', '', ''])
  
 
 # Return string in NATO phonetics
@@ -831,9 +831,9 @@ def create_app():
                     )
                 db.session.add(user_role)
                 db.session.commit()
-                content = 'Created user ' + str(request.form.get('username'))
-            else:
-                content = 'Created user ' + str(request.form.get('Error'))
+                content = '''<p style="text-align: center;">Created user: <strong>''' + str(request.form.get('username')) + '''</strong></p>\n'''
+            elif User.query.filter(User.username == request.form.get('username')).first():
+                content = 'Existing user: ' + str(request.form.get('username') + '. New user not created.')
                 
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
