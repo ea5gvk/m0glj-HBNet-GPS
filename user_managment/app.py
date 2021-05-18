@@ -41,7 +41,7 @@ def get_ids(callsign):
         url = "https://www.radioid.net"
         response = requests.get(url+"/api/dmr/user/?callsign=" + callsign)
         result = response.json()
-        print(result)
+##        print(result)
     #        id_list = []
         id_list = {}
         f_name = result['results'][0]['fname']
@@ -180,10 +180,11 @@ def create_app():
     @user_registered.connect_via(app)
     def _after_user_registered_hook(sender, user, **extra):
         edit_user = User.query.filter(User.username == user.username).first()
-        edit_user.dmr_ids = str(ast.literal_eval(get_ids(user.username))[0])
-        edit_user.first_name = str(ast.literal_eval(get_ids(user.username))[1])
-        edit_user.last_name = str(ast.literal_eval(get_ids(user.username))[2])
-        edit_user.city = str(ast.literal_eval(get_ids(user.username))[3])
+        radioid_data = ast.literal_eval(get_ids(user.username))
+        edit_user.dmr_ids = str(radioid_data[0])
+        edit_user.first_name = str(radioid_data[1])
+        edit_user.last_name = str(radioid_data[2])
+        edit_user.city = str(radioid_data[3])
         user_role = UserRoles(
             user_id=edit_user.id,
             role_id=2,
@@ -412,8 +413,8 @@ def create_app():
 <td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
 </tr>'''
         for i in u:
-            print(i.username)
-            print(i.initial_admin_approved)
+##            print(i.username)
+##            print(i.initial_admin_approved)
             if i.initial_admin_approved == False:
                 wait_list = wait_list+ '''
 <tr>
@@ -808,12 +809,18 @@ def create_app():
 '''
         elif request.method == 'POST' and request.form.get('username'):
             if not User.query.filter(User.username == request.form.get('username')).first():
+                radioid_data = ast.literal_eval(get_ids(request.form.get('username')))
                 user = User(
                     username=request.form.get('username'),
                     email=request.form.get('email'),
                     email_confirmed_at=datetime.datetime.utcnow(),
                     password=user_manager.hash_password(request.form.get('password')),
-                    dmr_ids = get_ids(request.form.get('username'))
+                    dmr_ids = str(radioid_data[0]),
+                    initial_admin_approved = True,
+                    first_name = str(radioid_data[1]),
+                    last_name = str(radioid_data[2]),
+                    city = str(radioid_data[3])
+                    
                 )
                 
                 db.session.add(user)
