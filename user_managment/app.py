@@ -7,6 +7,7 @@
 from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, user_registered, roles_required
+from werkzeug.security import check_password_hash
 from flask_login import current_user, login_user, logout_user
 from wtforms import StringField, SubmitField
 import requests
@@ -936,27 +937,44 @@ def create_app():
         hblink_req = request.json
         #print((hblink_req))
         if hblink_req['secret'] in shared_secrets:
-            if authorized_peer(hblink_req['id'])[0]:
-                if authorized_peer(hblink_req['id'])[1] == 0:
-                    response = jsonify(
-                            allow=True,
-                            mode='legacy',
-                            )
-                elif authorized_peer(hblink_req['id'])[1] == '':
-                # normal
-                    response = jsonify(
-                            allow=True,
-                            mode='normal',
-                            )
-                elif authorized_peer(hblink_req['id'])[1] != '' or authorized_peer(hblink_req['id'])[1] != 0:
-                    response = jsonify(
-                            allow=True,
-                            mode='override',
-                            value=auth_dict[hblink_req['id']]
+            if type(hblink_req['id']) == int:
+                if authorized_peer(hblink_req['id'])[0]:
+                    if authorized_peer(hblink_req['id'])[1] == 0:
+                        response = jsonify(
+                                allow=True,
+                                mode='legacy',
                                 )
-            if authorized_peer(hblink_req['id'])[0] == False:
-                response = jsonify(
-                            allow=False)
+                    elif authorized_peer(hblink_req['id'])[1] == '':
+                    # normal
+                        response = jsonify(
+                                allow=True,
+                                mode='normal',
+                                )
+                    elif authorized_peer(hblink_req['id'])[1] != '' or authorized_peer(hblink_req['id'])[1] != 0:
+                        response = jsonify(
+                                allow=True,
+                                mode='override',
+                                value=auth_dict[hblink_req['id']]
+                                    )
+                if authorized_peer(hblink_req['id'])[0] == False:
+                    response = jsonify(
+                                allow=False)
+            if not type(hblink_req['id']) == int:
+                user = hblink_req['id']
+                u = User.query.filter_by(username=user).first()
+                if not u:
+                    msg = jsonify(auth=False,
+                                          reason='User not found')
+                    response = make_response(msg, 401)
+                if u:
+                    password = user_manager.verify_password(hblink_req['password'], u.password)
+                    if password:
+                        response = jsonify(auth=True)
+                    else:
+                        msg = jsonify(auth=False,
+                                          reason='Incorrect password')
+                        response = make_response(msg, 401)
+     
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)
