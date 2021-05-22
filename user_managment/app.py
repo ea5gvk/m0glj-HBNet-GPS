@@ -4,10 +4,10 @@
 # - Using class-based configuration (instead of file-based configuration)
 # - Using string-based templates (instead of file-based templates)
 
-from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup
+from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, user_registered, roles_required
-from flask_login import current_user
+from flask_login import current_user, login_user, logout_user
 from wtforms import StringField, SubmitField
 import requests
 import base64, hashlib
@@ -23,7 +23,6 @@ try:
     from gen_script_template import gen_script
 except:
     pass
-
 
 script_links = {}
 
@@ -138,7 +137,7 @@ def create_app():
         dmr_ids = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         city = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         #Used for initial approval
-        initial_admin_approved = db.Column('admin_approved', db.Boolean(), nullable=False, server_default='1')
+        initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
         roles = db.relationship('Role', secondary='user_roles')
         
@@ -155,8 +154,95 @@ def create_app():
         user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
         role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
 
+    # Customize Flask-User
+    class CustomUserManager(UserManager):
+    # Override or extend the default login view method
+        def login_view(self):
+            """Prepare and process the login form."""
+
+            # Authenticate username/email and login authenticated users.
+
+            safe_next_url = self._get_safe_next_url('next', self.USER_AFTER_LOGIN_ENDPOINT)
+            safe_reg_next = self._get_safe_next_url('reg_next', self.USER_AFTER_REGISTER_ENDPOINT)
+
+            # Immediately redirect already logged in users
+            if self.call_or_get(current_user.is_authenticated) and self.USER_AUTO_LOGIN_AT_LOGIN:
+                return redirect(safe_next_url)
+
+            # Initialize form
+            login_form = self.LoginFormClass(request.form)  # for login.html
+            register_form = self.RegisterFormClass()  # for login_or_register.html
+            if request.method != 'POST':
+                login_form.next.data = register_form.next.data = safe_next_url
+                login_form.reg_next.data = register_form.reg_next.data = safe_reg_next
+
+            # Process valid POST
+            if request.method == 'POST' and login_form.validate():
+                # Retrieve User
+                user = None
+                user_email = None
+                if self.USER_ENABLE_USERNAME:
+                    # Find user record by username
+                    user = self.db_manager.find_user_by_username(login_form.username.data)
+                    
+                    # Find user record by email (with form.username)
+                    if not user and self.USER_ENABLE_EMAIL:
+                        user, user_email = self.db_manager.get_user_and_user_email_by_email(login_form.username.data)
+                else:
+                    # Find user by email (with form.email)
+                    user, user_email = self.db_manager.get_user_and_user_email_by_email(login_form.email.data)
+                #Add aditional message
+                if not user.initial_admin_approved:
+                        flash('<strong>You account is waiting for approval from an administrator. See <a href="/help">the Help page</a> for more information.</strong>', 'success')
+
+                if user:
+                    # Log user in
+                    safe_next_url = self.make_safe_url(login_form.next.data)
+                    return self._do_login_user(user, safe_next_url, login_form.remember_me.data)
+
+            # Render form
+            self.prepare_domain_translations()
+            template_filename = self.USER_LOGIN_AUTH0_TEMPLATE if self.USER_ENABLE_AUTH0 else self.USER_LOGIN_TEMPLATE
+            return render_template(template_filename,
+                          form=login_form,
+                          login_form=login_form,
+                          register_form=register_form)
+            
+    # Override or extend the default login view method
+##        def _do_login_user(self, user, safe_next_url, remember_me=False):
+##            # User must have been authenticated
+##            if not user: return self.unauthenticated()
+##
+##            # Check if user account has been disabled
+##            if not user.active:
+##                flash(('Your account has not been enabled.'), 'error')
+##                return redirect(url_for('user.login'))
+##
+##            # Check if user has a confirmed email address
+##            if self.USER_ENABLE_EMAIL \
+##                    and self.USER_ENABLE_CONFIRM_EMAIL \
+##                    and not current_app.user_manager.USER_ALLOW_LOGIN_WITHOUT_CONFIRMED_EMAIL \
+##                    and not self.db_manager.user_has_confirmed_email(user):
+##                url = url_for('user.resend_email_confirmation')
+##                #flash(('Your email address has not yet been confirmed. Check your email Inbox and Spam folders for the confirmation email or <a href="%(url)s">Re-send confirmation email</a>.', url=url), 'error')
+##                return redirect(url_for('user.login'))
+##                #return flash('nope', 'error')
+##             # Use Flask-Login to sign in user
+##            # print('login_user: remember_me=', remember_me)
+##            login_user(user, remember=remember_me)
+##
+##            # Send user_logged_in signal
+##            signals.user_logged_in.send(current_app._get_current_object(), user=user)
+##
+##            # Flash a system message
+##            flash(('You have signed in successfully.'), 'success')
+##
+##            # Redirect to 'next' URL
+##            return redirect(safe_next_url)
+
         
-    user_manager = UserManager(app, db, User)
+    #user_manager = UserManager(app, db, User)
+    user_manager = CustomUserManager(app, db, User)
 
 
     # Create all database tables
@@ -544,6 +630,9 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 
+<p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at) + '''</strong></p>
+
+
 <p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update user information from RadioID.net</a></strong></p>
 
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
@@ -700,10 +789,10 @@ def create_app():
         #user.add_roles('Admin')
         #db.session.add(user)
         #db.session.commit()
-        #u = User.query.filter_by(username='kf7eel').first()
+        u = User.query.filter_by(username='kf7eel').first()
         #u = Role.query.all()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
-        u = User.query.all()
+        #u = User.query.all()
 ##        #tu = User.query().all()
 ####        print((tu.dmr_ids))
 ####        #print(tu.dmr_ids)
@@ -757,18 +846,23 @@ def create_app():
         #    print('userhasjkdhfdsejksfdahjkdhjklhjkhjkl')
 ##        print(u.has_roles('Admin'))
         #u_role.role_id = 1
-        print(u)
-        for i in u:
-            #print(i.initial_admin_approved)
-            if not i.initial_admin_approved:
-                print(i.username)
+        #print(u)
+       # for i in u:
+            ##print(i.initial_admin_approved)
+            #if not i.initial_admin_approved:
+                #print(i.username)
         #    print(i)
         #u_role = UserRoles.query.filter_by(id=2).first().role_id
         #u_role = 1
        # db.session.commit()
         #u_role = UserRoles.query.filter_by(id=u.id).first().role_id
         #print(u_role)
-        return str(u)
+        #return str(u)
+        if not u.active:
+            flash('We come in peace', 'success')
+        content = 'hello'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
 
     @app.route('/add_user', methods=['POST', 'GET'])
     @roles_required('Admin') 
