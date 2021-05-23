@@ -1,8 +1,4 @@
-# This file contains an example Flask-User application.
-# To keep the example simple, we are applying some unusual techniques:
-# - Placing everything in one file
-# - Using class-based configuration (instead of file-based configuration)
-# - Using string-based templates (instead of file-based templates)
+# HBLink User Managment Server
 
 from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -26,6 +22,7 @@ except:
     pass
 
 script_links = {}
+mmdvm_logins = []
 
 def gen_passphrase(dmr_id):
     _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
@@ -208,40 +205,7 @@ def create_app():
                           form=login_form,
                           login_form=login_form,
                           register_form=register_form)
-            
-    # Override or extend the default login view method
-##        def _do_login_user(self, user, safe_next_url, remember_me=False):
-##            # User must have been authenticated
-##            if not user: return self.unauthenticated()
-##
-##            # Check if user account has been disabled
-##            if not user.active:
-##                flash(('Your account has not been enabled.'), 'error')
-##                return redirect(url_for('user.login'))
-##
-##            # Check if user has a confirmed email address
-##            if self.USER_ENABLE_EMAIL \
-##                    and self.USER_ENABLE_CONFIRM_EMAIL \
-##                    and not current_app.user_manager.USER_ALLOW_LOGIN_WITHOUT_CONFIRMED_EMAIL \
-##                    and not self.db_manager.user_has_confirmed_email(user):
-##                url = url_for('user.resend_email_confirmation')
-##                #flash(('Your email address has not yet been confirmed. Check your email Inbox and Spam folders for the confirmation email or <a href="%(url)s">Re-send confirmation email</a>.', url=url), 'error')
-##                return redirect(url_for('user.login'))
-##                #return flash('nope', 'error')
-##             # Use Flask-Login to sign in user
-##            # print('login_user: remember_me=', remember_me)
-##            login_user(user, remember=remember_me)
-##
-##            # Send user_logged_in signal
-##            signals.user_logged_in.send(current_app._get_current_object(), user=user)
-##
-##            # Flash a system message
-##            flash(('You have signed in successfully.'), 'success')
-##
-##            # Redirect to 'next' URL
-##            return redirect(safe_next_url)
-
-        
+   
     #user_manager = UserManager(app, db, User)
     user_manager = CustomUserManager(app, db, User)
 
@@ -459,6 +423,31 @@ def create_app():
 
 
 
+    @app.route('/mmdvm_log', methods=['POST', 'GET'])
+    @login_required    # User must be authenticated
+    @roles_required('Admin')
+    def mmdvm_auth_list():
+        content = '''<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>User</strong></td>
+<td style="text-align: center;"><strong>DMR ID</strong></td>
+<td style="text-align: center;"><strong>Authentication</strong></td>
+<td style="text-align: center;"><strong>Time</strong></td>
+</tr> \n'''
+        for i in mmdvm_logins:
+            print(i)
+            content = content + '''<tr>
+<td style="text-align: center;">''' + str(i[1]) + '''</td>
+<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;">Value: ''' + str(i[2]) + '''\n<br />DB: ''' + str(i[3]) + '''</td>
+<td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
+</tr> ''' + '\n'
+        content = content + '</tbody></table>'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+
+
 
     @app.route('/list_users')
     @roles_required('Admin')
@@ -488,6 +477,7 @@ def create_app():
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     @app.route('/approve_users', methods=['POST', 'GET'])
+    @login_required
     @roles_required('Admin')    # Use of @roles_required decorator
     def approve_list():
         u = User.query.all()
@@ -520,6 +510,7 @@ def create_app():
     
     # The Admin page requires an 'Admin' role.
     @app.route('/edit_user', methods=['POST', 'GET'])
+    @login_required
     @roles_required('Admin')    # Use of @roles_required decorator
     def admin_page():
         #print(request.args.get('callsign'))
@@ -745,36 +736,36 @@ def create_app():
        
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-    @app.route('/get_script')
-    def get_script():
-        dmr_id = int(request.args.get('dmr_id'))
-        number = float(request.args.get('number'))
-        #print(type(script_links[dmr_id]))
-        u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
-        #print(u.dmr_ids)
-
-        if authorized_peer(dmr_id)[1] == '':
-            passphrase = gen_passphrase(dmr_id)
-        elif authorized_peer(dmr_id)[1] == 0:
-            passphrase = legacy_passphrase
-        elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
-            passphrase = authorized_peer(dmr_id)[1]
-        #try:
-        if dmr_id in script_links and number == float(script_links[dmr_id]):
-            script_links.pop(dmr_id)
-            return str(gen_script(dmr_id, passphrase))
-        #except:
-            #else:
-            #content = '<strong>Link used or other error.</strong>'
-            #return content
-            #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
+##    @app.route('/get_script')
+##    def get_script():
+##        dmr_id = int(request.args.get('dmr_id'))
+##        number = float(request.args.get('number'))
+##        #print(type(script_links[dmr_id]))
+##        u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
+##        #print(u.dmr_ids)
+##
+##        if authorized_peer(dmr_id)[1] == '':
+##            passphrase = gen_passphrase(dmr_id)
+##        elif authorized_peer(dmr_id)[1] == 0:
+##            passphrase = legacy_passphrase
+##        elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
+##            passphrase = authorized_peer(dmr_id)[1]
+##        #try:
+##        if dmr_id in script_links and number == float(script_links[dmr_id]):
+##            script_links.pop(dmr_id)
+##            return str(gen_script(dmr_id, passphrase))
+##        #except:
+##            #else:
+##            #content = '<strong>Link used or other error.</strong>'
+##            #return content
+##            #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
         
 
     def authorized_peer(peer_id):
         try:
             u = User.query.filter(User.dmr_ids.contains(str(peer_id))).first()
             login_passphrase = ast.literal_eval(u.dmr_ids)
-            return [u.is_active, login_passphrase[peer_id]]
+            return [u.is_active, login_passphrase[peer_id], str(u.username)]
         except:
             return [False]
 
@@ -866,6 +857,7 @@ def create_app():
     
 
     @app.route('/add_user', methods=['POST', 'GET'])
+    @login_required
     @roles_required('Admin') 
     def add_admin():
         if request.method == 'GET':
@@ -940,23 +932,28 @@ def create_app():
             if type(hblink_req['id']) == int:
                 if authorized_peer(hblink_req['id'])[0]:
                     if authorized_peer(hblink_req['id'])[1] == 0:
+                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Legacy', time.time()])
                         response = jsonify(
                                 allow=True,
                                 mode='legacy',
                                 )
                     elif authorized_peer(hblink_req['id'])[1] == '':
                     # normal
+                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Calculated', time.time()])
                         response = jsonify(
                                 allow=True,
                                 mode='normal',
                                 )
                     elif authorized_peer(hblink_req['id'])[1] != '' or authorized_peer(hblink_req['id'])[1] != 0:
+                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Custom', time.time()])
+                        print(authorized_peer(hblink_req['id']))
                         response = jsonify(
                                 allow=True,
                                 mode='override',
-                                value=auth_dict[hblink_req['id']]
+                                value=authorized_peer(hblink_req['id'])[1]
                                     )
                 if authorized_peer(hblink_req['id'])[0] == False:
+                    mmdvm_logins.append([hblink_req['id'], 'Not registered', 'None', 'Not authorized', time.time()])
                     response = jsonify(
                                 allow=False)
             if not type(hblink_req['id']) == int:
@@ -984,7 +981,7 @@ def create_app():
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)
-            
+        print(hblink_req)
         return response
 
 
