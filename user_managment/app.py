@@ -962,14 +962,20 @@ def create_app():
             if not type(hblink_req['id']) == int:
                 user = hblink_req['id']
                 u = User.query.filter_by(username=user).first()
+                
                 if not u:
                     msg = jsonify(auth=False,
                                           reason='User not found')
                     response = make_response(msg, 401)
                 if u:
+                    u_role = UserRoles.query.filter_by(user_id=u.id).first()
                     password = user_manager.verify_password(hblink_req['password'], u.password)
+                    if u_role.role_id == 2:
+                        role = 'user'
+                    if u_role.role_id == 1:
+                        role = 'admin'
                     if password:
-                        response = jsonify(auth=True)
+                        response = jsonify(auth=True, role=role)
                     else:
                         msg = jsonify(auth=False,
                                           reason='Incorrect password')
