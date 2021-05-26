@@ -736,29 +736,29 @@ def create_app():
        
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-##    @app.route('/get_script')
-##    def get_script():
-##        dmr_id = int(request.args.get('dmr_id'))
-##        number = float(request.args.get('number'))
-##        #print(type(script_links[dmr_id]))
-##        u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
-##        #print(u.dmr_ids)
-##
-##        if authorized_peer(dmr_id)[1] == '':
-##            passphrase = gen_passphrase(dmr_id)
-##        elif authorized_peer(dmr_id)[1] == 0:
-##            passphrase = legacy_passphrase
-##        elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
-##            passphrase = authorized_peer(dmr_id)[1]
-##        #try:
-##        if dmr_id in script_links and number == float(script_links[dmr_id]):
-##            script_links.pop(dmr_id)
-##            return str(gen_script(dmr_id, passphrase))
-##        #except:
-##            #else:
-##            #content = '<strong>Link used or other error.</strong>'
-##            #return content
-##            #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
+    @app.route('/get_script')
+    def get_script():
+        dmr_id = int(request.args.get('dmr_id'))
+        number = float(request.args.get('number'))
+        #print(type(script_links[dmr_id]))
+        u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
+        #print(u.dmr_ids)
+
+        if authorized_peer(dmr_id)[1] == '':
+            passphrase = gen_passphrase(dmr_id)
+        elif authorized_peer(dmr_id)[1] == 0:
+            passphrase = legacy_passphrase
+        elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
+            passphrase = authorized_peer(dmr_id)[1]
+        #try:
+        if dmr_id in script_links and number == float(script_links[dmr_id]):
+            script_links.pop(dmr_id)
+            return str(gen_script(dmr_id, passphrase))
+        #except:
+            #else:
+            #content = '<strong>Link used or other error.</strong>'
+            #return content
+            #return render_template('flask_user_layout.html', markup_content = content, logo = logo)
         
 
     def authorized_peer(peer_id):
