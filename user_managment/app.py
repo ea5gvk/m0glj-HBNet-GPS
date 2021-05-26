@@ -16,6 +16,8 @@ import datetime, time
 from flask_babelex import Babel
 import libscrc
 import random
+from flask_mail import Message, Mail
+
 try:
     from gen_script_template import gen_script
 except:
@@ -106,6 +108,7 @@ def create_app():
     """ Flask application factory """
     
     # Create Flask app load app.config
+    mail = Mail()
     app = Flask(__name__)
     app.config.from_object(__name__+'.ConfigClass')
 
@@ -427,7 +430,10 @@ def create_app():
     @login_required    # User must be authenticated
     @roles_required('Admin')
     def mmdvm_auth_list():
-        content = '''<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+        display_number = 200
+        content = '''
+<p style="text-align: center;"><strong>Last ''' + str(display_number) + ''' logins or attempts.</strong></p>
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="text-align: center;"><strong>User</strong></td>
@@ -437,17 +443,52 @@ def create_app():
 </tr> \n'''
         for i in mmdvm_logins:
             print(i)
-            content = content + '''<tr>
+            if display_number == 0:
+                break
+            else:
+                content = content + '''<tr>
 <td style="text-align: center;">''' + str(i[1]) + '''</td>
 <td style="text-align: center;">''' + str(i[0]) + '''</td>
 <td style="text-align: center;">Value: ''' + str(i[2]) + '''\n<br />DB: ''' + str(i[3]) + '''</td>
 <td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
 </tr> ''' + '\n'
+                display_number = display_number - 1
         content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
 
+
+    @app.route('/email_user', methods=['POST', 'GET'])
+    @roles_required('Admin')
+    @login_required    # User must be authenticated
+    def email_user():
+        
+        if request.method == 'GET' and request.args.get('callsign'):
+            content = '''
+<h2 style="text-align: center;">Send email to user: ''' + request.args.get('callsign') + '''</h2>
+<table style="margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><form action="/email_user?callsign=''' + request.args.get('callsign') + '''" method="POST">
+<p><strong><label for="fname"><br />Subject<br /></label></strong><br /> <input id="subject" name="subject" type="text" /><br /><br /><strong> <label for="message">Message<br /></label></strong><br /><textarea cols="40" name="message" rows="5"></textarea><br /><br /> <input type="submit" value="Submit" /></p>
+</form></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>'''
+        elif request.method == 'POST': # and request.form.get('callsign') and request.form.get('subject') and request.form.get('message'):
+            u = User.query.filter_by(username=request.args.get('callsign')).first()
+            msg = Message(recipients=[u.email],
+                          subject=request.form.get('subject'),
+                          body=request.form.get('message'))
+            mail.send(msg)
+            content = '<p style="text-align: center;"><strong>Sent email to: ' + u.email + '</strong></p>'
+        else:
+            content = '''<p style="text-align: center;"><strong>Find user in "List Users", then click on the email link.'</strong></p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        
+        
 
     @app.route('/list_users')
     @roles_required('Admin')
@@ -575,6 +616,10 @@ def create_app():
             edit_user.active = True
             edit_user.initial_admin_approved = True
             db.session.commit()
+            msg = Message(recipients=[edit_user.email],
+                          subject='Account Approval - ' + title,
+                          body='''You are receiving this message because an administrator has approved your account. You may now login and view your MMDVM passphrase(s).''')
+            mail.send(msg)
             content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
             
         elif request.method == 'GET' and request.args.get('callsign') and request.args.get('email_verified') == 'true':
@@ -626,6 +671,9 @@ def create_app():
 
 
 <p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update user information from RadioID.net</a></strong></p>
+
+
+<p style="text-align: center;"><strong><a href="email_user?callsign=''' + u.username + '''">Send user an email</a></strong></p>
 
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
