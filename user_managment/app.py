@@ -194,7 +194,7 @@ def create_app():
                     user, user_email = self.db_manager.get_user_and_user_email_by_email(login_form.email.data)
                 #Add aditional message
                 if not user.initial_admin_approved:
-                        flash('<strong>You account is waiting for approval from an administrator. See <a href="/help">the Help page</a> for more information.</strong>', 'success')
+                        flash('<strong>You account is waiting for approval from an administrator. See <a href="/help">the Help page</a> for more information. You will receive an email when your account is approved.</strong>', 'success')
 
                 if user:
                     # Log user in
@@ -441,6 +441,7 @@ def create_app():
 <td style="text-align: center;"><strong>Authentication</strong></td>
 <td style="text-align: center;"><strong>Time</strong></td>
 </tr> \n'''
+        mmdvm_logins.reverse()
         for i in mmdvm_logins:
             print(i)
             if display_number == 0:
@@ -453,6 +454,7 @@ def create_app():
 <td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
 </tr> ''' + '\n'
                 display_number = display_number - 1
+        mmdvm_logins.reverse()
         content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
