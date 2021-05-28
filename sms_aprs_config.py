@@ -109,6 +109,8 @@ def build_config(_config_file):
     CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
+    CONFIG['PROXY_TEMPLATE'] = {}
+
 
     try:
         for section in config.sections():
@@ -195,6 +197,25 @@ def build_config(_config_file):
                     'PEER_URL': config.get(section, 'PEER_URL'),
                     'SUBSCRIBER_URL': config.get(section, 'SUBSCRIBER_URL'),
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
+                })
+
+            elif section == 'PROXY_TEMPLATE':
+                CONFIG['PROXY_TEMPLATE'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'REPEAT': config.getboolean(section, 'REPEAT'),
+                    'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+                    'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+                    'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
+                    'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+                    'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+                    'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+                    'USE_ACL': config.getboolean(section, 'USE_ACL'),
+                    'REG_ACL': config.get(section, 'REG_ACL'),
+                    'SUB_ACL': config.get(section, 'SUB_ACL'),
+                    'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
+                    'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+                    
+
                 })
 
             elif config.getboolean(section, 'ENABLED'):

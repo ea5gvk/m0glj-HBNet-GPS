@@ -2813,11 +2813,6 @@ if __name__ == '__main__':
     # Build the routing rules file
     BRIDGES = make_bridges(rules_module.BRIDGES)
     exclude = rules_module.EXCLUDE_FROM_UNIT
-    
-    # Get rule parameter for private calls
-    #UNIT = rules_module.UNIT
-    UNIT = build_unit(CONFIG)
-    UNIT_MAP = build_unit_map(CONFIG)
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -2828,12 +2823,66 @@ if __name__ == '__main__':
 
     # HBlink instance creation
     logger.info('(GLOBAL) HBlink \'bridge.py\' -- SYSTEM STARTING...')
+    # Generates a series of MASTER instances for use with hotspot proxy from FreeDMR
+    def generate_proxy_masters():
+        n_systems = CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_STOP'] - CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START']
+        n_count = 0
+        while n_count < n_systems:
+
+            CONFIG['SYSTEMS'].update({'MMDVM-' + str(n_count): {
+            'MODE': 'MASTER',
+            'ENABLED': True,
+            'STATIC_APRS_POSITION_ENABLED': CONFIG['PROXY_TEMPLATE']['STATIC_APRS_POSITION_ENABLED'],
+            'REPEAT': CONFIG['PROXY_TEMPLATE']['REPEAT'],
+            'MAX_PEERS': 1,
+            'IP': '127.0.0.1',
+            'PORT': CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START'] + n_count,
+            'PASSPHRASE': CONFIG['PROXY_TEMPLATE']['PASSPHRASE'],
+            'GROUP_HANGTIME': CONFIG['PROXY_TEMPLATE']['GROUP_HANGTIME'],
+            'USE_ACL': CONFIG['PROXY_TEMPLATE']['USE_ACL'],
+            'REG_ACL': CONFIG['PROXY_TEMPLATE']['REG_ACL'],
+            'SUB_ACL': CONFIG['PROXY_TEMPLATE']['SUB_ACL'],
+            'TG1_ACL': CONFIG['PROXY_TEMPLATE']['TG1_ACL'],
+            'TG2_ACL': CONFIG['PROXY_TEMPLATE']['TG2_ACL']
+            }})
+            CONFIG['SYSTEMS']['MMDVM-' + str(n_count)].update({'PEERS': {}})
+            systems['MMDVM-' + str(n_count)] = routerHBP(system, CONFIG, report_server)
+            n_count = n_count + 1
+
+    if CONFIG['PROXY_TEMPLATE']['ENABLED']:
+        #generate_proxy_masters()
+        n_systems = CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_STOP'] - CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START']
+        n_count = 0
+        while n_count < n_systems:
+
+            CONFIG['SYSTEMS'].update({'MMDVM-' + str(n_count): {
+            'MODE': 'MASTER',
+            'ENABLED': True,
+            'STATIC_APRS_POSITION_ENABLED': CONFIG['PROXY_TEMPLATE']['STATIC_APRS_POSITION_ENABLED'],
+            'REPEAT': CONFIG['PROXY_TEMPLATE']['REPEAT'],
+            'MAX_PEERS': 1,
+            'IP': '127.0.0.1',
+            'PORT': CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START'] + n_count,
+            'PASSPHRASE': CONFIG['PROXY_TEMPLATE']['PASSPHRASE'],
+            'GROUP_HANGTIME': CONFIG['PROXY_TEMPLATE']['GROUP_HANGTIME'],
+            'USE_ACL': CONFIG['PROXY_TEMPLATE']['USE_ACL'],
+            'REG_ACL': CONFIG['PROXY_TEMPLATE']['REG_ACL'],
+            'SUB_ACL': CONFIG['PROXY_TEMPLATE']['SUB_ACL'],
+            'TG1_ACL': CONFIG['PROXY_TEMPLATE']['TG1_ACL'],
+            'TG2_ACL': CONFIG['PROXY_TEMPLATE']['TG2_ACL']
+            }})
+            CONFIG['SYSTEMS']['MMDVM-' + str(n_count)].update({'PEERS': {}})
+            systems['MMDVM-' + str(n_count)] = routerHBP('MMDVM-' + str(n_count), CONFIG, report_server)
+            n_count = n_count + 1
+        
     for system in CONFIG['SYSTEMS']:
+        print((CONFIG['SYSTEMS']))
         if CONFIG['SYSTEMS'][system]['ENABLED']:
             if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
                 systems[system] = routerOBP(system, CONFIG, report_server)
             else:
                 systems[system] = routerHBP(system, CONFIG, report_server)
+                
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
             logger.info(systems)
@@ -2841,6 +2890,12 @@ if __name__ == '__main__':
     def loopingErrHandle(failure):
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
         reactor.stop()
+
+        
+    # Get rule parameter for private calls
+    #UNIT = rules_module.UNIT
+    UNIT = build_unit(CONFIG)
+    UNIT_MAP = build_unit_map(CONFIG)
 
     # Initialize the rule timer -- this if for user activated stuff
     rule_timer_task = task.LoopingCall(rule_timer_loop)
