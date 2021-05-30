@@ -106,6 +106,9 @@ import requests
 import json
 import hashlib
 
+# Hotspot Proxy stuff
+from hotspot_proxy_v2 import Proxy
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS, Eric Craw, KF7EEL'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
@@ -957,6 +960,51 @@ def aprs_beacon_send():
     beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT']
     aprs_send(beacon_packet)
     logger.info(beacon_packet)
+
+def hotspot_proxy(listen_port, port_start, port_stop):
+    Master = "127.0.0.1"
+    ListenPort = listen_port
+    DestportStart = port_start
+    DestPortEnd = port_stop
+    Timeout = 30
+    Stats = True
+    Debug = True
+    BlackList = [1234567]
+    
+   
+    CONNTRACK = {}
+
+    for port in range(DestportStart,DestPortEnd+1,1):
+        CONNTRACK[port] = False
+    
+
+    reactor.listenUDP(ListenPort,Proxy(Master,ListenPort,CONNTRACK,BlackList,Timeout,Debug,DestportStart,DestPortEnd))
+
+    def loopingErrHandle(failure):
+        print('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error innowtimed loop.\n {}'.format(failure))
+        reactor.stop()
+        
+    def stats():        
+        count = 0
+        nowtime = time()
+        for port in CONNTRACK:
+            if CONNTRACK[port]:
+                count = count+1
+                
+        totalPorts = DestPortEnd - DestportStart
+        freePorts = totalPorts - count
+        
+        print("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
+
+
+        
+    if Stats == True:
+        stats_task = task.LoopingCall(stats)
+        statsa = stats_task.start(30)
+        statsa.addErrback(loopingErrHandle)
+    #reactor.run()
+
+
     
 ### APRS Static positions - by IU7IGU
 ##def sendAprs():
@@ -2824,30 +2872,30 @@ if __name__ == '__main__':
     # HBlink instance creation
     logger.info('(GLOBAL) HBlink \'bridge.py\' -- SYSTEM STARTING...')
     # Generates a series of MASTER instances for use with hotspot proxy from FreeDMR
-    def generate_proxy_masters():
-        n_systems = CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_STOP'] - CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START']
-        n_count = 0
-        while n_count < n_systems:
-
-            CONFIG['SYSTEMS'].update({'MMDVM-' + str(n_count): {
-            'MODE': 'MASTER',
-            'ENABLED': True,
-            'STATIC_APRS_POSITION_ENABLED': CONFIG['PROXY_TEMPLATE']['STATIC_APRS_POSITION_ENABLED'],
-            'REPEAT': CONFIG['PROXY_TEMPLATE']['REPEAT'],
-            'MAX_PEERS': 1,
-            'IP': '127.0.0.1',
-            'PORT': CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START'] + n_count,
-            'PASSPHRASE': CONFIG['PROXY_TEMPLATE']['PASSPHRASE'],
-            'GROUP_HANGTIME': CONFIG['PROXY_TEMPLATE']['GROUP_HANGTIME'],
-            'USE_ACL': CONFIG['PROXY_TEMPLATE']['USE_ACL'],
-            'REG_ACL': CONFIG['PROXY_TEMPLATE']['REG_ACL'],
-            'SUB_ACL': CONFIG['PROXY_TEMPLATE']['SUB_ACL'],
-            'TG1_ACL': CONFIG['PROXY_TEMPLATE']['TG1_ACL'],
-            'TG2_ACL': CONFIG['PROXY_TEMPLATE']['TG2_ACL']
-            }})
-            CONFIG['SYSTEMS']['MMDVM-' + str(n_count)].update({'PEERS': {}})
-            systems['MMDVM-' + str(n_count)] = routerHBP(system, CONFIG, report_server)
-            n_count = n_count + 1
+##    def generate_proxy_masters():
+##        n_systems = CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_STOP'] - CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START']
+##        n_count = 0
+##        while n_count < n_systems:
+##
+##            CONFIG['SYSTEMS'].update({'MMDVM-' + str(n_count): {
+##            'MODE': 'MASTER',
+##            'ENABLED': True,
+##            'STATIC_APRS_POSITION_ENABLED': CONFIG['PROXY_TEMPLATE']['STATIC_APRS_POSITION_ENABLED'],
+##            'REPEAT': CONFIG['PROXY_TEMPLATE']['REPEAT'],
+##            'MAX_PEERS': 1,
+##            'IP': '127.0.0.1',
+##            'PORT': CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START'] + n_count,
+##            'PASSPHRASE': CONFIG['PROXY_TEMPLATE']['PASSPHRASE'],
+##            'GROUP_HANGTIME': CONFIG['PROXY_TEMPLATE']['GROUP_HANGTIME'],
+##            'USE_ACL': CONFIG['PROXY_TEMPLATE']['USE_ACL'],
+##            'REG_ACL': CONFIG['PROXY_TEMPLATE']['REG_ACL'],
+##            'SUB_ACL': CONFIG['PROXY_TEMPLATE']['SUB_ACL'],
+##            'TG1_ACL': CONFIG['PROXY_TEMPLATE']['TG1_ACL'],
+##            'TG2_ACL': CONFIG['PROXY_TEMPLATE']['TG2_ACL']
+##            }})
+##            CONFIG['SYSTEMS']['MMDVM-' + str(n_count)].update({'PEERS': {}})
+##            systems['MMDVM-' + str(n_count)] = routerHBP(system, CONFIG, report_server)
+##            n_count = n_count + 1
 
     if CONFIG['PROXY_TEMPLATE']['ENABLED']:
         #generate_proxy_masters()
@@ -2855,7 +2903,7 @@ if __name__ == '__main__':
         n_count = 0
         while n_count < n_systems:
 
-            CONFIG['SYSTEMS'].update({'MMDVM-' + str(n_count): {
+            CONFIG['SYSTEMS'].update({CONFIG['PROXY_TEMPLATE']['NAME'] + '-' + str(n_count): {
             'MODE': 'MASTER',
             'ENABLED': True,
             'STATIC_APRS_POSITION_ENABLED': CONFIG['PROXY_TEMPLATE']['STATIC_APRS_POSITION_ENABLED'],
@@ -2866,13 +2914,13 @@ if __name__ == '__main__':
             'PASSPHRASE': CONFIG['PROXY_TEMPLATE']['PASSPHRASE'],
             'GROUP_HANGTIME': CONFIG['PROXY_TEMPLATE']['GROUP_HANGTIME'],
             'USE_ACL': CONFIG['PROXY_TEMPLATE']['USE_ACL'],
-            'REG_ACL': CONFIG['PROXY_TEMPLATE']['REG_ACL'],
+            'REG_ACL': sms_aprs_config.acl_build(CONFIG['PROXY_TEMPLATE']['REG_ACL'], 4294967295),
             'SUB_ACL': CONFIG['PROXY_TEMPLATE']['SUB_ACL'],
-            'TG1_ACL': CONFIG['PROXY_TEMPLATE']['TG1_ACL'],
-            'TG2_ACL': CONFIG['PROXY_TEMPLATE']['TG2_ACL']
+            'TGID_TS1_ACL': CONFIG['PROXY_TEMPLATE']['TGID_TS1_ACL'],
+            'TGID_TS2_ACL': CONFIG['PROXY_TEMPLATE']['TGID_TS2_ACL']
             }})
-            CONFIG['SYSTEMS']['MMDVM-' + str(n_count)].update({'PEERS': {}})
-            systems['MMDVM-' + str(n_count)] = routerHBP('MMDVM-' + str(n_count), CONFIG, report_server)
+            CONFIG['SYSTEMS'][CONFIG['PROXY_TEMPLATE']['NAME'] + '-' + str(n_count)].update({'PEERS': {}})
+            systems[CONFIG['PROXY_TEMPLATE']['NAME'] + '-' + str(n_count)] = routerHBP(CONFIG['PROXY_TEMPLATE']['NAME'] + '-' + str(n_count), CONFIG, report_server)
             n_count = n_count + 1
         
     for system in CONFIG['SYSTEMS']:
@@ -2918,5 +2966,10 @@ if __name__ == '__main__':
         aprs_thread.start()
         # Create file for static positions - by IU7IGU
 ##        open("nom_aprs","w").close
+   # if CONFIG['PROXY_TEMPLATE']['ENABLED']:
+   #     proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_TEMPLATE']['EXTERNAL_PORT'],CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_START'],CONFIG['PROXY_TEMPLATE']['INTERNAL_PORT_STOP'],))
+   #     proxy_thread.daemon = True
+   #     proxy_thread.start()
+        
     logger.info('Unit calls will be bridged to: ' + str(UNIT))
     reactor.run()

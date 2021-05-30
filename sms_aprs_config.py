@@ -64,6 +64,7 @@ def process_acls(_config):
 # ORIGINAL:  'DENY:1-5,3120101,3120124'
 # PROCESSED: (False, set([(1, 5), (3120124, 3120124), (3120101, 3120101)]))
 def acl_build(_acl, _max):
+    #print(_max)
     if not _acl:
         return(True, set((const.ID_MIN, _max)))
 
@@ -202,6 +203,7 @@ def build_config(_config_file):
             elif section == 'PROXY_TEMPLATE':
                 CONFIG['PROXY_TEMPLATE'].update({
                     'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'NAME': config.get(section, 'NAME'),
                     'REPEAT': config.getboolean(section, 'REPEAT'),
                     'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
                     'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
@@ -212,11 +214,26 @@ def build_config(_config_file):
                     'USE_ACL': config.getboolean(section, 'USE_ACL'),
                     'REG_ACL': config.get(section, 'REG_ACL'),
                     'SUB_ACL': config.get(section, 'SUB_ACL'),
-                    'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
-                    'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
-                    
-
+                    'TGID_TS1_ACL': config.get(section, 'TGID_TS1_ACL'),
+                    'TGID_TS2_ACL': config.get(section, 'TGID_TS2_ACL')
                 })
+##            elif section == 'PROXY_TEMPLATE_2':
+##                CONFIG['PROXY_TEMPLATE'].update({
+##                    'ENABLED': config.getboolean(section, 'ENABLED'),
+##                    'NAME': config.get(section, 'NAME'),
+##                    'REPEAT': config.getboolean(section, 'REPEAT'),
+##                    'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+##                    'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+##                    'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
+##                    'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+##                    'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+##                    'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+##                    'USE_ACL': config.getboolean(section, 'USE_ACL'),
+##                    'REG_ACL': config.get(section, 'REG_ACL'),
+##                    'SUB_ACL': config.get(section, 'SUB_ACL'),
+##                    'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
+##                    'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+##                })
 
             elif config.getboolean(section, 'ENABLED'):
                 if config.get(section, 'MODE') == 'PEER':
@@ -328,6 +345,25 @@ def build_config(_config_file):
                         'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
                     }})
                     CONFIG['SYSTEMS'][section].update({'PEERS': {}})
+                    
+##                 elif config.get(section, 'MODE') == 'PROXY':
+##                    CONFIG['SYSTEMS'].update({section: {
+##                        'MODE': 'MASTER',
+##                        'ENABLED': True,
+##                        'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+##                        'REPEAT': config.getboolean(section, 'REPEAT'),
+##                        'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
+##                        'IP': gethostbyname(config.get(section, 'IP')),
+##                        'PORT': config.getint(section, 'PORT'),
+##                        'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+##                        'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+##                        'USE_ACL': config.getboolean(section, 'USE_ACL'),
+##                        'REG_ACL': config.get(section, 'REG_ACL'),
+##                        'SUB_ACL': config.get(section, 'SUB_ACL'),
+##                        'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
+##                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+##                    }})
+##                    CONFIG['SYSTEMS'][section].update({'PEERS': {}})
                     
                 elif config.get(section, 'MODE') == 'OPENBRIDGE':
                     CONFIG['SYSTEMS'].update({section: {

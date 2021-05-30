@@ -68,6 +68,7 @@ class Proxy(DatagramProtocol):
         #If the packet comes from the master
         if host == self.master:
             _command = data[:4]
+            print(data)
             
             if _command == DMRD:
                 _peer_id = data[11:15]
@@ -161,8 +162,8 @@ if __name__ == '__main__':
     
     Master = "127.0.0.1"
     ListenPort = 62031
-    DestportStart = 54000
-    DestPortEnd = 54002
+    DestportStart = 54100
+    DestPortEnd = 54102
     Timeout = 30
     Stats = True
     Debug = True

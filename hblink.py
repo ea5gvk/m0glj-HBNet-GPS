@@ -94,7 +94,11 @@ def hblink_handler(_signal, _frame):
 # on matching and the action specified.
 def acl_check(_id, _acl):
     id = int_id(_id)
+    print(type(_acl))
     for entry in _acl[1]:
+        print(id)
+        print(entry)
+        #print(entry[1])
         if entry[0] <= id <= entry[1]:
             return _acl[0]
     return not _acl[0]
