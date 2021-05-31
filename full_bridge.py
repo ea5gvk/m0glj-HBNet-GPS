@@ -2992,18 +2992,22 @@ if __name__ == '__main__':
         aprs_thread.start()
         # Create file for static positions - by IU7IGU
 ##        open("nom_aprs","w").close
+    
     if CONFIG['PROXY_A']['ENABLED']:
-        proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_A']['EXTERNAL_PORT'],CONFIG['PROXY_A']['INTERNAL_PORT_START'],CONFIG['PROXY_A']['INTERNAL_PORT_STOP'],))
-        proxy_thread.daemon = True
-        proxy_thread.start()
+        if not CONFIG['PROXY_A']['USE_EXTERNAL_PROXY']:
+            proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_A']['EXTERNAL_PORT'],CONFIG['PROXY_A']['INTERNAL_PORT_START'],CONFIG['PROXY_A']['INTERNAL_PORT_STOP'],))
+            proxy_thread.daemon = True
+            proxy_thread.start()
     if CONFIG['PROXY_B']['ENABLED']:
-        proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_B']['EXTERNAL_PORT'],CONFIG['PROXY_B']['INTERNAL_PORT_START'],CONFIG['PROXY_B']['INTERNAL_PORT_STOP'],))
-        proxy_thread.daemon = True
-        proxy_thread.start()
+        if not CONFIG['PROXY_B']['USE_EXTERNAL_PROXY']:
+            proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_B']['EXTERNAL_PORT'],CONFIG['PROXY_B']['INTERNAL_PORT_START'],CONFIG['PROXY_B']['INTERNAL_PORT_STOP'],))
+            proxy_thread.daemon = True
+            proxy_thread.start()
     if CONFIG['PROXY_C']['ENABLED']:
-        proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_C']['EXTERNAL_PORT'],CONFIG['PROXY_C']['INTERNAL_PORT_START'],CONFIG['PROXY_C']['INTERNAL_PORT_STOP'],))
-        proxy_thread.daemon = True
-        proxy_thread.start()
+        if not CONFIG['PROXY_C']['USE_EXTERNAL_PROXY']:
+            proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['PROXY_C']['EXTERNAL_PORT'],CONFIG['PROXY_C']['INTERNAL_PORT_START'],CONFIG['PROXY_C']['INTERNAL_PORT_STOP'],))
+            proxy_thread.daemon = True
+            proxy_thread.start()
         
     logger.info('Unit calls will be bridged to: ' + str(UNIT))
     reactor.run()

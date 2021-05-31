@@ -204,6 +204,7 @@ def build_config(_config_file):
             elif section == 'PROXY_A':
                 CONFIG['PROXY_A'].update({
                     'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'USE_EXTERNAL_PROXY': config.getboolean(section, 'USE_EXTERNAL_PROXY'),
                     'NAME': config.get(section, 'NAME'),
                     'REPEAT': config.getboolean(section, 'REPEAT'),
                     'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
@@ -221,6 +222,7 @@ def build_config(_config_file):
             elif section == 'PROXY_B':
                 CONFIG['PROXY_B'].update({
                     'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'USE_EXTERNAL_PROXY': config.getboolean(section, 'USE_EXTERNAL_PROXY'),
                     'NAME': config.get(section, 'NAME'),
                     'REPEAT': config.getboolean(section, 'REPEAT'),
                     'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
@@ -238,6 +240,7 @@ def build_config(_config_file):
             elif section == 'PROXY_C':
                 CONFIG['PROXY_C'].update({
                     'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'USE_EXTERNAL_PROXY': config.getboolean(section, 'USE_EXTERNAL_PROXY'),
                     'NAME': config.get(section, 'NAME'),
                     'REPEAT': config.getboolean(section, 'REPEAT'),
                     'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
