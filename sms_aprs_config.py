@@ -53,7 +53,7 @@ def process_acls(_config):
     # System level ACLs
     for system in _config['SYSTEMS']:
         # Registration ACLs (which make no sense for peer systems)
-        if _config['SYSTEMS'][system]['MODE'] == 'MASTER':
+        if _config['SYSTEMS'][system]['MODE'] == 'MASTER' or _config['SYSTEMS'][system]['MODE'] == 'PROXY':
             _config['SYSTEMS'][system]['REG_ACL'] = acl_build(_config['SYSTEMS'][system]['REG_ACL'], const.PEER_MAX)
 
         # Subscriber and TGID ACLs (valid for all system types)
@@ -110,8 +110,9 @@ def build_config(_config_file):
     CONFIG['GPS_DATA'] = {}
     CONFIG['ALIASES'] = {}
     CONFIG['SYSTEMS'] = {}
-    CONFIG['PROXY_TEMPLATE'] = {}
-
+    CONFIG['PROXY_A'] = {}
+    CONFIG['PROXY_B'] = {}
+    CONFIG['PROXY_C'] = {}
 
     try:
         for section in config.sections():
@@ -200,8 +201,42 @@ def build_config(_config_file):
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
                 })
 
-            elif section == 'PROXY_TEMPLATE':
-                CONFIG['PROXY_TEMPLATE'].update({
+            elif section == 'PROXY_A':
+                CONFIG['PROXY_A'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'NAME': config.get(section, 'NAME'),
+                    'REPEAT': config.getboolean(section, 'REPEAT'),
+                    'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+                    'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+                    'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
+                    'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+                    'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+                    'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+                    'USE_ACL': config.getboolean(section, 'USE_ACL'),
+                    'REG_ACL': config.get(section, 'REG_ACL'),
+                    'SUB_ACL': config.get(section, 'SUB_ACL'),
+                    'TGID_TS1_ACL': config.get(section, 'TGID_TS1_ACL'),
+                    'TGID_TS2_ACL': config.get(section, 'TGID_TS2_ACL')
+                })
+            elif section == 'PROXY_B':
+                CONFIG['PROXY_B'].update({
+                    'ENABLED': config.getboolean(section, 'ENABLED'),
+                    'NAME': config.get(section, 'NAME'),
+                    'REPEAT': config.getboolean(section, 'REPEAT'),
+                    'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+                    'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+                    'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
+                    'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+                    'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+                    'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+                    'USE_ACL': config.getboolean(section, 'USE_ACL'),
+                    'REG_ACL': config.get(section, 'REG_ACL'),
+                    'SUB_ACL': config.get(section, 'SUB_ACL'),
+                    'TGID_TS1_ACL': config.get(section, 'TGID_TS1_ACL'),
+                    'TGID_TS2_ACL': config.get(section, 'TGID_TS2_ACL')
+                })
+            elif section == 'PROXY_C':
+                CONFIG['PROXY_C'].update({
                     'ENABLED': config.getboolean(section, 'ENABLED'),
                     'NAME': config.get(section, 'NAME'),
                     'REPEAT': config.getboolean(section, 'REPEAT'),
@@ -346,22 +381,22 @@ def build_config(_config_file):
                     }})
                     CONFIG['SYSTEMS'][section].update({'PEERS': {}})
                     
-##                 elif config.get(section, 'MODE') == 'PROXY':
+##                elif config.get(section, 'MODE') == 'PROXY':
 ##                    CONFIG['SYSTEMS'].update({section: {
-##                        'MODE': 'MASTER',
-##                        'ENABLED': True,
+##                        'MODE': config.get(section, 'MODE'),
+##                        'ENABLED': config.getboolean(section, 'ENABLED'),
 ##                        'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
 ##                        'REPEAT': config.getboolean(section, 'REPEAT'),
-##                        'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
-##                        'IP': gethostbyname(config.get(section, 'IP')),
-##                        'PORT': config.getint(section, 'PORT'),
 ##                        'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+##                        'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+##                        'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+##                        'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
 ##                        'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
 ##                        'USE_ACL': config.getboolean(section, 'USE_ACL'),
 ##                        'REG_ACL': config.get(section, 'REG_ACL'),
 ##                        'SUB_ACL': config.get(section, 'SUB_ACL'),
-##                        'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
-##                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+##                        'TG1_ACL': config.get(section, 'TG1_ACL'),
+##                        'TG2_ACL': config.get(section, 'TG2_ACL')
 ##                    }})
 ##                    CONFIG['SYSTEMS'][section].update({'PEERS': {}})
                     
