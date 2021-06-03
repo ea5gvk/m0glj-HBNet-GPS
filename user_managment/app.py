@@ -26,14 +26,23 @@ except:
 script_links = {}
 mmdvm_logins = []
 
-def gen_passphrase(dmr_id):
-    _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
-    calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
-##    print(calc_passphrase)
-    if use_short_passphrase == True:
-        return str(calc_passphrase)[-9:-1]
-    elif use_short_passphrase ==False:
-        return str(calc_passphrase)[2:-1]
+##def gen_passphrase(dmr_id):
+##    _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
+##    b_list = create_app().get_burnlist()
+##    print(_new_peer_id)
+####    try:
+##    #if get_burnlist()[_new_peer_id] != 0:
+##    for ui in b_list:
+##        if b_list != 0:
+##            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+####    except:
+##        else:
+##            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+####    print(calc_passphrase)
+##    if use_short_passphrase == True:
+##        return str(calc_passphrase)[-9:-1]
+##    elif use_short_passphrase ==False:
+##        return str(calc_passphrase)[2:-1]
 # Query radioid.net for list of IDs
 def get_ids(callsign):
     try:
@@ -253,6 +262,26 @@ def create_app():
             edit_user.initial_admin_approved = False
         db.session.commit()       
 
+    def gen_passphrase(dmr_id):
+        _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
+        trimmed_id = int(str(dmr_id)[:7])
+        b_list = get_burnlist()
+        print(b_list)
+        burned = False
+        for ui in b_list.items():
+            print(ui)
+            #print(b_list)
+            if ui[0] == trimmed_id:
+                if ui[0] != 0:
+                    calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+                    burned = True
+        if burned == False:
+            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+        if use_short_passphrase == True:
+            return str(calc_passphrase)[-9:-1]
+        elif use_short_passphrase ==False:
+            return str(calc_passphrase)[2:-1]
+
 
     def update_from_radioid(callsign):
         edit_user = User.query.filter(User.username == callsign).first()
@@ -330,6 +359,7 @@ def create_app():
     @app.route('/generate_passphrase', methods = ['GET'])
     @login_required
     def gen():
+        #print(str(gen_passphrase(3153591))) #(int(i[0])))
         try:
             #content = Markup('<strong>The HTML String</strong>')
             #user_id = request.args.get('user_id')
@@ -343,7 +373,7 @@ def create_app():
             #print(id_dict)
             content = '\n'
             for i in id_dict.items():
-                if i[1] == '':
+                if isinstance(i[1], int) == True and i[1] != 0:
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
                     #print(script_links)
@@ -365,6 +395,27 @@ def create_app():
             <p>&nbsp;</p>
         '''
                 elif i[1] == 0:
+                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                    script_links[i[0]] = link_num
+                    #print(script_links)
+                    content = content + '''\n
+<table style="width: 300px;" border="1">
+<tbody>
+<tr>
+<td>
+            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+<hr />
+
+            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+
+</td>
+</tr>
+</tbody>
+</table>
+            <p>&nbsp;</p>
+        '''
+                elif i[1] == '':
                     content = content + '''
 <table style="width: 300px;" border="1">
 <tbody>
@@ -825,6 +876,8 @@ def create_app():
 
         if authorized_peer(dmr_id)[1] == 0:
             passphrase = gen_passphrase(dmr_id)
+        elif authorized_peer(dmr_id)[1] != 0 and isinstance(authorized_peer(dmr_id)[1], int) == True:
+            passphrase = gen_passphrase(dmr_id)
         elif authorized_peer(dmr_id)[1] == '':
             passphrase = legacy_passphrase
         elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
@@ -957,10 +1010,10 @@ def create_app():
 
     def get_burnlist():
         b = BurnList.query.all()
-        print(b)
+        #print(b)
         burn_dict = {}
         for i in b:
-            print(i.dmr_id)
+            #print(i.dmr_id)
             burn_dict[i.dmr_id] = i.version
         return burn_dict
         
@@ -1053,7 +1106,7 @@ def create_app():
     @app.route('/auth', methods=['POST'])
     def auth():
         hblink_req = request.json
-        print((hblink_req))
+##        print((hblink_req))
         if hblink_req['secret'] in shared_secrets:
             if 'login_id' in hblink_req:
                 if type(hblink_req['login_id']) == int:
@@ -1105,8 +1158,6 @@ def create_app():
                                               reason='Incorrect password')
                             response = make_response(msg, 401)
             elif hblink_req['burn_list']: # == 'burn_list':
-                print('get burn')
-                print(get_burnlist())
                 response = jsonify(
                                 burn_list=get_burnlist()
                                     )
@@ -1114,7 +1165,6 @@ def create_app():
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)
-        print(hblink_req)
         return response
 
 
