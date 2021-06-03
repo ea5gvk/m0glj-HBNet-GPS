@@ -106,6 +106,23 @@ def acl_check(_id, _acl):
             return _acl[0]
     return not _acl[0]
 
+
+def download_burnlist(_CONFIG):
+    user_man_url = _CONFIG['USER_MANAGER']['URL']
+    shared_secret = _CONFIG['USER_MANAGER']['SHARED_SECRET']
+    burn_check = {
+    'burn_list':True,
+    'secret':shared_secret
+    }
+    json_object = json.dumps(burn_check, indent = 4)
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+        return resp['burn_list']
+    # For exception, write blank dict
+    except requests.ConnectionError:
+        return {}
+
    
 #************************************************
 #    OPENBRIDGE CLASS
@@ -243,7 +260,7 @@ class HBSYSTEM(DatagramProtocol):
         shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
         #print(int(str(int_id(_id))[:7]))
         auth_check = {
-        'id':int(str(int_id(_id))[:7]),
+        'login_id':int(str(int_id(_id))[:7]),
         'secret':shared_secret
         }
         json_object = json.dumps(auth_check, indent = 4)
@@ -257,18 +274,20 @@ class HBSYSTEM(DatagramProtocol):
     def calc_passphrase(self, peer_id, _salt_str):
         burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['USER_MANAGER']['BURN_FILE']).read())
         peer_id_trimmed = int(str(int_id(peer_id))[:7])
-        #print(self._CONFIG)
         try:
+            #print(self.ums_response)
             if self.ums_response['mode'] == 'legacy':
                 _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
             if self.ums_response['mode'] == 'override':
                 _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
             if self.ums_response['mode'] == 'normal':
                 _new_peer_id = bytes_4(int(str(int_id(peer_id))[:7]))
-                if peer_id_trimmed in burn_id:
-                    logger.info('User ID has been burned. Requiring passphrase version: ' + str(burn_id[peer_id_trimmed]))
-                    calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
-                else:
+                peer_id_trimmed = str(peer_id_trimmed)
+                try:
+                    if burn_id[peer_id_trimmed]:
+                        logger.info('User ID has been burned. Requiring passphrase version: ' + str(burn_id[peer_id_trimmed]))
+                        calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
+                except:
                     calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
                 if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == True:
                     calc_passphrase = calc_passphrase[-8:]
@@ -484,7 +503,7 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = False
                     print(user_auth)
                 if self._config['USE_USER_MAN'] == False:
-                    print('False')
+                   # print('False')
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
                         user_auth = True
                 if user_auth == True:
@@ -540,7 +559,7 @@ class HBSYSTEM(DatagramProtocol):
                 
                 #print(self.ums_response)
                 if self._config['USE_USER_MAN'] == True:
-                    print(self.calc_passphrase(_peer_id, _salt_str))
+                   # print(self.calc_passphrase(_peer_id, _salt_str))
                     _calc_hash = self.calc_passphrase(_peer_id, _salt_str)
                 if self._config['USE_USER_MAN'] == False:
                     _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
@@ -911,6 +930,7 @@ if __name__ == '__main__':
 
     peer_ids, subscriber_ids, talkgroup_ids = mk_aliases(CONFIG)
 
+
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
         report_server = config_reports(CONFIG, reportFactory)
@@ -928,5 +948,9 @@ if __name__ == '__main__':
                 systems[system] = HBSYSTEM(system, CONFIG, report_server)
             reactor.listenUDP(CONFIG['SYSTEMS'][system]['PORT'], systems[system], interface=CONFIG['SYSTEMS'][system]['IP'])
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
+
+    # Download burn list
+    with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
+        f.write(str(download_burnlist(CONFIG)))
 
     reactor.run()

@@ -154,6 +154,10 @@ def create_app():
         id = db.Column(db.Integer(), primary_key=True)
         user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
         role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
+    class BurnList(db.Model):
+        __tablename__ = 'burn_list'
+        dmr_id = db.Column(db.Integer(), unique=True, primary_key=True)
+        version = db.Column(db.Integer(), primary_key=True)
 
     # Customize Flask-User
     class CustomUserManager(UserManager):
@@ -590,6 +594,31 @@ def create_app():
                 content = content + '''<p style="text-align: center;">Changed password for user: <strong>''' + str(user) + '''</strong></p>\n'''
             if request.form.get('dmr_ids') != edit_user.dmr_ids:
                 edit_user.dmr_ids = request.form.get('dmr_ids')
+                dmr_auth_dict = ast.literal_eval(request.form.get('dmr_ids'))
+                for id_user in dmr_auth_dict:
+                    if isinstance(dmr_auth_dict[id_user], int) == True and dmr_auth_dict[id_user] != 0:
+                        #print('burn it')
+                        if id_user in get_burnlist():
+##                            print('burned')
+                            if get_burnlist()[id_user] != dmr_auth_dict[id_user]:
+##                                print('update vers')
+                                update_burnlist(id_user, dmr_auth_dict[id_user])
+                            else:
+                                pass
+##                                print('no update')
+                        else:
+                            add_burnlist(id_user, dmr_auth_dict[id_user])
+##                            print('not in list, adding')
+                    elif isinstance(dmr_auth_dict[id_user], int) == False and id_user in get_burnlist():
+                        delete_burnlist(id_user)
+##                        print('remove from burn list - string')
+                    elif dmr_auth_dict[id_user] == 0:
+##                        print('remove from burn list')
+                        if id_user in get_burnlist():
+                            delete_burnlist(id_user)
+
+                
+                
                 content = content + '''<p style="text-align: center;">Changed authentication settings for user: <strong>''' + str(user) + '''</strong></p>\n'''
             db.session.commit()
             #edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
@@ -794,9 +823,9 @@ def create_app():
         u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
         #print(u.dmr_ids)
 
-        if authorized_peer(dmr_id)[1] == '':
+        if authorized_peer(dmr_id)[1] == 0:
             passphrase = gen_passphrase(dmr_id)
-        elif authorized_peer(dmr_id)[1] == 0:
+        elif authorized_peer(dmr_id)[1] == '':
             passphrase = legacy_passphrase
         elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
             passphrase = authorized_peer(dmr_id)[1]
@@ -900,11 +929,58 @@ def create_app():
         #u_role = UserRoles.query.filter_by(id=u.id).first().role_id
         #print(u_role)
         #return str(u)
-        if not u.active:
-            flash('We come in peace', 'success')
-        content = 'hello'
+##        if not u.active:
+##            flash('We come in peace', 'success')
+##        content = 'hello'
+       #add
+##        burn_list = BurnList(
+##            dmr_id=3153595,
+##            version=1,
+##            )
+##        db.session.add(burn_list)
+##        db.session.commit()
+##
+       #generate dict
+        b = BurnList.query.all()
+        print(b)
+        burn_dict = {}
+        for i in b:
+            print(i.dmr_id)
+            burn_dict[i.dmr_id] = i.version
+        content = burn_dict
+        # delete
+##        delete_b = BurnList.query.filter_by(dmr_id=3153591).first()
+##        db.session.delete(delete_b)
+##        db.session.commit()
+        
         return render_template('flask_user_layout.html', markup_content = Markup(content))
-    
+
+    def get_burnlist():
+        b = BurnList.query.all()
+        print(b)
+        burn_dict = {}
+        for i in b:
+            print(i.dmr_id)
+            burn_dict[i.dmr_id] = i.version
+        return burn_dict
+        
+    def add_burnlist(_dmr_id, _version):
+        burn_list = BurnList(
+            dmr_id=_dmr_id,
+            version=_version,
+            )
+        db.session.add(burn_list)
+        db.session.commit()
+        
+    def update_burnlist(_dmr_id, _version):
+        update_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
+        update_b.version=_version
+        db.session.commit()
+    def delete_burnlist(_dmr_id):
+        delete_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
+        db.session.delete(delete_b)
+        db.session.commit()
+         
 
     @app.route('/add_user', methods=['POST', 'GET'])
     @login_required
@@ -977,56 +1053,63 @@ def create_app():
     @app.route('/auth', methods=['POST'])
     def auth():
         hblink_req = request.json
-        #print((hblink_req))
+        print((hblink_req))
         if hblink_req['secret'] in shared_secrets:
-            if type(hblink_req['id']) == int:
-                if authorized_peer(hblink_req['id'])[0]:
-                    if authorized_peer(hblink_req['id'])[1] == 0:
-                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Legacy', time.time()])
-                        response = jsonify(
-                                allow=True,
-                                mode='legacy',
-                                )
-                    elif authorized_peer(hblink_req['id'])[1] == '':
-                    # normal
-                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Calculated', time.time()])
-                        response = jsonify(
-                                allow=True,
-                                mode='normal',
-                                )
-                    elif authorized_peer(hblink_req['id'])[1] != '' or authorized_peer(hblink_req['id'])[1] != 0:
-                        mmdvm_logins.append([hblink_req['id'], authorized_peer(hblink_req['id'])[2], authorized_peer(hblink_req['id'])[1], 'Custom', time.time()])
-                        print(authorized_peer(hblink_req['id']))
-                        response = jsonify(
-                                allow=True,
-                                mode='override',
-                                value=authorized_peer(hblink_req['id'])[1]
+            if 'login_id' in hblink_req:
+                if type(hblink_req['login_id']) == int:
+                    if authorized_peer(hblink_req['login_id'])[0]:
+                        if isinstance(authorized_peer(hblink_req['login_id'])[1], int) == True:
+                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Calculated', time.time()])
+                            response = jsonify(
+                                    allow=True,
+                                    mode='normal',
                                     )
-                if authorized_peer(hblink_req['id'])[0] == False:
-                    mmdvm_logins.append([hblink_req['id'], 'Not registered', 'None', 'Not authorized', time.time()])
-                    response = jsonify(
-                                allow=False)
-            if not type(hblink_req['id']) == int:
-                user = hblink_req['id']
-                u = User.query.filter_by(username=user).first()
-                
-                if not u:
-                    msg = jsonify(auth=False,
-                                          reason='User not found')
-                    response = make_response(msg, 401)
-                if u:
-                    u_role = UserRoles.query.filter_by(user_id=u.id).first()
-                    password = user_manager.verify_password(hblink_req['password'], u.password)
-                    if u_role.role_id == 2:
-                        role = 'user'
-                    if u_role.role_id == 1:
-                        role = 'admin'
-                    if password:
-                        response = jsonify(auth=True, role=role)
-                    else:
+                        elif authorized_peer(hblink_req['login_id'])[1] == '':
+                        # normal
+                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Legacy', time.time()])
+                            response = jsonify(
+                                    allow=True,
+                                    mode='legacy',
+                                    )
+                        elif authorized_peer(hblink_req['login_id'])[1] != '' or isinstance(authorized_peer(hblink_req['login_id'])[1], int) == False:
+                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Custom', time.time()])
+                            print(authorized_peer(hblink_req['login_id']))
+                            response = jsonify(
+                                    allow=True,
+                                    mode='override',
+                                    value=authorized_peer(hblink_req['login_id'])[1]
+                                        )
+                    if authorized_peer(hblink_req['login_id'])[0] == False:
+                        mmdvm_logins.append([hblink_req['login_id'], 'Not registered', 'None', 'Not authorized', time.time()])
+                        response = jsonify(
+                                    allow=False)
+                elif not type(hblink_req['login_id']) == int:
+                    user = hblink_req['login_id']
+                    u = User.query.filter_by(username=user).first()
+                    
+                    if not u:
                         msg = jsonify(auth=False,
-                                          reason='Incorrect password')
+                                              reason='User not found')
                         response = make_response(msg, 401)
+                    if u:
+                        u_role = UserRoles.query.filter_by(user_id=u.id).first()
+                        password = user_manager.verify_password(hblink_req['password'], u.password)
+                        if u_role.role_id == 2:
+                            role = 'user'
+                        if u_role.role_id == 1:
+                            role = 'admin'
+                        if password:
+                            response = jsonify(auth=True, role=role)
+                        else:
+                            msg = jsonify(auth=False,
+                                              reason='Incorrect password')
+                            response = make_response(msg, 401)
+            elif hblink_req['burn_list']: # == 'burn_list':
+                print('get burn')
+                print(get_burnlist())
+                response = jsonify(
+                                burn_list=get_burnlist()
+                                    )
      
         else:
             message = jsonify(message='Authentication error')
