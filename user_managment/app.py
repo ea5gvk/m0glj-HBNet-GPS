@@ -950,15 +950,28 @@ def create_app():
         elif request.args.get('flush_user_db') == 'true' and request.args.get('portal_username'):
             content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('portal_username') + '''</strong></strong></p>\n'''
             authlog_flush_user(request.args.get('portal_username'))
-        elif request.args.get('portal_username') and not request.args.get('flush_user_db'):
-            a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
+        elif request.args.get('flush_dmr_id_db') == 'true' and request.args.get('dmr_id'):
+            content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('dmr_id') + '''</strong></strong></p>\n'''
+            authlog_flush_dmr_id(request.args.get('dmr_id'))
+        elif request.args.get('portal_username') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db') or request.args.get('dmr_id') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db'):
+            if request.args.get('portal_username'):
+##                s_filter = portal_username=request.args.get('portal_username')
+                a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
+                g_arg = request.args.get('portal_username')
+                f_link = '''    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>'''
+            elif request.args.get('dmr_id'):
+##                s_filter = login_dmr_id=request.args.get('dmr_id')
+                a = AuthLog.query.filter_by(login_dmr_id=request.args.get('dmr_id')).order_by(AuthLog.login_dmr_id.desc()).all()
+                g_arg = request.args.get('dmr_id')
+                f_link = '''<p style="text-align: center;"><strong><a href="auth_log?flush_dmr_id_db=true&dmr_id=''' + request.args.get('dmr_id') + '''">Flush auth log for: ''' + request.args.get('dmr_id') + '''</a></strong></p>'''
+##            print(s_filter)
+##            a = AuthLog.query.filter_by(s_filter).order_by(AuthLog.login_dmr_id.desc()).all()
 
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong>Log for user: ''' + request.args.get('portal_username') + '''</strong></p>
+    <p style="text-align: center;"><strong>Log for user: ''' + g_arg + '''</strong></p>
 
-    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>
-
+    ''' + f_link + '''
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
@@ -1066,7 +1079,7 @@ def create_app():
                     if i.login_type == 'Attempt':
                         content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1078,7 +1091,7 @@ def create_app():
                     if i.login_type == 'Confirmed':
                         content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+       <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1090,7 +1103,7 @@ def create_app():
                     if i.login_type == 'Failed':
                         content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+        <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</a></td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1255,9 +1268,15 @@ def create_app():
     def authlog_flush():
         AuthLog.query.delete()
         db.session.commit()
+        
     def authlog_flush_user(_user):
-##        AuthLog.query.delete()
         flush_e = AuthLog.query.filter_by(portal_username=_user).all()
+        for i in flush_e:
+            db.session.delete(i)
+        db.session.commit()
+
+    def authlog_flush_dmr_id(_dmr_id):
+        flush_e = AuthLog.query.filter_by(login_dmr_id=_dmr_id).all()
         for i in flush_e:
             db.session.delete(i)
         db.session.commit()
