@@ -774,15 +774,32 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 
-<p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at) + '''</strong></p>
 
+<h3 style="text-align: center;">&nbsp;Options for: ''' + u.username  + '''&nbsp;</h3>
 
-<p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update user information from RadioID.net</a></strong></p>
-
-
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td>&nbsp;
+<p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update from RadioID.net</a></strong></p>
+&nbsp;</td>
+<td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at) + '''</strong></p></td>
+</tr>
+<tr>
+<td>&nbsp;
 <p style="text-align: center;"><strong><a href="email_user?callsign=''' + u.username + '''">Send user an email</a></strong></p>
-
-<p style="text-align: center;"><strong><a href="auth_log?portal_username=''' + u.username + '''">View auth log for: ''' + u.username + '''</a></strong></p>
+&nbsp;</td>
+<td>&nbsp;''' + role_link + '''&nbsp;</td>
+</tr>
+<tr>
+<td>&nbsp;<p style="text-align: center;"><strong><a href="auth_log?portal_username=''' + u.username + '''">View user auth log</a></strong></p>
+&nbsp;</td>
+<td>&nbsp;
+<p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&amp;callsign=' + str(u.username) + '''"><strong>Deleted user</strong></strong></a></p>
+&nbsp;</td>
+</tr>
+</tbody>
+</table>
 
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
@@ -843,11 +860,6 @@ def create_app():
 </tbody>
 </table>
 <p>&nbsp;</p>
-<p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&callsign=' + str(u.username) + '''"><strong>Deleted user: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n
-''' + confirm_link + '''
-<p>&nbsp;</p>
-''' + role_link + '''
-<p>&nbsp;</p>
 
 <h3 style="text-align: center;">&nbsp;Passphrase Authentication Method Key</h3>
 <table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
@@ -858,7 +870,7 @@ def create_app():
 <td style="width: 77.7167px; text-align: center;"><strong>Custom</strong></td>
 </tr>
 <tr>
-<td style="text-align: center; width: 70.8px;">0 - default<br />1+ new calculation)</td>
+<td style="text-align: center; width: 70.8px;">0 - default,<br />1-999 - new calculation</td>
 <td style="text-align: center; width: 103.45px;">''</td>
 <td style="text-align: center; width: 77.7167px;">'passphrase'</td>
 </tr>
@@ -943,120 +955,154 @@ def create_app():
             content = '''<p style="text-align: center;"><strong>Flushed entire auth DB.</strong></strong></p>\n'''
             authlog_flush()
         elif request.args.get('portal_username'):
-            a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).all()
+            a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
+
             content = '''
-<p>&nbsp;</p>
-
-
-    <table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+    <p>&nbsp;</p>
+    <p style="text-align: center;"><strong>Log for user: ''' + request.args.get('portal_username') + '''</strong></p>
+    
+    <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
     <tr>
     <td style="text-align: center;">
-    <h4>DMR ID</h4>
+    <h4>&nbsp;DMR ID&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Portal Username</h4>
+    <h4>&nbsp;Portal Username&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Login IP</h4>
+    <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Calculated Passphrase</h4>
+    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Server</h4>
+    <h4>&nbsp;Server&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Time (UTC)</h4>
+    <h4>&nbsp;Time (UTC)&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Login Type</h4>
+    <h4>&nbsp;Login Status&nbsp;</h4>
     </td>
     </tr> \n'''
             for i in a:
                 if i.login_type == 'Attempt':
                     content = content + '''
     <tr >
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
-    <td style="text-align: center;">''' + i.portal_username + '''</td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.login_auth_method + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.server_name + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + str(i.login_time) + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
 '''
                 if i.login_type == 'Confirmed':
                     content = content + '''
     <tr >
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
-    <td style="text-align: center;">''' + i.portal_username + '''</td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.login_auth_method + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.server_name + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + str(i.login_time) + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
+    </tr>
+'''
+                if i.login_type == 'Failed':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</a></td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #FF2400;">&nbsp;<strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
 '''
             content = content + '</tbody></table>'
         else:
-            a = AuthLog.query.all()
+            #a = AuthLog.query.all().order_by(AuthLog.login_dmr_id)
+            #a = AuthLog.query.all()
+            a = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).limit(300).all()
+            recent_list = []
+            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
+            print(r)
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire auth log</a></strong></p>
     <p>&nbsp;</p>
+    <p style="text-align: center;"><strong>Auth log by DMR ID</strong></p>
 
-
-    <table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+    <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
     <tr>
     <td style="text-align: center;">
-    <h4>DMR ID</h4>
+    <h4>&nbsp;DMR ID&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Portal Username</h4>
+    <h4>&nbsp;Portal Username&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Login IP</h4>
+    <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Calculated Passphrase</h4>
+    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Server</h4>
+    <h4>&nbsp;Server&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Time (UTC)</h4>
+    <h4>&nbsp;Time (UTC)&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>Login Type</h4>
+    <h4>&nbsp;Login Status&nbsp;</h4>
     </td>
     </tr> \n'''
             for i in a:
-                if i.login_type == 'Attempt':
-                    content = content + '''
+                if i.login_dmr_id not in recent_list:
+                    print()
+                    recent_list.append(i.login_dmr_id)
+                    if i.login_type == 'Attempt':
+                        content = content + '''
     <tr >
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
-    <td style="text-align: center;"><a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.login_auth_method + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.server_name + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + str(i.login_time) + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
 '''
-                if i.login_type == 'Confirmed':
-                    content = content + '''
+                    if i.login_type == 'Confirmed':
+                        content = content + '''
     <tr >
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
-    <td style="text-align: center;"><a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.login_auth_method + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.server_name + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + str(i.login_time) + '''</span></td>
-    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
 '''
+                    if i.login_type == 'Failed':
+                        content = content + '''
+    <tr >
+    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</a></td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #FF2400;">&nbsp;<strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
+    </tr>
+'''
+               
             content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
@@ -1313,8 +1359,11 @@ def create_app():
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
-                    if authorized_peer(hblink_req['login_id'])[0] == False:
-                        mmdvm_logins.append([hblink_req['login_id'], 'Not registered', 'None', 'Not authorized', time.time()])
+                    elif authorized_peer(hblink_req['login_id'])[0] == False:
+                        print('log fail')
+                        #mmdvm_logins.append([hblink_req['login_id'], 'Not registered', 'None', 'Not authorized', time.time()])
+                        
+                        authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
                         response = jsonify(
                                     allow=False)
                 elif not type(hblink_req['login_id']) == int:
