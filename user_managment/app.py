@@ -298,7 +298,16 @@ def create_app():
 
     def update_from_radioid(callsign):
         edit_user = User.query.filter(User.username == callsign).first()
-        edit_user.dmr_ids = str(ast.literal_eval(get_ids(callsign))[0])
+        #edit_user.dmr_ids = str(ast.literal_eval(get_ids(callsign))[0])
+        radioid_dict = ast.literal_eval(get_ids(callsign))[0]
+        db_id_dict = ast.literal_eval(edit_user.dmr_ids)
+        new_id_dict = db_id_dict.copy()
+        for i in radioid_dict.items():
+            if i[0] in db_id_dict:
+                pass
+            elif i[0] not in db_id_dict:
+                new_id_dict[i[0]] = 0
+        edit_user.dmr_ids = str(new_id_dict)
         edit_user.first_name = str(ast.literal_eval(get_ids(callsign))[1])
         edit_user.last_name = str(ast.literal_eval(get_ids(callsign))[2])
         edit_user.city = str(ast.literal_eval(get_ids(callsign))[3])
