@@ -502,42 +502,6 @@ def create_app():
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
-
-##    @app.route('/mmdvm_log', methods=['POST', 'GET'])
-##    @login_required    # User must be authenticated
-##    @roles_required('Admin')
-##    def mmdvm_auth_list():
-##        display_number = 200
-##        content = '''
-##<p style="text-align: center;"><strong>Last ''' + str(display_number) + ''' logins or attempts.</strong></p>
-##<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-##<tbody>
-##<tr>
-##<td style="text-align: center;"><strong>User</strong></td>
-##<td style="text-align: center;"><strong>DMR ID</strong></td>
-##<td style="text-align: center;"><strong>Authentication</strong></td>
-##<td style="text-align: center;"><strong>Time</strong></td>
-##</tr> \n'''
-##        mmdvm_logins.reverse()
-##        for i in mmdvm_logins:
-##            print(i)
-##            if display_number == 0:
-##                break
-##            else:
-##                content = content + '''<tr>
-##<td style="text-align: center;">''' + str(i[1]) + '''</td>
-##<td style="text-align: center;">''' + str(i[0]) + '''</td>
-##<td style="text-align: center;">Value: ''' + str(i[2]) + '''\n<br />DB: ''' + str(i[3]) + '''</td>
-##<td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
-##</tr> ''' + '\n'
-##                display_number = display_number - 1
-##        mmdvm_logins.reverse()
-##        content = content + '</tbody></table>'
-##        return render_template('flask_user_layout.html', markup_content = Markup(content))
-
-
-
-
     @app.route('/email_user', methods=['POST', 'GET'])
     @roles_required('Admin')
     @login_required    # User must be authenticated
@@ -581,6 +545,7 @@ def create_app():
 <td style="width: 107px; text-align: center;"><strong>Name</strong></td>
 <td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
 <td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
+<td style="width: 522.317px; text-align: center;"><strong>Notes</strong></td>
 </tr>'''
         for i in u:
             u_list = u_list + '''
@@ -589,6 +554,7 @@ def create_app():
 <td style="width: 226.683px; text-align: center;">''' + str(i.first_name) + ' ' + str(i.last_name) + '''</td>
 <td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
 <td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
+<td style="width: 522.317px;">''' + str(i.notes) + '''</td>
 </tr>
 '''+ '\n'
         content = u_list + '''</tbody>
@@ -653,12 +619,12 @@ def create_app():
                     content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been enabled.</p>\n'''
                 if request.form.get('user_status') == "False":
                     edit_user.active = False
-##                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
-##            if user != edit_user.username:
-##                #print(user)
-##                #print(edit_user.username)
-##                #print('new uname')
-##                edit_user.username = user
+                    content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> has been disabled.</p>\n'''
+##                print(request.form.get('username'))
+            if user != request.form.get('username'):
+####                #print(edit_user.username)
+                content = content + '''<p style="text-align: center;">User <strong>''' + str(user) + '''</strong> changed to <strong>''' + request.form.get('username') + '''</strong>.</p>\n'''
+                edit_user.username = request.form.get('username')
             if request.form.get('email') != edit_user.email:
                 edit_user.email = request.form.get('email')
                 content = content + '''<p style="text-align: center;">Changed email for user: <strong>''' + str(user) + ''' to ''' + request.form.get('email') + '''</strong></p>\n'''
@@ -751,8 +717,34 @@ def create_app():
             if u_role.role_id == 1:
                 # Link to promote to User
                 role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><strong>Revert to User role: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
-
-
+            id_dict = ast.literal_eval(u.dmr_ids)
+            passphrase_list = '''
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>DMR ID</strong></td>
+<td style="text-align: center;"><strong>Passphrase</strong></td>
+</tr> '''
+            for i in id_dict.items():
+                print(i[1])
+                if isinstance(i[1], int) == True: 
+                    passphrase_list = passphrase_list + '''
+<tr>
+<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;">''' + str(gen_passphrase(int(i[0]))) + '''</td>
+</tr> \n'''
+                if i[1] == '':
+                    passphrase_list = passphrase_list + '''<tr>
+<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;">''' + legacy_passphrase + '''</td>
+</tr> \n'''
+                if not isinstance(i[1], int) == True and i[1] != '':
+                    passphrase_list = passphrase_list + '''<tr>
+<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;">''' + str(i[1]) + '''</td>
+</tr> \n'''
+            
+            passphrase_list = passphrase_list + '</tbody></table>' 
             content = '''
 <p>&nbsp;</p>
 
@@ -774,6 +766,7 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 
+''' + passphrase_list + '''
 
 <h3 style="text-align: center;">&nbsp;Options for: ''' + u.username  + '''&nbsp;</h3>
 
@@ -966,7 +959,7 @@ def create_app():
     <tr>
     <td style="text-align: center;">
     <h4>&nbsp;DMR ID&nbsp;</h4>
-    </td>/e
+    </td>
     <td style="text-align: center;">
     <h4>&nbsp;Portal Username&nbsp;</h4>
     </td>
