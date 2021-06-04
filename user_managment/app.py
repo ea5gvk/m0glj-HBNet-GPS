@@ -974,17 +974,28 @@ def create_app():
     </td>
     </tr> \n'''
             for i in a:
-                content = content + '''
-    <tr>
-    <td style="text-align: center;"><strong>''' + str(i.login_dmr_id) + '''</strong></td>
+                if i.login_type == 'Attempt':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
     <td style="text-align: center;">''' + i.portal_username + '''</td>
-    <td style="text-align: center;"><strong>''' + i.peer_ip + '''</strong></td>
-    <td style="text-align: center;">''' + i.login_auth_method + '''</td>
-    <td style="text-align: center;">''' + i.server_name + '''</td>
-    <td style="text-align: center;">''' + str(i.login_time) + '''</td>
-    <td style="text-align: center;"><strong>''' + str(i.login_type) + '''</strong></td>
-
-
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.login_auth_method + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.server_name + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + str(i.login_time) + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    </tr>
+'''
+                if i.login_type == 'Confirmed':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
+    <td style="text-align: center;">''' + i.portal_username + '''</td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.login_auth_method + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.server_name + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + str(i.login_time) + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
     </tr>
 '''
             content = content + '</tbody></table>'
@@ -1022,20 +1033,30 @@ def create_app():
     </td>
     </tr> \n'''
             for i in a:
-                content = content + '''
-    <tr>
-    <td style="text-align: center;"><strong>''' + str(i.login_dmr_id) + '''</strong></td>
+                if i.login_type == 'Attempt':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
     <td style="text-align: center;"><a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a></td>
-    <td style="text-align: center;"><strong>''' + i.peer_ip + '''</strong></td>
-    <td style="text-align: center;">''' + i.login_auth_method + '''</td>
-    <td style="text-align: center;">''' + i.server_name + '''</td>
-    <td style="text-align: center;">''' + str(i.login_time) + '''</td>
-    <td style="text-align: center;"><strong>''' + str(i.login_type) + '''</strong></td>
-
-
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.login_auth_method + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + i.server_name + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;">''' + str(i.login_time) + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
     </tr>
-    '''
-
+'''
+                if i.login_type == 'Confirmed':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_dmr_id) + '''</strong></span></td>
+    <td style="text-align: center;"><a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + i.peer_ip + '''</strong></span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.login_auth_method + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + i.server_name + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;">''' + str(i.login_time) + '''</span></td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong></td> 
+    </tr>
+'''
             content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
