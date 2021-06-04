@@ -156,6 +156,7 @@ def build_config(_config_file):
 
             elif section == 'USER_MANAGER':
                 CONFIG['USER_MANAGER'].update({
+                    'THIS_SERVER_NAME': config.get(section, 'THIS_SERVER_NAME'),
                     'URL': config.get(section, 'URL'),
                     'APPEND_INT': config.getint(section, 'APPEND_INT'),
                     'SHARED_SECRET': config.get(section, 'SHARED_SECRET'),

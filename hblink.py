@@ -254,14 +254,16 @@ class HBSYSTEM(DatagramProtocol):
             self.datagramReceived = self.peer_datagramReceived
             self.dereg = self.peer_dereg
             
-    def check_user_man(self, _id):
+    def check_user_man(self, _id, server_name, peer_ip):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
         shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
         #print(int(str(int_id(_id))[:7]))
         auth_check = {
+        'secret':shared_secret,
         'login_id':int(str(int_id(_id))[:7]),
-        'secret':shared_secret
+        'login_ip': peer_ip,
+        'login_server': server_name
         }
         json_object = json.dumps(auth_check, indent = 4)
         try:
@@ -270,6 +272,27 @@ class HBSYSTEM(DatagramProtocol):
             return resp
         except requests.ConnectionError:
             return {'allow':True}
+
+    def send_login_conf(self, _id, server_name, peer_ip, old_auth):
+        #Change this to a config value
+        user_man_url = self._CONFIG['USER_MANAGER']['URL']
+        shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
+        #print(int(str(int_id(_id))[:7]))
+        auth_conf = {
+        'secret':shared_secret,
+        'login_id':int(str(int_id(_id))[:7]),
+        'login_ip': peer_ip,
+        'login_server': server_name,
+        'login_confirmed': True,
+        'old_auth': old_auth
+        }
+        json_object = json.dumps(auth_conf, indent = 4)
+        #try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        #    resp = json.loads(req.text)
+        #return resp
+        #except requests.ConnectionError:
+        #    return {'allow':True}
 
     def calc_passphrase(self, peer_id, _salt_str):
         burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['USER_MANAGER']['BURN_FILE']).read())
@@ -416,9 +439,6 @@ class HBSYSTEM(DatagramProtocol):
         # Keep This Line Commented Unless HEAVILY Debugging!
         # logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_data))
 
-        # Place holder for DB function
-        user_db = ast.literal_eval(os.popen('cat ./db.txt').read())
-
         # Extract the command, which is various length, all but one 4 significant characters -- RPTCL
         _command = _data[:4]
 
@@ -497,7 +517,7 @@ class HBSYSTEM(DatagramProtocol):
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
                 if self._config['USE_USER_MAN'] == True:
-                    self.ums_response = self.check_user_man(_peer_id)
+                    self.ums_response = self.check_user_man(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0])
 ##                    print(self.ums_response)
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
                         user_auth = self.ums_response['allow']
@@ -540,6 +560,7 @@ class HBSYSTEM(DatagramProtocol):
                     self.send_peer(_peer_id, b''.join([RPTACK, _salt_str]))
                     self._peers[_peer_id]['CONNECTION'] = 'CHALLENGE_SENT'
                     logger.info('(%s) Sent Challenge Response to %s for login: %s', self._system, int_id(_peer_id), self._peers[_peer_id]['SALT'])
+##                    print(self._peers)
                 else:
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
                     logger.warning('(%s) Invalid Login from %s Radio ID: %s Denied by Registation ACL', self._system, _sockaddr[0], int_id(_peer_id))
@@ -572,6 +593,11 @@ class HBSYSTEM(DatagramProtocol):
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s has completed the login exchange successfully', self._system, _this_peer['RADIO_ID'])
+                    #self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
+                    if _sent_hash == _ocalc_hash:
+                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], True)
+                    else:
+                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
                 else:
                     logger.info('(%s) Peer %s has FAILED the login exchange successfully', self._system, _this_peer['RADIO_ID'])
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)

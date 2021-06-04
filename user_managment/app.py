@@ -59,7 +59,7 @@ def get_ids(callsign):
         except:
             city = result['results'][0]['country']
         for i in result['results']:
-             id_list[i['id']] = ''
+             id_list[i['id']] = 0
         return str([id_list, f_name, l_name, city])
     except:
         return str([{}, '', '', ''])
@@ -146,6 +146,7 @@ def create_app():
         last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         dmr_ids = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         city = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
@@ -167,6 +168,17 @@ def create_app():
         __tablename__ = 'burn_list'
         dmr_id = db.Column(db.Integer(), unique=True, primary_key=True)
         version = db.Column(db.Integer(), primary_key=True)
+    class AuthLog(db.Model):
+        __tablename__ = 'auth_log'
+        login_dmr_id = db.Column(db.Integer(), primary_key=True)
+        login_time = db.Column(db.DateTime(), primary_key=True)
+        peer_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server_name = db.Column(db.Integer(), primary_key=True)
+        login_auth_method = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        portal_username = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        login_type = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        
+
 
     # Customize Flask-User
     class CustomUserManager(UserManager):
@@ -236,7 +248,8 @@ def create_app():
             email='admin@no.reply',
             email_confirmed_at=datetime.datetime.utcnow(),
             password=user_manager.hash_password('admin'),
-            initial_admin_approved = True
+            initial_admin_approved = True,
+            notes='Default admin account created during installation.'
         )
         user.roles.append(Role(name='Admin'))
         user.roles.append(Role(name='User'))
@@ -481,37 +494,37 @@ def create_app():
 
 
 
-    @app.route('/mmdvm_log', methods=['POST', 'GET'])
-    @login_required    # User must be authenticated
-    @roles_required('Admin')
-    def mmdvm_auth_list():
-        display_number = 200
-        content = '''
-<p style="text-align: center;"><strong>Last ''' + str(display_number) + ''' logins or attempts.</strong></p>
-<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;"><strong>User</strong></td>
-<td style="text-align: center;"><strong>DMR ID</strong></td>
-<td style="text-align: center;"><strong>Authentication</strong></td>
-<td style="text-align: center;"><strong>Time</strong></td>
-</tr> \n'''
-        mmdvm_logins.reverse()
-        for i in mmdvm_logins:
-            print(i)
-            if display_number == 0:
-                break
-            else:
-                content = content + '''<tr>
-<td style="text-align: center;">''' + str(i[1]) + '''</td>
-<td style="text-align: center;">''' + str(i[0]) + '''</td>
-<td style="text-align: center;">Value: ''' + str(i[2]) + '''\n<br />DB: ''' + str(i[3]) + '''</td>
-<td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
-</tr> ''' + '\n'
-                display_number = display_number - 1
-        mmdvm_logins.reverse()
-        content = content + '</tbody></table>'
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+##    @app.route('/mmdvm_log', methods=['POST', 'GET'])
+##    @login_required    # User must be authenticated
+##    @roles_required('Admin')
+##    def mmdvm_auth_list():
+##        display_number = 200
+##        content = '''
+##<p style="text-align: center;"><strong>Last ''' + str(display_number) + ''' logins or attempts.</strong></p>
+##<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+##<tbody>
+##<tr>
+##<td style="text-align: center;"><strong>User</strong></td>
+##<td style="text-align: center;"><strong>DMR ID</strong></td>
+##<td style="text-align: center;"><strong>Authentication</strong></td>
+##<td style="text-align: center;"><strong>Time</strong></td>
+##</tr> \n'''
+##        mmdvm_logins.reverse()
+##        for i in mmdvm_logins:
+##            print(i)
+##            if display_number == 0:
+##                break
+##            else:
+##                content = content + '''<tr>
+##<td style="text-align: center;">''' + str(i[1]) + '''</td>
+##<td style="text-align: center;">''' + str(i[0]) + '''</td>
+##<td style="text-align: center;">Value: ''' + str(i[2]) + '''\n<br />DB: ''' + str(i[3]) + '''</td>
+##<td style="text-align: center;">''' + datetime.datetime.fromtimestamp(i[4]).strftime(time_format) + '''</td>
+##</tr> ''' + '\n'
+##                display_number = display_number - 1
+##        mmdvm_logins.reverse()
+##        content = content + '</tbody></table>'
+##        return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
 
@@ -640,6 +653,9 @@ def create_app():
             if request.form.get('email') != edit_user.email:
                 edit_user.email = request.form.get('email')
                 content = content + '''<p style="text-align: center;">Changed email for user: <strong>''' + str(user) + ''' to ''' + request.form.get('email') + '''</strong></p>\n'''
+            if request.form.get('notes') != edit_user.notes:
+                edit_user.notes = request.form.get('notes')
+                content = content + '''<p style="text-align: center;">Changed notes for user: <strong>''' + str(user) + '''</strong>.</p>\n'''
             if request.form.get('password') != '':
                 edit_user.password = user_manager.hash_password(request.form.get('password'))
                 content = content + '''<p style="text-align: center;">Changed password for user: <strong>''' + str(user) + '''</strong></p>\n'''
@@ -757,6 +773,8 @@ def create_app():
 
 <p style="text-align: center;"><strong><a href="email_user?callsign=''' + u.username + '''">Send user an email</a></strong></p>
 
+<p style="text-align: center;"><strong><a href="auth_log?portal_username=''' + u.username + '''">View auth log for: ''' + u.username + '''</a></strong></p>
+
 <td><form action="edit_user?callsign=''' + callsign + '''" method="POST">
 <table style="margin-left: auto; margin-right: auto;">
 <tbody>
@@ -798,6 +816,12 @@ def create_app():
   <label for="username">MMDVM Authentication Settings:</label><br>
   <input type="text" id="dmr_ids" name="dmr_ids" value="''' + str(u.dmr_ids) + '''"><br>
 </td></tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(u.notes) + '''</textarea><br /><br />
+</td></tr>
+
 
 <tr style="height: 27px;">
 <td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
@@ -902,6 +926,111 @@ def create_app():
         except:
             return [False]
 
+    @app.route('/auth_log', methods=['POST', 'GET'])
+    @login_required    # User must be authenticated
+    @roles_required('Admin')
+    def all_auth_list():
+        if request.args.get('flush_db') == 'true':
+            content = '''<p style="text-align: center;"><strong>Flushed entire auth DB.</strong></strong></p>\n'''
+            authlog_flush()
+        elif request.args.get('portal_username'):
+            a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).all()
+            content = '''
+<p>&nbsp;</p>
+
+
+    <table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td style="text-align: center;">
+    <h4>DMR ID</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Portal Username</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Login IP</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Calculated Passphrase</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Server</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Time (UTC)</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Login Type</h4>
+    </td>
+    </tr> \n'''
+            for i in a:
+                content = content + '''
+    <tr>
+    <td style="text-align: center;"><strong>''' + str(i.login_dmr_id) + '''</strong></td>
+    <td style="text-align: center;">''' + i.portal_username + '''</td>
+    <td style="text-align: center;"><strong>''' + i.peer_ip + '''</strong></td>
+    <td style="text-align: center;">''' + i.login_auth_method + '''</td>
+    <td style="text-align: center;">''' + i.server_name + '''</td>
+    <td style="text-align: center;">''' + str(i.login_time) + '''</td>
+    <td style="text-align: center;"><strong>''' + str(i.login_type) + '''</strong></td>
+
+
+    </tr>
+'''
+            content = content + '</tbody></table>'
+        else:
+            a = AuthLog.query.all()
+            content = '''
+    <p>&nbsp;</p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire auth log</a></strong></p>
+    <p>&nbsp;</p>
+
+
+    <table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td style="text-align: center;">
+    <h4>DMR ID</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Portal Username</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Login IP</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Calculated Passphrase</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Server</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Time (UTC)</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>Login Type</h4>
+    </td>
+    </tr> \n'''
+            for i in a:
+                content = content + '''
+    <tr>
+    <td style="text-align: center;"><strong>''' + str(i.login_dmr_id) + '''</strong></td>
+    <td style="text-align: center;"><a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a></td>
+    <td style="text-align: center;"><strong>''' + i.peer_ip + '''</strong></td>
+    <td style="text-align: center;">''' + i.login_auth_method + '''</td>
+    <td style="text-align: center;">''' + i.server_name + '''</td>
+    <td style="text-align: center;">''' + str(i.login_time) + '''</td>
+    <td style="text-align: center;"><strong>''' + str(i.login_type) + '''</strong></td>
+
+
+    </tr>
+    '''
+
+            content = content + '</tbody></table>'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+
     @app.route('/test')
     def test_peer():
         #user = User(
@@ -995,18 +1124,20 @@ def create_app():
 ##        db.session.commit()
 ##
        #generate dict
-        b = BurnList.query.all()
-        print(b)
-        burn_dict = {}
-        for i in b:
-            print(i.dmr_id)
-            burn_dict[i.dmr_id] = i.version
-        content = burn_dict
-        # delete
-##        delete_b = BurnList.query.filter_by(dmr_id=3153591).first()
-##        db.session.delete(delete_b)
-##        db.session.commit()
-        
+##        b = BurnList.query.all()
+##        print(b)
+##        burn_dict = {}
+##        for i in b:
+##            print(i.dmr_id)
+##            burn_dict[i.dmr_id] = i.version
+##        content = burn_dict
+##        # delete
+####        delete_b = BurnList.query.filter_by(dmr_id=3153591).first()
+####        db.session.delete(delete_b)
+####        db.session.commit()
+##        a = AuthLog.query.all()
+##        print(a)
+##        authlog_flush()  
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     def get_burnlist():
@@ -1033,6 +1164,23 @@ def create_app():
     def delete_burnlist(_dmr_id):
         delete_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
         db.session.delete(delete_b)
+        db.session.commit()
+
+    def authlog_add(_dmr_id, _peer_ip, _server_name, _portal_username, _auth_method, _login_type):
+        auth_log_add = AuthLog(
+            login_dmr_id=_dmr_id,
+            login_time=datetime.datetime.utcnow(),
+            portal_username = _portal_username,
+            peer_ip = _peer_ip,
+            server_name = _server_name,
+            login_auth_method=_auth_method,
+            login_type=_login_type
+            )
+        db.session.add(auth_log_add)
+        db.session.commit()
+        
+    def authlog_flush():
+        AuthLog.query.delete()
         db.session.commit()
          
 
@@ -1107,26 +1255,28 @@ def create_app():
     @app.route('/auth', methods=['POST'])
     def auth():
         hblink_req = request.json
-##        print((hblink_req))
+        print((hblink_req))
         if hblink_req['secret'] in shared_secrets:
-            if 'login_id' in hblink_req:
+            if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
                         if isinstance(authorized_peer(hblink_req['login_id'])[1], int) == True:
-                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Calculated', time.time()])
+                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
+                            authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], gen_passphrase(hblink_req['login_id']), 'Attempt')
                             response = jsonify(
                                     allow=True,
                                     mode='normal',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] == '':
-                        # normal
-                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Legacy', time.time()])
+                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
+                            authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'Config: ' + legacy_passphrase, 'Attempt')
                             response = jsonify(
                                     allow=True,
                                     mode='legacy',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] != '' or isinstance(authorized_peer(hblink_req['login_id'])[1], int) == False:
-                            mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Custom', time.time()])
+                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
+                            authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Attempt')
                             print(authorized_peer(hblink_req['login_id']))
                             response = jsonify(
                                     allow=True,
@@ -1158,6 +1308,14 @@ def create_app():
                             msg = jsonify(auth=False,
                                               reason='Incorrect password')
                             response = make_response(msg, 401)
+            elif 'login_id' in hblink_req and 'login_confirmed' in hblink_req:
+                if hblink_req['old_auth'] == True:
+                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'CONFIG PASSPHRASE', 'Confirmed')
+                else:
+                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
+                response = jsonify(
+                                logged=True
+                                    )
             elif hblink_req['burn_list']: # == 'burn_list':
                 response = jsonify(
                                 burn_list=get_burnlist()
