@@ -947,12 +947,18 @@ def create_app():
         if request.args.get('flush_db') == 'true':
             content = '''<p style="text-align: center;"><strong>Flushed entire auth DB.</strong></strong></p>\n'''
             authlog_flush()
+        elif request.args.get('flush_db') == 'true' and request.args.get('portal_username'):
+            content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('portal_username') + '''</strong></strong></p>\n'''
+            authlog_flush_user(request.args.get('portal_username'))
         elif request.args.get('portal_username'):
             a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
 
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong>Log for user: ''' + request.args.get('portal_username') + '''</strong></p>
+
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>
+
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
@@ -1022,8 +1028,7 @@ def create_app():
             #a = AuthLog.query.all()
             a = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).limit(300).all()
             recent_list = []
-            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
-            print(r)
+##            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire auth log</a></strong></p>
@@ -1250,7 +1255,11 @@ def create_app():
     def authlog_flush():
         AuthLog.query.delete()
         db.session.commit()
-         
+    def authlog_flush_user(_user):
+##        AuthLog.query.delete()
+        flush_e = AuthLog.query.filter_by(portal_username=_user).all()
+        db.session.delete(flush_e)
+        db.session.commit()
 
     @app.route('/add_user', methods=['POST', 'GET'])
     @login_required
