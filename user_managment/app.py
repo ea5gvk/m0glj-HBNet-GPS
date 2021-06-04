@@ -825,8 +825,8 @@ def create_app():
 <td style="width: 77.7167px; text-align: center;"><strong>Custom</strong></td>
 </tr>
 <tr>
-<td style="text-align: center; width: 70.8px;">''</td>
-<td style="text-align: center; width: 103.45px;">0</td>
+<td style="text-align: center; width: 70.8px;">0 - default<br />1+ new calculation)</td>
+<td style="text-align: center; width: 103.45px;">''</td>
 <td style="text-align: center; width: 77.7167px;">'passphrase'</td>
 </tr>
 </tbody>
@@ -880,6 +880,7 @@ def create_app():
             passphrase = gen_passphrase(dmr_id)
         elif authorized_peer(dmr_id)[1] == '':
             passphrase = legacy_passphrase
+            print(passphrase)
         elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
             passphrase = authorized_peer(dmr_id)[1]
         #try:

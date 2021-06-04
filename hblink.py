@@ -275,9 +275,10 @@ class HBSYSTEM(DatagramProtocol):
         burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['USER_MANAGER']['BURN_FILE']).read())
         peer_id_trimmed = int(str(int_id(peer_id))[:7])
         try:
-            #print(self.ums_response)
+            print(self.ums_response)
             if self.ums_response['mode'] == 'legacy':
                 _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
+                calc_passphrase = self._config['PASSPHRASE']
             if self.ums_response['mode'] == 'override':
                 _calc_hash = bhex(sha256(_salt_str+str.encode(self.ums_response['value'])).hexdigest())
             if self.ums_response['mode'] == 'normal':
@@ -310,7 +311,8 @@ class HBSYSTEM(DatagramProtocol):
             if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
                 pass
             _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-        print((calc_passphrase))
+        print(calc_passphrase)
+        #    print(_calc_hash)
         return _calc_hash
 
 

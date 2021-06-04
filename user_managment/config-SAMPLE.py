@@ -24,6 +24,11 @@ append_int = 1
 
 shared_secrets = ['test']
 
+
+burn_int = 5
+
+legacy_passphrase = 'passw0rd'
+
 # Email settings
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 465
