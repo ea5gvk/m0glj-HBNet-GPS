@@ -538,13 +538,14 @@ def create_app():
     @login_required    # User must be authenticated
     def list_users():
         u = User.query.all()
-        u_list = '''<h2 style="text-align: center;"><strong>List/edit users:</strong></h2><p>&nbsp;</p><p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>  <p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
+        # Broken for now, link taken out - <h2 style="text-align: center;"><strong>List/edit users:</strong></h2><p>&nbsp;</p><p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>
+        u_list = '''<p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
 <td style="width: 107px; text-align: center;"><strong>Name</strong></td>
 <td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
-<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
+<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication</strong></td>
 <td style="width: 522.317px; text-align: center;"><strong>Notes</strong></td>
 </tr>'''
         for i in u:
@@ -573,7 +574,7 @@ def create_app():
 <td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
 <td style="width: 107px; text-align: center;"><strong>Name</strong></td>
 <td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
-<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication Mechanism</strong></td>
+<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication</strong></td>
 </tr>'''
         for i in u:
 ##            print(i.username)
@@ -969,7 +970,7 @@ def create_app():
 
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong>Log for user: ''' + g_arg + '''</strong></p>
+    <p style="text-align: center;"><strong>Log for: ''' + g_arg + '''</strong></p>
 
     ''' + f_link + '''
     
@@ -1364,7 +1365,7 @@ def create_app():
                                     mode='normal',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] == '':
-                            authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'Config: ' + legacy_passphrase, 'Attempt')
+                            authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'Config Passphrase: ' + legacy_passphrase, 'Attempt')
                             response = jsonify(
                                     allow=True,
                                     mode='legacy',
@@ -1405,7 +1406,7 @@ def create_app():
                             response = make_response(msg, 401)
             elif 'login_id' in hblink_req and 'login_confirmed' in hblink_req:
                 if hblink_req['old_auth'] == True:
-                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'CONFIG PASSPHRASE', 'Confirmed')
+                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'CONFIG, NO UMS', 'Confirmed')
                 else:
                     authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
                 response = jsonify(

@@ -17,7 +17,7 @@
     {% endfor %}
 </form>
 <br/>
-<p><a href="../update_ids">Update your information from RadioID.net</a></p>
+<p><a href="../update_ids"><strong>Update your information from RadioID.net</strong></a></p>
 {% if not user_manager.USER_ENABLE_AUTH0 %}
     {% if user_manager.USER_ENABLE_CHANGE_USERNAME %}
         <p><a href="{{ url_for('user.change_username') }}">{%trans%}Change username{%endtrans%}</a></p>
