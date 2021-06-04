@@ -947,17 +947,17 @@ def create_app():
         if request.args.get('flush_db') == 'true':
             content = '''<p style="text-align: center;"><strong>Flushed entire auth DB.</strong></strong></p>\n'''
             authlog_flush()
-        elif request.args.get('flush_db') == 'true' and request.args.get('portal_username'):
+        elif request.args.get('flush_user_db') == 'true' and request.args.get('portal_username'):
             content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('portal_username') + '''</strong></strong></p>\n'''
             authlog_flush_user(request.args.get('portal_username'))
-        elif request.args.get('portal_username') and not request.args.get('flush_db'):
+        elif request.args.get('portal_username') and not request.args.get('flush_user_db'):
             a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
 
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong>Log for user: ''' + request.args.get('portal_username') + '''</strong></p>
 
-    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>
 
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
