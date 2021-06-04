@@ -550,11 +550,11 @@ def create_app():
         for i in u:
             u_list = u_list + '''
 <tr>
-<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>''' + str(i.username) + '''</strong></a></td>
-<td style="width: 226.683px; text-align: center;">''' + str(i.first_name) + ' ' + str(i.last_name) + '''</td>
-<td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
-<td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
-<td style="width: 522.317px;">''' + str(i.notes) + '''</td>
+<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>&nbsp;''' + str(i.username) + '''&nbsp;</strong></a></td>
+<td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.first_name) + ' ' + str(i.last_name) + '''&nbsp;</td>
+<td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.active) + '''&nbsp;</td>
+<td style="width: 522.317px;">&nbsp;''' + str(i.dmr_ids) + '''&nbsp;</td>
+<td style="width: 622.317px;">&nbsp;''' + str(i.notes) + '''&nbsp;</td>
 </tr>
 '''+ '\n'
         content = u_list + '''</tbody>
@@ -581,10 +581,10 @@ def create_app():
             if i.initial_admin_approved == False:
                 wait_list = wait_list+ '''
 <tr>
-<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''&admin_approve=true"><strong>''' + str(i.username) + '''</strong></a></td>
-<td style="width: 226.683px; text-align: center;">''' + str(i.first_name) + ' ' + str(i.last_name) + '''</td>
-<td style="width: 226.683px; text-align: center;">''' + str(i.active) + '''</td>
-<td style="width: 522.317px;">''' + str(i.dmr_ids) + '''</td>
+<td style="width: 107px;">&nbsp;<a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''&admin_approve=true"><strong>''' + str(i.username) + '''</strong></a>&nbsp;</td>
+<td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.first_name) + ' ' + str(i.last_name) + '''&nbsp;</td>
+<td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.active) + '''&nbsp;</td>
+<td style="width: 522.317px;">&nbsp;''' + str(i.dmr_ids) + '''&nbsp;</td>
 </tr>
 '''+ '\n'
             content = wait_list + '''</tbody>
