@@ -1337,21 +1337,18 @@ def create_app():
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
                         if isinstance(authorized_peer(hblink_req['login_id'])[1], int) == True:
-                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], gen_passphrase(hblink_req['login_id']), 'Attempt')
                             response = jsonify(
                                     allow=True,
                                     mode='normal',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] == '':
-                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'Config: ' + legacy_passphrase, 'Attempt')
                             response = jsonify(
                                     allow=True,
                                     mode='legacy',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] != '' or isinstance(authorized_peer(hblink_req['login_id'])[1], int) == False:
-                            #mmdvm_logins.append([hblink_req['login_id'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], hblink_req['login_ip'], time.time()])
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Attempt')
                             print(authorized_peer(hblink_req['login_id']))
                             response = jsonify(
@@ -1361,8 +1358,6 @@ def create_app():
                                         )
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
                         print('log fail')
-                        #mmdvm_logins.append([hblink_req['login_id'], 'Not registered', 'None', 'Not authorized', time.time()])
-                        
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
                         response = jsonify(
                                     allow=False)
