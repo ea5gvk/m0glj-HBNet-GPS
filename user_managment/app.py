@@ -950,7 +950,7 @@ def create_app():
         elif request.args.get('flush_db') == 'true' and request.args.get('portal_username'):
             content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('portal_username') + '''</strong></strong></p>\n'''
             authlog_flush_user(request.args.get('portal_username'))
-        elif request.args.get('portal_username'):
+        elif request.args.get('portal_username') and not request.args.get('flush_db'):
             a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
 
             content = '''
