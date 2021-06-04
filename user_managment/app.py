@@ -966,7 +966,7 @@ def create_app():
     <tr>
     <td style="text-align: center;">
     <h4>&nbsp;DMR ID&nbsp;</h4>
-    </td>
+    </td>/e
     <td style="text-align: center;">
     <h4>&nbsp;Portal Username&nbsp;</h4>
     </td>
@@ -1064,7 +1064,6 @@ def create_app():
     </tr> \n'''
             for i in a:
                 if i.login_dmr_id not in recent_list:
-                    print()
                     recent_list.append(i.login_dmr_id)
                     if i.login_type == 'Attempt':
                         content = content + '''
@@ -1094,7 +1093,7 @@ def create_app():
                         content = content + '''
     <tr >
     <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</a></td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</a></td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
