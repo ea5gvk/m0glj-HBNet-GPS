@@ -1258,7 +1258,8 @@ def create_app():
     def authlog_flush_user(_user):
 ##        AuthLog.query.delete()
         flush_e = AuthLog.query.filter_by(portal_username=_user).all()
-        db.session.delete(flush_e)
+        for i in flush_e:
+            db.session.delete(i)
         db.session.commit()
 
     @app.route('/add_user', methods=['POST', 'GET'])
