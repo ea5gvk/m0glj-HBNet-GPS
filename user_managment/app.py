@@ -363,7 +363,7 @@ def create_app():
     '''
                 #else:
                 #    content = content + '''\n<p style="text-align: center;">Error</p>'''
-            content = content + '''\n'<p><strong> <br />5: When asked for server ports, use the information above to populate the correct fields. <br />6: Reboot your Pi-Star device</strong></p>
+            content = content + '''\n<p><strong> <br />5: When asked for server ports, use the information above to populate the correct fields. <br />6: Reboot your Pi-Star device</strong></p>
 </td>
 </tr>
 </tbody>
@@ -756,8 +756,8 @@ def create_app():
 <td style="text-align: center;"><strong>Last Name</strong></td>
 </tr>
 <tr>
-<td>''' + u.first_name + '''</td>
-<td>''' + u.last_name + '''</td>
+<td>&nbsp;''' + u.first_name + '''</td>
+<td>&nbsp;''' + u.last_name + '''</td>
 </tr>
 <tr>
 <td style="text-align: center;"><strong>City</strong></td>
@@ -957,12 +957,12 @@ def create_app():
         elif request.args.get('portal_username') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db') or request.args.get('dmr_id') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db'):
             if request.args.get('portal_username'):
 ##                s_filter = portal_username=request.args.get('portal_username')
-                a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_dmr_id.desc()).all()
+                a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_time.desc()).all()
                 g_arg = request.args.get('portal_username')
                 f_link = '''    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>'''
             elif request.args.get('dmr_id'):
 ##                s_filter = login_dmr_id=request.args.get('dmr_id')
-                a = AuthLog.query.filter_by(login_dmr_id=request.args.get('dmr_id')).order_by(AuthLog.login_dmr_id.desc()).all()
+                a = AuthLog.query.filter_by(login_dmr_id=request.args.get('dmr_id')).order_by(AuthLog.login_time.desc()).all()
                 g_arg = request.args.get('dmr_id')
                 f_link = '''<p style="text-align: center;"><strong><a href="auth_log?flush_dmr_id_db=true&dmr_id=''' + request.args.get('dmr_id') + '''">Flush auth log for: ''' + request.args.get('dmr_id') + '''</a></strong></p>'''
 ##            print(s_filter)
@@ -1040,7 +1040,7 @@ def create_app():
         else:
             #a = AuthLog.query.all().order_by(AuthLog.login_dmr_id)
             #a = AuthLog.query.all()
-            a = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).limit(300).all()
+            a = AuthLog.query.order_by(AuthLog.login_time.desc()).limit(300).all()
             recent_list = []
 ##            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
             content = '''
