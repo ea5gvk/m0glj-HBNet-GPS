@@ -1004,7 +1004,7 @@ def create_app():
                     content = content + '''
     <tr >
     <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
@@ -1016,7 +1016,7 @@ def create_app():
                     content = content + '''
     <tr >
     <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
@@ -1071,7 +1071,7 @@ def create_app():
     <h4>&nbsp;Time (UTC)&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>&nbsp;Login Status&nbsp;</h4>
+    <h4>&nbsp;Last Login Status&nbsp;</h4>
     </td>
     </tr> \n'''
             for i in a:
