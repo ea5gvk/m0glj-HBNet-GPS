@@ -1189,9 +1189,9 @@ def create_app():
             content = content + '</tbody></table>'
             
         else:
-            #a = AuthLog.query.all().order_by(AuthLog.login_dmr_id)
             #a = AuthLog.query.all()
-            a = AuthLog.query.order_by(AuthLog.login_time.desc()).limit(300).all()
+##            a = AuthLog.query.order_by(AuthLog.login_time.desc()).limit(300).all()
+            a = AuthLog.query.order_by(AuthLog.login_time.desc()).all()
             recent_list = []
 ##            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
             content = '''
