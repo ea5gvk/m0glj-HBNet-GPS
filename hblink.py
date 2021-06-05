@@ -287,12 +287,12 @@ class HBSYSTEM(DatagramProtocol):
         'old_auth': old_auth
         }
         json_object = json.dumps(auth_conf, indent = 4)
-        #try:
-        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        try:
+            req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         #    resp = json.loads(req.text)
         #return resp
-        #except requests.ConnectionError:
-        #    return {'allow':True}
+        except Exception as e:
+            logger.info(e)
 
     def calc_passphrase(self, peer_id, _salt_str):
         burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['USER_MANAGER']['BURN_FILE']).read())
@@ -519,6 +519,8 @@ class HBSYSTEM(DatagramProtocol):
                 if self._config['USE_USER_MAN'] == True:
                     self.ums_response = self.check_user_man(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0])
 ##                    print(self.ums_response)
+                    #Will allow anyone to attempt authentication, used for a transition period
+##                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow'] or acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow']:
                         user_auth = self.ums_response['allow']
                     else:

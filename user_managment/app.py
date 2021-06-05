@@ -993,7 +993,7 @@ def create_app():
     <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
+    <h4>&nbsp;Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
     <h4>&nbsp;Server&nbsp;</h4>
@@ -1065,7 +1065,7 @@ def create_app():
     <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
+    <h4>&nbsp;Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
     <h4>&nbsp;Server&nbsp;</h4>
@@ -1137,7 +1137,7 @@ def create_app():
     <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
+    <h4>&nbsp;Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
     <h4>&nbsp;Server&nbsp;</h4>
@@ -1212,7 +1212,7 @@ def create_app():
     <h4>&nbsp;Login IP&nbsp;</h4>
     </td>
     <td style="text-align: center;">
-    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
+    <h4>&nbsp;Passphrase&nbsp;</h4>
     </td>
     <td style="text-align: center;">
     <h4>&nbsp;Server&nbsp;</h4>
