@@ -1197,7 +1197,8 @@ def create_app():
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire authentication log</a></strong></p>
-    <p style="text-align: center;"><strong>Auth log by DMR ID</strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?portal_username=Not Registered">Un-registered authentication attempts</a></strong></p>
+    <p style="text-align: center;"><strong>Authentication log by DMR ID</strong></p>
 
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
