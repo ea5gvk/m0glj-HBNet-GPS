@@ -951,6 +951,9 @@ def create_app():
         elif request.args.get('flush_user_db') == 'true' and request.args.get('portal_username'):
             content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('portal_username') + '''</strong></strong></p>\n'''
             authlog_flush_user(request.args.get('portal_username'))
+        elif request.args.get('flush_user_mmdvm') == 'true' and request.args.get('mmdvm_server'):
+            content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('mmdvm_server') + '''</strong></strong></p>\n'''
+            authlog_flush_mmdvm_server(request.args.get('mmdvm_server'))
         elif request.args.get('flush_dmr_id_db') == 'true' and request.args.get('dmr_id'):
             content = '''<p style="text-align: center;"><strong>Flushed auth DB for: ''' + request.args.get('dmr_id') + '''</strong></strong></p>\n'''
             authlog_flush_dmr_id(request.args.get('dmr_id'))
@@ -1003,7 +1006,80 @@ def create_app():
                 if i.login_type == 'Attempt':
                     content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
+    </tr>
+'''
+                if i.login_type == 'Confirmed':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
+    </tr>
+'''
+                if i.login_type == 'Failed':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</a></td>
+    <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
+    <td style="text-align: center;"><span style="color: #000000; background-color: #FF2400;">&nbsp;<strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
+    </tr>
+'''
+            content = content + '</tbody></table>'
+            
+        elif request.args.get('mmdvm_server'):
+            print('mmdvm')    
+            a = AuthLog.query.filter_by(server_name=request.args.get('mmdvm_server')).order_by(AuthLog.login_time.desc()).all()
+            content = '''
+    <p>&nbsp;</p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db_mmdvm=true&mmdvm_server=''' + request.args.get('mmdvm_server') + '''">Flush authentication log for server: ''' + request.args.get('mmdvm_server') + '''</a></strong></p>
+    <p style="text-align: center;"><strong>Log for MMDVM server: ''' + request.args.get('mmdvm_server') + '''</strong></p>
+
+    
+    <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td style="text-align: center;">
+    <h4>&nbsp;DMR ID&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Portal Username&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Login IP&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Calculated Passphrase&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Server&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Time (UTC)&nbsp;</h4>
+    </td>
+    <td style="text-align: center;">
+    <h4>&nbsp;Login Status&nbsp;</h4>
+    </td>
+    </tr> \n'''
+            for i in a:
+                if i.login_type == 'Attempt':
+                    content = content + '''
+    <tr >
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1015,7 +1091,7 @@ def create_app():
                 if i.login_type == 'Confirmed':
                     content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<a href="edit_user?callsign=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1027,7 +1103,7 @@ def create_app():
                 if i.login_type == 'Failed':
                     content = content + '''
     <tr >
-    <td style="text-align: center;">&nbsp;<strong>''' + str(i.login_dmr_id) + '''</strong>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.portal_username + '''&nbsp;</a></td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
@@ -1037,6 +1113,7 @@ def create_app():
     </tr>
 '''
             content = content + '</tbody></table>'
+            
         else:
             #a = AuthLog.query.all().order_by(AuthLog.login_dmr_id)
             #a = AuthLog.query.all()
@@ -1045,8 +1122,7 @@ def create_app():
 ##            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire auth log</a></strong></p>
-    <p>&nbsp;</p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire authentication log</a></strong></p>
     <p style="text-align: center;"><strong>Auth log by DMR ID</strong></p>
 
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
@@ -1084,7 +1160,7 @@ def create_app():
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
@@ -1096,7 +1172,7 @@ def create_app():
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
@@ -1108,7 +1184,7 @@ def create_app():
     <td style="text-align: center;">&nbsp;<a href="auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</a></td>
     <td style="text-align: center;">&nbsp;<strong>''' + i.peer_ip + '''</strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
-    <td style="text-align: center;">&nbsp;''' + i.server_name + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + str(i.login_time) + '''&nbsp;</td>
     <td style="text-align: center;"><span style="color: #000000; background-color: #FF2400;">&nbsp;<strong>''' + str(i.login_type) + '''</span></strong>&nbsp;</td> 
     </tr>
@@ -1278,6 +1354,11 @@ def create_app():
 
     def authlog_flush_dmr_id(_dmr_id):
         flush_e = AuthLog.query.filter_by(login_dmr_id=_dmr_id).all()
+        for i in flush_e:
+            db.session.delete(i)
+        db.session.commit()
+    def authlog_flush_mmdvm_server(_mmdvm_serv):
+        flush_e = AuthLog.query.filter_by(server_name=_mmdvm_serv).all()
         for i in flush_e:
             db.session.delete(i)
         db.session.commit()
