@@ -48,6 +48,7 @@ from dmr_utils3 import decode, bptc, const
 import config
 import log
 from const import *
+from hashlib import sha256
 
 # Stuff for socket reporting
 import pickle
@@ -55,8 +56,8 @@ import pickle
 # The module needs logging, but handlers, etc. are controlled by the parent
 import logging
 logger = logging.getLogger(__name__)
-
-
+import os, ast
+import json, requests
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
@@ -64,6 +65,86 @@ __credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4
 __license__    = 'GNU GPLv3'
 __maintainer__ = 'Cort Buffington, N0MJS'
 __email__      = 'n0mjs@me.com'
+
+##import os, ast
+def download_config(L_CONFIG_FILE, cli_file):
+    user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
+    shared_secret = str(sha256(L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    config_check = {
+    'get_config':L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME'],
+    'secret':shared_secret
+    }
+    json_object = json.dumps(config_check, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+        print(resp)
+
+##        print(type(resp))
+##        conf = config.build_config(resp['config'])
+##        print(conf)
+##        with open('/tmp/conf_telp.cfg', 'w') as f:
+##            f.write(str(resp['config']))
+##        print(resp)
+        iterate_config = resp['peers'].copy()
+        
+        corrected_config = resp['config'].copy()
+        corrected_config['SYSTEMS'] = {}
+        corrected_config['LOGGER'] = {}
+        corrected_config['SYSTEMS'].update(iterate_config)
+        corrected_config['LOGGER'].update(L_CONFIG_FILE['LOGGER'])
+        corrected_config['USER_MANAGER'].update(L_CONFIG_FILE['USER_MANAGER'])
+        print(iterate_config)
+
+##        corrected_config = CONFIG_FILE.copy()
+
+        
+##        print(corrected_config)
+##        print()
+##        print(iterate_config['config']['SYSTEMS'])
+##        print(resp['config'])
+##        print((iterate_config['test']))
+##        print(corrected_config)
+        
+        corrected_config['GLOBAL']['TG1_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 16776415)
+        corrected_config['GLOBAL']['TG2_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 16776415)
+        corrected_config['GLOBAL']['REG_ACL'] = config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 16776415)
+        corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 16776415)
+##        corrected_config['SYSTEMS'] = {}
+        for i in iterate_config:
+            print(i)
+##            corrected_config['SYSTEMS'][i] = {}
+            if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
+            else:
+                corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
+            corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
+            corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
+            corrected_config['SYSTEMS'][i]['MASTER_SOCKADDR'] = tuple(iterate_config[i]['MASTER_SOCKADDR'])
+            corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
+            corrected_config['SYSTEMS'][i].update({'STATS':{
+                'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                        'CONNECTED': None,
+                        'PINGS_SENT': 0,
+                        'PINGS_ACKD': 0,
+                        'NUM_OUTSTANDING': 0,
+                        'PING_OUTSTANDING': False,
+                        'LAST_PING_TX_TIME': 0,
+                        'LAST_PING_ACK_TIME': 0,
+                    }})
+        print(corrected_config)
+##        config.process_acls(corrected_config)
+##        print(corrected_config)
+        print('-------')
+        return corrected_config
+    # For exception, write blank dict
+    except requests.ConnectionError:
+        logger.error('Config server unreachable, defaulting to local config')
+        return config.build_config(cli_file)
 
 # Module gobal varaibles
 
@@ -1096,7 +1177,27 @@ if __name__ == '__main__':
         cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hblink.cfg'
 
     # Call the external routine to build the configuration dictionary
-    CONFIG = config.build_config(cli_args.CONFIG_FILE)
+    LOCAL_CONFIG = config.build_config(cli_args.CONFIG_FILE)
+    #print(LOCAL_CONFIG)
+    #print(download_config(LOCAL_CONFIG))
+    #if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+    #print(download_config(LOCAL_CONFIG)['config'])
+##    CONFIG = config.build_config(download_config(LOCAL_CONFIG))
+    #CONFIG = download_config(LOCAL_CONFIG)
+    #if not LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+##    print(download_config(LOCAL_CONFIG)['config'])
+##    CONFIG = config.build_config(cli_args.CONFIG_FILE)
+    #print((CONFIG))
+
+
+##    config.process_acls(LOCAL_CONFIG)
+    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+        CONFIG = download_config(LOCAL_CONFIG, cli_args.CONFIG_FILE)
+    else:
+        CONFIG = config.build_config(cli_args.CONFIG_FILE)
+
+    
+##    print(CONFIG)
 
     # Ensure we have a path for the rules file, if one wasn't specified, then use the default (top of file)
     if not cli_args.RULES_FILE:
@@ -1169,6 +1270,7 @@ if __name__ == '__main__':
     stream_trimmer_task = task.LoopingCall(stream_trimmer_loop)
     stream_trimmer = stream_trimmer_task.start(5)
     stream_trimmer.addErrback(loopingErrHandle)
+
 
     # Download burn list
     with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:

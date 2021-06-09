@@ -17,15 +17,18 @@ from flask_babelex import Babel
 import libscrc
 import random
 from flask_mail import Message, Mail
+from socket import gethostbyname
+
 
 try:
     from gen_script_template import gen_script
 except:
     pass
 
-script_links = {}
-mmdvm_logins = []
+import os, ast
+##import hb_config
 
+Sscript_links = {}
 ##def gen_passphrase(dmr_id):
 ##    _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
 ##    b_list = create_app().get_burnlist()
@@ -177,6 +180,153 @@ def create_app():
         login_auth_method = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         portal_username = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         login_type = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+    class mmdvmPeer(db.Model):
+        __tablename__ = 'MMDVM_peers'
+        id = db.Column(db.Integer(), primary_key=True)
+        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enabled = db.Column(db.Boolean(), nullable=False, server_default='1')
+        loose = db.Column(db.Boolean(), nullable=False, server_default='1')
+        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        port = db.Column(db.Integer(), primary_key=False)
+        master_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        master_port = db.Column(db.Integer(), primary_key=False)
+        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        callsign = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        radio_id = db.Column(db.Integer(), primary_key=False)
+        rx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tx_power = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        color_code = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        latitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        longitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        height = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        location = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        software_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        package_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
+        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+    class xlxPeer(db.Model):
+        __tablename__ = 'XLX_peers'
+        id = db.Column(db.Integer(), primary_key=True)
+        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enabled = db.Column(db.Boolean(), nullable=False, server_default='1')
+        loose = db.Column(db.Boolean(), nullable=False, server_default='1')
+        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        port = db.Column(db.Integer(), primary_key=False)
+        master_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        master_port = db.Column(db.Integer(), primary_key=False)
+        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        callsign = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        radio_id = db.Column(db.Integer(), primary_key=False)
+        rx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tx_power = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        color_code = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        latitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        longitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        height = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        location = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        software_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        package_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        xlxmodule = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
+        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+    class ServerList(db.Model):
+        __tablename__ = 'server_list'
+        name = db.Column(db.String(100, collation='NOCASE'), unique=True, primary_key=True)
+        secret = db.Column(db.String(255), nullable=False, server_default='')
+        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+        id = db.Column(db.Integer(), primary_key=False)
+        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        port = db.Column(db.Integer(), primary_key=False)
+        global_path = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./')
+        global_ping_time = db.Column(db.Integer(), primary_key=False)
+        global_max_missed = db.Column(db.Integer(), primary_key=False)
+        global_use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
+        global_reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
+        global_sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='DENY:1')
+        global_tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
+        global_tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
+        ai_try_download = db.Column(db.Boolean(), nullable=False, server_default='1')
+        ai_path = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./')
+        ai_peer_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='peer_ids.json')
+        ai_subscriber_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='subscriber_ids.json')
+        ai_tgid_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='talkgroup_ids.json')
+        ai_peer_url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='https://www.radioid.net/static/rptrs.json')
+        ai_subs_url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='https://www.radioid.net/static/users.json')
+        ai_stale = db.Column(db.Integer(), primary_key=False, server_default='7')
+        # Pull from config file for now
+##        um_append_int = db.Column(db.Integer(), primary_key=False, server_default='2')
+        um_shorten_passphrase = db.Column(db.Boolean(), nullable=False, server_default='0')
+        um_burn_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./burned_ids.txt')
+        # Pull from config file for now
+##        um_burn_int = db.Column(db.Integer(), primary_key=False, server_default='6')
+        report_enable = db.Column(db.Boolean(), nullable=False, server_default='1')
+        report_interval = db.Column(db.Integer(), primary_key=False, server_default='60')
+        report_port = db.Column(db.Integer(), primary_key=False, server_default='4321')
+        report_clients =db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+    class MasterList(db.Model):
+        __tablename__ = 'master_list'
+        id = db.Column(db.Integer(), primary_key=True)
+        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        static_positions = db.Column(db.Boolean(), nullable=False, server_default='0')
+        repeat = db.Column(db.Boolean(), nullable=False, server_default='1')
+        max_peers = db.Column(db.Integer(), primary_key=False, server_default='10')
+        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        port = db.Column(db.Integer(), primary_key=False)
+        enable_um = db.Column(db.Boolean(), nullable=False, server_default='1')
+        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        group_hang_time = db.Column(db.Integer(), primary_key=False, server_default='5')
+        use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
+        reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        
+    class BridgeRules(db.Model):
+        __tablename__ = 'bridge_rules'
+        id = db.Column(db.Integer(), primary_key=True)
+        bridge_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        system_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        ts = db.Column(db.Integer(), primary_key=False)
+        tg = db.Column(db.Integer(), primary_key=False)
+        active = db.Column(db.Boolean(), nullable=False, server_default='1')
+        timeout = db.Column(db.Integer(), primary_key=False)
+        to_type = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        on = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        off = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        reset = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server_list = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+
+    class ExcludeUnit(db.Model):
+        __tablename__ = 'exclude_unit'
+        id = db.Column(db.Integer(), primary_key=True)
+        system_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+    class ServerMisc(db.Model):
+        __tablename__ = 'server_misc'
+        id = db.Column(db.Integer(), primary_key=True)
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        unit_time = db.Column(db.Integer(), primary_key=False)
+
+        
+       
         
 
 
@@ -1375,8 +1525,88 @@ def create_app():
 ####        db.session.commit()
 ##        a = AuthLog.query.all()
 ##        print(a)
-##        authlog_flush()  
+##        authlog_flush()
+        peer_delete('mmdvm', 1)
         return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
+    def get_peer_configs(_server_name):
+        mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).all()
+        xlx_pl = xlxPeer.query.filter_by(server=_server_name).all()
+        print(mmdvm_pl)
+        peer_config_list = {}
+        for i in mmdvm_pl:
+            print(i)
+##            print(i.master_ip)
+            peer_config_list.update({i.name: {
+                        'MODE': 'PEER',
+                        'ENABLED': i.enabled,
+                        'LOOSE': i.loose,
+                        'SOCK_ADDR': (gethostbyname(i.ip), i.port),
+                        'IP': i.ip,
+                        'PORT': i.port,
+                        'MASTER_SOCKADDR': (gethostbyname(i.master_ip), i.master_port),
+                        'MASTER_IP': i.master_ip,
+                        'MASTER_PORT': i.master_port,
+                        'PASSPHRASE': bytes((i.passphrase), 'utf-8'),
+                        'CALLSIGN': bytes((i.callsign).ljust(8)[:8], 'utf-8'),
+                        'RADIO_ID': int(i.radio_id), #int(i.radio_id).to_bytes(4, 'big'),
+                        'RX_FREQ': bytes((i.rx_freq).ljust(9)[:9], 'utf-8'),
+                        'TX_FREQ': bytes((i.tx_freq).ljust(9)[:9], 'utf-8'),
+                        'TX_POWER': bytes((i.tx_power).rjust(2,'0'), 'utf-8'),
+                        'COLORCODE': bytes((i.color_code).rjust(2,'0'), 'utf-8'),
+                        'LATITUDE': bytes((i.latitude).ljust(8)[:8], 'utf-8'),
+                        'LONGITUDE': bytes((i.longitude).ljust(9)[:9], 'utf-8'),
+                        'HEIGHT': bytes((i.height).rjust(3,'0'), 'utf-8'),
+                        'LOCATION': bytes((i.location).ljust(20)[:20], 'utf-8'),
+                        'DESCRIPTION': bytes((i.description).ljust(19)[:19], 'utf-8'),
+                        'SLOTS': bytes((i.slots), 'utf-8'),
+                        'URL': bytes((i.url).ljust(124)[:124], 'utf-8'),
+                        'SOFTWARE_ID': bytes((i.software_id).ljust(40)[:40], 'utf-8'),
+                        'PACKAGE_ID': bytes((i.package_id).ljust(40)[:40], 'utf-8'),
+                        'GROUP_HANGTIME': i.group_hangtime,
+                        'OPTIONS':  b''.join([b'Type=HBlink;', bytes(i.options, 'utf-8')]),
+                        'USE_ACL': i.use_acl,
+                        'SUB_ACL': i.sub_acl,
+                        'TG1_ACL': i.tg1_acl,
+                        'TG2_ACL': i.tg2_acl
+                    }})
+            for i in xlx_pl:
+                            peer_config_list.update({i: {
+                        'MODE': 'XLX',
+                        'ENABLED': i.enabled,
+                        'LOOSE': i.loose,
+                        'SOCK_ADDR': (gethostbyname(i.ip), i.port),
+                        'IP': i.ip,
+                        'PORT': i.port,
+                        'MASTER_SOCKADDR': (gethostbyname(i.master_ip), i.master_port),
+                        'MASTER_IP': i.master_ip,
+                        'MASTER_PORT': i.master_port,
+                        'PASSPHRASE': bytes((i.passphrase), 'utf-8'),
+                        'CALLSIGN': bytes((i.callsign).ljust(8)[:8], 'utf-8'),
+                        'RADIO_ID': int(i.radio_id),
+                        'RX_FREQ': bytes((i.rx_freq).ljust(9)[:9], 'utf-8'),
+                        'TX_FREQ': bytes((i.tx_freq).ljust(9)[:9], 'utf-8'),
+                        'TX_POWER': bytes((i.tx_power).rjust(2,'0'), 'utf-8'),
+                        'COLORCODE': bytes((i.color_code).rjust(2,'0'), 'utf-8'),
+                        'LATITUDE': bytes((i.latitude).ljust(8)[:8], 'utf-8'),
+                        'LONGITUDE': bytes((i.longitude).ljust(9)[:9], 'utf-8'),
+                        'HEIGHT': bytes((i.height).rjust(3,'0'), 'utf-8'),
+                        'LOCATION': bytes((i.location).ljust(20)[:20], 'utf-8'),
+                        'DESCRIPTION': bytes((i.description).ljust(19)[:19], 'utf-8'),
+                        'SLOTS': bytes((i.slots), 'utf-8'),
+                        'URL': bytes((i.url).ljust(124)[:124], 'utf-8'),
+                        'SOFTWARE_ID': bytes((i.software_id).ljust(40)[:40], 'utf-8'),
+                        'PACKAGE_ID': bytes((i.package_id).ljust(40)[:40], 'utf-8'),
+                        'GROUP_HANGTIME': i.group_hangtime,
+                        'XLXMODULE': i.xlxmodule,
+                        'OPTIONS':  b''.join([b'Type=HBlink;', bytes(i.options, 'utf-8')]),
+                        'USE_ACL': i.use_acl,
+                        'SUB_ACL': i.sub_acl,
+                        'TG1_ACL': i.tg1_acl,
+                        'TG2_ACL': i.tg2_acl
+                    }})
+            print((peer_config_list))
+        return peer_config_list
 
     def get_burnlist():
         b = BurnList.query.all()
@@ -1442,6 +1672,1156 @@ def create_app():
         for i in flush_e:
             db.session.delete(i)
         db.session.commit()
+##    def peer_delete(_mode, _id):
+##        if _mode == 'xlx':
+##           p = xlxPeer.query.filter_by(id=_id).first()
+##        if _mode == 'mmdvm':
+##           p = mmdvmPeer.query.filter_by(id=_id).first()
+##        db.session.delete(p)
+##        db.session.commit()
+
+    def server_delete(_name):
+        s = ServerList.query.filter_by(name=_name).first()
+        db.session.delete(s)
+        db.session.commit()
+    def peer_delete(_mode, _server, _name):
+        print(_server)
+        print(_name)
+        if _mode == 'mmdvm':
+            p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+        if _mode == 'xlx':
+            p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+        db.session.delete(p)
+        db.session.commit()
+
+    def shared_secrets():
+        s = ServerList.query.all() #filter_by(name=_name).first()
+        r_list = []
+        for i in s:
+            r_list.append(str(i.secret))
+        return r_list
+
+    def server_get(_name):
+##        print(_name)
+        #s = ServerList.query.filter_by(name=_name).first()
+       # print(s.name)        
+        i = ServerList.query.filter_by(name=_name).first()
+##        print(i.name)
+        s_config = {}
+        s_config['GLOBAL'] = {}
+        s_config['REPORTS'] = {}
+        s_config['ALIASES'] = {}
+        s_config['USER_MANAGER'] = {}
+
+        s_config['GLOBAL'].update({
+                    'PATH': i.global_path,
+                    'PING_TIME': i.global_ping_time,
+                    'MAX_MISSED': i.global_max_missed,
+                    'USE_ACL': i.global_use_acl,
+                    'REG_ACL': i.global_reg_acl,
+                    'SUB_ACL': i.global_sub_acl,
+                    'TG1_ACL': i.global_tg1_acl,
+                    'TG2_ACL': i.global_tg2_acl
+                })
+        
+        s_config['REPORTS'].update({
+                    'REPORT': i.report_enable,
+                    'REPORT_INTERVAL': i.report_interval,
+                    'REPORT_PORT': i.report_port,
+                    'REPORT_CLIENTS': i.report_clients.split(',')
+                })
+        s_config['ALIASES'].update({
+                    'TRY_DOWNLOAD':i.ai_try_download,
+                    'PATH': i.ai_path,
+                    'PEER_FILE': i.ai_peer_file,
+                    'SUBSCRIBER_FILE': i.ai_subscriber_file,
+                    'TGID_FILE': i.ai_tgid_file,
+                    'PEER_URL': i.ai_peer_url,
+                    'SUBSCRIBER_URL': i.ai_subs_url,
+                    'STALE_TIME': i.ai_stale * 86400,
+                })
+        s_config['USER_MANAGER'].update({
+                    'APPEND_INT': append_int,
+                    'SHORTEN_PASSPHRASE': i.um_shorten_passphrase,
+                    'BURN_FILE': i.um_burn_file,
+                    'BURN_INT': burn_int,
+
+
+                })
+        print(s_config['REPORTS'])
+        return s_config
+
+    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients):
+        s = ServerList.query.filter_by(name=_name).first()
+        if _secret == '':
+            s.secret = s.secret
+        else:
+            s.secret = hashlib.sha256(_secret.encode()).hexdigest()
+        s.public_list = _public_list
+        s.ip = _ip
+        s.port = _port
+        s.global_path =_global_path
+        s.global_ping_time = _global_ping_time
+        s.global_max_missed = _global_max_missed
+        s.global_use_acl = _global_use_acl
+        s.global_reg_acl = _global_reg_acl
+        s.global_sub_acl = _global_sub_acl
+        s.global_tg1_acl = _global_tg1_acl
+        s.global_tg2_acl = _global_tg2_acl
+        s.ai_try_download = _ai_try_download
+        s.ai_path = _ai_path
+        s.ai_peer_file = _ai_peer_file
+        s.ai_subscriber_file = _ai_subscriber_file
+        s.ai_tgid_file = _ai_tgid_file
+        s.ai_peer_url = _ai_peer_url
+        s.ai_subs_url = _ai_subs_url
+        s.ai_stale = _ai_stale
+        # Pull from config file for now
+##        um_append_int = db.Column(db.Integer(), primary_key=False, server_default='2')
+        s.um_shorten_passphrase = _um_shorten_passphrase
+        s.um_burn_file = _um_burn_file
+        # Pull from config file for now
+##        um_burn_int = db.Column(db.Integer(), primary_key=False, server_default='6')
+        s.report_enable = _report_enable
+        s.report_interval = _report_interval
+        s.report_port = _report_port
+        s.report_clients = _report_clients
+        db.session.commit()
+
+
+
+        
+    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients):
+        add_server = ServerList(
+        name = _name,
+        secret = hashlib.sha256(_secret.encode()).hexdigest(),
+        public_list = _public_list,
+        ip = _ip,
+        port = _port,
+        global_path =_global_path,
+        global_ping_time = _global_ping_time,
+        global_max_missed = _global_max_missed,
+        global_use_acl = _global_use_acl,
+        global_reg_acl = _global_reg_acl,
+        global_sub_acl = _global_sub_acl,
+        global_tg1_acl = _global_tg1_acl,
+        global_tg2_acl = _global_tg2_acl,
+        ai_try_download = _ai_try_download,
+        ai_path = _ai_path,
+        ai_peer_file = _ai_peer_file,
+        ai_subscriber_file = _ai_subscriber_file,
+        ai_tgid_file = _ai_tgid_file,
+        ai_peer_url = _ai_peer_url,
+        ai_subs_url = _ai_subs_url,
+        ai_stale = _ai_stale,
+        # Pull from config file for now
+##        um_append_int = db.Column(db.Integer(), primary_key=False, server_default='2')
+        um_shorten_passphrase = _um_shorten_passphrase,
+        um_burn_file = _um_burn_file,
+        # Pull from config file for now
+##        um_burn_int = db.Column(db.Integer(), primary_key=False, server_default='6')
+        report_enable = _report_enable,
+        report_interval = _report_interval,
+        report_port = _report_port,
+        report_clients = _report_clients
+        )
+        db.session.add(add_server)
+        db.session.commit()
+    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr):
+        if _mode == 'xlx':
+            xlx_peer_add = xlxPeer(
+                    name = _name,
+                    enabled = _enabled,
+                    loose = _loose,
+                    ip = _ip,
+                    port = _port,
+                    master_ip = _master_ip,
+                    master_port = _master_port,
+                    passphrase = _passphrase,
+                    callsign = _callsign,
+                    radio_id = _radio_id,
+                    rx_freq = _rx,
+                    tx_freq = _tx,
+                    tx_power = _tx_power,
+                    color_code = _cc,
+                    latitude = _lat,
+                    longitude = _lon,
+                    height = _height,
+                    location = _loc,
+                    description = _desc,
+                    slots = _slots,
+                    xlxmodule = _xlx_mod,
+                    url = _url,
+                    software_id = 'HBNet',
+                    package_id = 'v1',
+                    group_hangtime = _grp_hang,
+                    use_acl = _use_acl,
+                    sub_acl = _sub_acl,
+                    tg1_acl = _1_acl,
+                    tg2_acl = _2_acl,
+                    server = _svr
+                        )
+            db.session.add(xlx_peer_add)
+            db.session.commit()
+        if _mode == 'mmdvm':
+            mmdvm_peer_add = mmdvmPeer(
+                    name = _name,
+                    enabled = _enabled,
+                    loose = _loose,
+                    ip = _ip,
+                    port = _port,
+                    master_ip = _master_ip,
+                    master_port = _master_port,
+                    passphrase = _passphrase,
+                    callsign = _callsign,
+                    radio_id = _radio_id,
+                    rx_freq = _rx,
+                    tx_freq = _tx,
+                    tx_power = _tx_power,
+                    color_code = _cc,
+                    latitude = _lat,
+                    longitude = _lon,
+                    height = _height,
+                    location = _loc,
+                    description = _desc,
+                    slots = _slots,
+                    url = _url,
+                    software_id = 'HBNet',
+                    package_id = 'v1',
+                    group_hangtime = _grp_hang,
+                    use_acl = _use_acl,
+                    sub_acl = _sub_acl,
+                    tg1_acl = _1_acl,
+                    tg2_acl = _2_acl,
+                    server = _svr
+                        )
+            db.session.add(mmdvm_peer_add)
+            db.session.commit()
+    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl):
+##        print(_mode)
+        if _mode == 'mmdvm':
+            print(_server)
+            print(_name)
+##            print(_name)
+##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+            p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+##            print(p)
+            p.enabled = _enabled
+            p.loose = _loose
+            p.ip = _ip
+            p.port = _port
+            p.master_ip = _master_ip
+            p.master_port = _master_port
+            p.passphrase = _passphrase
+            p.callsign = _callsign
+            p.radio_id = _radio_id
+            p.rx_freq = _rx
+            p.tx_freq = _tx
+            p.tx_power = _tx_power
+            p.color_code = _cc
+            p.latitude = _lat
+            p.longitude = _lon
+            p.height = _height
+            p.location = _loc
+            p.description = _desc
+            p.slots = _slots
+            p.url = _url
+            p.software_id = 'HBNet'
+            p.package_id = 'v1'
+            p.group_hangtime = _grp_hang
+            p.use_acl = _use_acl
+            p.sub_acl = _sub_acl
+            p.tg1_acl = _1_acl
+            p.tg2_acl = _2_acl
+        db.session.commit()
+            
+            
+
+
+# Test server configs
+
+    @app.route('/edit_server', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def edit_server_db():
+        # Edit server
+        if request.args.get('save_mode'):# == 'new' and request.form.get('server_name'):
+            _port = int(request.form.get('server_port'))
+            _global_ping_time = int(request.form.get('ping_time'))
+            _global_max_missed = int(request.form.get('max_missed'))
+            _ai_stale = int(request.form.get('stale_days'))
+            _report_interval = int(request.form.get('report_interval'))
+            _report_port = int(request.form.get('report_port'))
+            if request.form.get('use_acl') == 'True':
+                _global_use_acl = True
+            if request.form.get('aliases_enabled') == 'True':
+                _ai_try_download = True
+            if request.form.get('um_shorten_passphrase') == 'True':
+                _um_shorten_passphrase = True
+            if request.form.get('report') == 'True':
+                _report_enabled = True
+            if  request.form.get('public_list') == 'True':
+                public_list = True
+            else:
+                _global_use_acl = False
+                _ai_try_download = False
+                _um_shorten_passphrase = False
+                _report_enabled = False
+                public_list = False
+
+            if request.args.get('save_mode') == 'new':
+                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'))
+                content = 'attempt save'
+            if request.args.get('save_mode') == 'edit':
+                server_edit(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'))
+                content = 'attempt edit save'
+        elif request.args.get('delete_server'):
+            server_delete(request.args.get('delete_server'))
+            content = 'deleted server'
+            content = 'deleted ' + request.args.get('delete_server')
+        elif request.args.get('edit_server'):
+            s = ServerList.query.filter_by(name=request.args.get('edit_server')).first()
+            
+            content = '''
+<p style="text-align: center;">&nbsp;</p>
+
+<p style="text-align: center;"><strong><a href="edit_server?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
+
+<form action="edit_server?save_mode=edit" method="post">
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Server<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 30%;"><strong>&nbsp;Server Name:</strong></td>
+<td style="width: 70%;">&nbsp;<strong>''' + str(s.name) + '''</strong></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Server Secret:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_secret" type="text" value="" /></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, for listing on passphrase page):</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" value="''' + str(s.ip) + '''"/></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Port (for listing on passphrase page):</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="''' + str(s.port) + '''"/></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Public list:</strong></td>
+<td>&nbsp;<select name="public_list">
+<option selected="selected" value="''' + str(s.public_list) + '''">Current: ''' + str(s.public_list) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select></td>
+</tr>
+</tbody>
+</table>
+<h3 style="text-align: center;"><strong>Global</strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Path:</strong></td>
+<td>&nbsp;<input name="global_path" type="text" value="''' + str(s.global_path) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Ping Time:</strong></td>
+<td>&nbsp;<input name="ping_time" type="text" value="''' + str(s.global_ping_time) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Max Missed:</strong></td>
+<td>&nbsp;<input name="max_missed" type="text" value="''' + str(s.global_max_missed) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Use ACLs:</strong></td>
+<td>&nbsp;<select name="use_acl">
+<option selected="selected" value="''' + str(s.global_use_acl) + '''">Current: ''' + str(s.global_use_acl) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Regular ACLs:</strong></td>
+<td>&nbsp;<input name="reg_acl" type="text" value="''' + str(s.global_reg_acl) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber ACSs:</strong></td>
+<td>&nbsp;<input name="sub_acl" type="text" value="''' + str(s.global_sub_acl) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Timeslot 1 ACLs:</strong></td>
+<td>&nbsp;<input name="global_ts1_acl" type="text" value="''' + str(s.global_tg1_acl) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Timeslot 2 ACLs:</strong></td>
+<td>&nbsp;<input name="global_ts2_acl" type="text" value="''' + str(s.global_tg2_acl) + '''" /></td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Reports</strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Enable:</strong></td>
+<td>&nbsp;<select name="report">
+<option selected="selected" value="''' + str(s.report_enable) + '''">Current: ''' + str(s.report_enable) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Interval:</strong></td>
+<td>&nbsp;<input name="report_interval" type="text" value="''' + str(s.report_interval) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Port:</strong></td>
+<td>&nbsp;<input name="report_port" type="text" value="''' + str(s.report_port) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Clients:</strong></td>
+<td>&nbsp;<input name="report_clients" type="text" value="''' + str(s.report_clients) + '''" /></td>
+</tr>
+</tbody>
+</table>
+<!--
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Logger<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;File:</strong></td>
+<td>&nbsp;<input name="log_file" type="text" value="/tmp/hbnet.log" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Handler:</strong></td>
+<td>&nbsp;<input name="log_hendelers" type="text" value="file" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Level:</strong></td>
+<td>&nbsp;<input name="log_level" type="text" value="DEBUG" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Name:</strong></td>
+<td>&nbsp;<input name="log_name" type="text" value="HBNet" /></td>
+</tr>
+</tbody>
+</table>
+-->
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Aliases<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Download:</strong></td>
+<td>&nbsp;<select name="aliases_enabled">
+<option selected="selected" value="''' + str(s.report_enable) + '''">Current: ''' + str(s.report_enable) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Path:</strong></td>
+<td>&nbsp;<input name="aliases_path" type="text" value="''' + str(s.ai_path) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Peer File:</strong></td>
+<td>&nbsp;<input name="peer_file" type="text" value="''' + str(s.ai_peer_file) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber File:</strong></td>
+<td>&nbsp;<input name="sub_file" type="text" value="''' + str(s.ai_subscriber_file) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Talkgroup ID File:</strong></td>
+<td>&nbsp;<input name="tgid_file" type="text" value="''' + str(s.ai_tgid_file) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Peer URL:</strong></td>
+<td>&nbsp;<input name="peer_url" type="text" value="''' + str(s.ai_peer_url) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber URL:</strong></td>
+<td>&nbsp;<input name="sub_url" type="text" value="''' + str(s.ai_subs_url) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Stale time(days):</strong></td>
+<td>&nbsp;<input name="stale_days" type="text" value="''' + str(s.ai_stale) + '''" /></td>
+</tr>
+</tbody>
+</table>
+  <br>
+  <p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>User Manager<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Use short passphrase:</strong></td>
+<td style="width: 78.7895%;"><select name="um_shorten_passphrase">
+<option selected="selected" value="''' + str(s.um_shorten_passphrase) + '''">Current: ''' + str(s.um_shorten_passphrase) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Burned IDs File:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="um_burn_file" type="text" value="''' + str(s.um_burn_file) + '''"/></td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: center;">&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Save" /></form></p>
+<p style="text-align: center;">&nbsp;</p>
+'''
+        # Add new server
+        elif request.args.get('add'): # == 'yes':
+            content = '''
+<form action="edit_server?save_mode=new" method="post">
+  <p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Server<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 30%;"><strong>&nbsp;Server Name:</strong></td>
+<td style="width: 70%;">&nbsp;<input name="server_name" type="text" /></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Server Secret:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_secret" type="text" value="secret_passphrase" /></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS):</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" /></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Port:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="62032"/></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Public list:</strong></td>
+<td>&nbsp;<select name="public_list">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+</tbody>
+</table>
+<h3 style="text-align: center;"><strong>Global</strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Path:</strong></td>
+<td>&nbsp;<input name="global_path" type="text" value="./" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Ping Time:</strong></td>
+<td>&nbsp;<input name="ping_time" type="text" value="5" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Max Missed:</strong></td>
+<td>&nbsp;<input name="max_missed" type="text" value="3" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Use ACLs:</strong></td>
+<td>&nbsp;<select name="use_acl">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Regular ACLs:</strong></td>
+<td>&nbsp;<input name="reg_acl" type="text" value="PERMIT:ALL" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber ACSs:</strong></td>
+<td>&nbsp;<input name="sub_acl" type="text" value="DENY:1" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Timeslot 1 ACLs:</strong></td>
+<td>&nbsp;<input name="global_ts1_acl" type="text" value="PERMIT:ALL" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Timeslot 2 ACLs:</strong></td>
+<td>&nbsp;<input name="global_ts2_acl" type="text" value="PERMIT:ALL" /></td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Reports</strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Enable:</strong></td>
+<td>&nbsp;<select name="report">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Interval:</strong></td>
+<td>&nbsp;<input name="report_interval" type="text" value="60" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Port:</strong></td>
+<td>&nbsp;<input name="report_port" type="text" value="4321" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Clients:</strong></td>
+<td>&nbsp;<input name="report_clients" type="text" value="127.0.0.1" /></td>
+</tr>
+</tbody>
+</table>
+<!--
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Logger<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;File:</strong></td>
+<td>&nbsp;<input name="log_file" type="text" value="/tmp/hbnet.log" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Handler:</strong></td>
+<td>&nbsp;<input name="log_hendelers" type="text" value="file" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Level:</strong></td>
+<td>&nbsp;<input name="log_level" type="text" value="DEBUG" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Log Name:</strong></td>
+<td>&nbsp;<input name="log_name" type="text" value="HBNet" /></td>
+</tr>
+</tbody>
+</table>
+-->
+<p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>Aliases<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td><strong>&nbsp;Download:</strong></td>
+<td>&nbsp;<select name="aliases_enabled">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Path:</strong></td>
+<td>&nbsp;<input name="aliases_path" type="text" value="./" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Peer File:</strong></td>
+<td>&nbsp;<input name="peer_file" type="text" value="peer_ids.json" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber File:</strong></td>
+<td>&nbsp;<input name="sub_file" type="text" value="subscriber_ids.json" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Talkgroup ID File:</strong></td>
+<td>&nbsp;<input name="tgid_file" type="text" value="talkgroup_ids.json" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Peer URL:</strong></td>
+<td>&nbsp;<input name="peer_url" type="text" value="https://www.radioid.net/static/rptrs.json" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Subscriber URL:</strong></td>
+<td>&nbsp;<input name="sub_url" type="text" value="https://www.radioid.net/static/users.json" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Stale time(days):</strong></td>
+<td>&nbsp;<input name="stale_days" type="text" value="7" /></td>
+</tr>
+</tbody>
+</table>
+  <br>
+  <p style="text-align: center;">&nbsp;</p>
+<h3 style="text-align: center;"><strong>User Manager<br /></strong></h3>
+<table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Use short passphrase:</strong></td>
+<td style="width: 78.7895%;"><select name="um_shorten_passphrase">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Burned IDs File:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="um_burn_file" type="text" value="./burned_ids.txt"/></td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: center;">&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Save" /></form></p>
+<p style="text-align: center;">&nbsp;</p>
+'''
+        else:
+            all_s = ServerList.query.all()
+            p_list = '''
+<h3 style="text-align: center;">View/Edit Servers</h3>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><a href="edit_server?add=new">Add Server Config</a></strong></td>
+</tr>
+</tbody>
+</table>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<td style="text-align: center;"><h5><strong>Name</strong><h5></td>
+'''
+            for s in all_s:
+                p_list = p_list + '''
+<tr>
+<td style="text-align: center;"><a href="edit_server?edit_server=''' + str(s.name) + '''"><strong>''' + str(s.name) + '''</strong></a></td>
+</tr>\n
+'''
+            p_list = p_list + '''</tbody></table> '''
+            content = p_list
+        
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
+    @app.route('/edit_peer', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def test_peer_db():
+        if request.args.get('save_mode'):
+            if request.form.get('enabled') == 'true':
+                peer_enabled = True
+##            if request.form.get('loose') == 'true':
+##                peer_loose = True
+            if request.form.get('use_acl') == 'true':
+                use_acl = True
+            else:
+##                peer_loose = False
+                peer_enabled = False
+                use_acl = False
+            peer_loose = True
+            if request.args.get('save_mode') == 'mmdvm_peer':
+                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
+                content = 'saved mmdvm peer'
+            if request.args.get('save_mode') == 'xlx_peer':
+                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
+                content = 'saved xlx peer'
+        elif request.args.get('add') == 'mmdvm' or request.args.get('add') == 'xlx':
+            s = ServerList.query.all()
+            if request.args.get('add') == 'mmdvm':
+                mode = 'MMDVM'
+                submit_link = 'edit_peer?save_mode=mmdvm_peer'
+                xlx_module = ''
+            if request.args.get('add') == 'xlx':
+                xlx_module = '''
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;XLX Module:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="xlxmodule" type="text" value="" /></td>
+</tr>
+'''
+                mode = 'XLX'
+                submit_link = 'edit_peer?save_mode=xlx_peer'
+            server_options = ''
+            for i in s:
+                server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
+            content = '''
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><strong>Add an ''' + mode + ''' peer</strong></h2>
+
+<form action="''' + submit_link + '''" method="post">
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 175.567px;"><strong>Assign to Server:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="server">
+''' + server_options + '''
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>Connection Name:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="name_text" type="text" value="" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Active:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="enabled">
+<option value="true">True</option>
+<option value="false">False</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;IP:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="ip" type="text" value="" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Port:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="port" type="text" value="54001" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Passphrase:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="passphrase" type="text" value="passw0rd" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Master IP:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="master_ip" type="text" value="IP.OF.MASTER.SERVER" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Master Port:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="master_port" type="text" value="54000" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Callsign:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="callsign" type="text" value="" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Radio ID:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="radio_id" type="text" value="123456789" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Transmit Frequency:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tx" type="text" value="449000000" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Receive Frequency:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="rx" type="text" value="449000000" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Transmit Power:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tx_power" type="text" value="25" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Color Code:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="cc">
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Slots:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="slots" type="text" value="1" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Latitude:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="lat" type="text" value="38.0000" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Longitude:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="lon" type="text" value="-095.0000" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Height</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="height" type="text" value="50" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Location:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="location" type="text" value="Anywhere, USA" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Description:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="description" type="text" value="This is a cool repeater" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;URL:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="url" type="text" value="www.w1abc.org" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Group Hangtime:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="group_hangtime" type="text" value="5" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Options:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="options" type="text" value="" /></td>
+</tr>
+''' + xlx_module + '''
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Use ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="use_acl">
+<option selected="selected" value="true">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Subscriber ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="sub_acl" type="text" value="DENY:1" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 1 ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tgid_ts1_acl" type="text" value="PERMIT:ALL" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="PERMIT:ALL" /></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Save" /></p></form>
+'''
+
+##        elif request.args.get('edit_server') and request.args.get('edit_peer') and request.args.get('mode') == 'mmdvm':
+        elif request.args.get('delete_peer') and request.args.get('peer_server'):
+            print(request.args.get('peer_server'))
+            print(request.args.get('delete_peer'))
+            peer_delete(request.args.get('mode'), request.args.get('peer_server'), request.args.get('delete_peer'))
+            content = 'deleted peer'
+        elif request.args.get('edit_mmdvm') == 'save':
+##            print(request.form.get('enabled'))
+            if request.form.get('enabled') == 'True':
+                peer_enabled = True
+##            if request.form.get('loose') == 'true':
+##                peer_loose = True
+            if request.form.get('use_acl') == 'True':
+                use_acl = True
+            else:
+##                peer_loose = False
+                peer_enabled = False
+                use_acl = False
+            peer_loose = True
+##            print(peer_enabled)
+            print(request.args.get('server'))
+            peer_edit('mmdvm', request.args.get('server'), request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+            content = 'save edit'
+        elif request.args.get('server') and request.args.get('peer_name') and request.args.get('mode'): # and request.args.get('edit_peer') and request.args.get('mode') == 'mmdvm':
+            if request.args.get('mode') == 'mmdvm':
+                p = mmdvmPeer.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('peer_name')).first()
+                xlx_module = ''
+                mode = "MMDVM"
+            if request.args.get('mode') == 'xlx':
+                p = xlxPeer.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('peer_name')).first()
+                xlx_module = '''
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;XLX Module:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="xlxmodule" type="text" value="''' + str(p.xlxmodule) + '''" /></td>
+</tr>
+'''
+                mode = "XLX"
+            
+            content = '''
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><strong>View/Edit an ''' + mode + ''' peer</strong></h2>
+
+<p style="text-align: center;"><strong><a href="edit_peer?peer_server=''' + str(p.server) + '''&delete_peer=''' + str(p.name) + '''&mode=''' + request.args.get('mode') + '''">Delete peer</a></strong></p>
+
+<form action="edit_peer?edit_mmdvm=save&server=''' + str(p.server) + '''" method="post">
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 175.567px;"><strong>Connection Name: </strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="name_text" type="text" value="''' + str(p.name) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Active:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="enabled">
+<option value="''' + str(p.enabled) + '''" selected>Current: ''' + str(p.enabled) + '''</option>
+<option value="true">True</option>
+<option value="false">False</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;IP:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="ip" type="text" value="''' + str(p.ip) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Port:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="port" type="text" value="''' + str(p.port) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Passphrase:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="passphrase" type="text" value="''' + str(p.passphrase) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Master IP:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="master_ip" type="text" value="''' + str(p.master_ip) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Master Port:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="master_port" type="text" value="''' + str(p.master_port) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Callsign:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="callsign" type="text" value="''' + str(p.callsign) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Radio ID:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="radio_id" type="text" value="''' + str(p.radio_id) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Transmit Frequency:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tx" type="text" value="''' + str(p.tx_freq) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Receive Frequency:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="rx" type="text" value="''' + str(p.rx_freq) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Transmit Power:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tx_power" type="text" value="''' + str(p.tx_power) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Color Code:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="cc">
+<option value="''' + str(p.color_code) + '''" selected>Current: ''' + str(p.color_code) + '''</option>
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Slots:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="slots" type="text" value="''' + str(p.slots) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Latitude:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="lat" type="text" value="''' + str(p.latitude) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Longitude:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="lon" type="text" value="''' + str(p.longitude) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Height</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="height" type="text" value="''' + str(p.height) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Location:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="location" type="text" value="''' + str(p.location) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Description:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="description" type="text" value="''' + str(p.description) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;URL:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="url" type="text" value="''' + str(p.url) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Group Call Hangtime:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="group_hangtime" type="text" value="''' + str(p.group_hangtime) + '''" /></td>
+</tr>
+''' + xlx_module + '''
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Options:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="options" type="text" value="''' + str(p.options) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Use ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<select name="use_acl">
+<option selected="selected" value="''' + str(p.use_acl) + '''">Current: ''' + str(p.use_acl) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Subscriber ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="sub_acl" type="text" value="''' + str(p.sub_acl) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 1 ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tgid_ts1_acl" type="text" value="''' + str(p.tg1_acl) + '''" /></td>
+</tr>
+<tr>
+<td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
+<td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="''' + str(p.tg2_acl) + '''" /></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Save" /></p></form>
+
+<p>&nbsp;</p>
+'''
+        else:
+            all_s = ServerList.query.all()
+            p_list = ''
+            for s in all_s:
+                print(s.name)
+                p_list = p_list + '''
+<h4 style="text-align: center;">Server: ''' + str(s.name) + '''</h4>
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>Mode</strong></td>
+</tr>\n
+'''
+                all_p = mmdvmPeer.query.filter_by(server=s.name).all()
+                all_x = xlxPeer.query.filter_by(server=s.name).all()
+                for p in all_p:
+                    p_list = p_list + '''
+<tr>
+<td><a href="edit_peer?server=''' + str(s.name) + '''&amp;peer_name=''' + str(p.name) + '''&mode=mmdvm">''' + str(p.name) + '''</a></td>
+<td>MMDVM</td>
+</tr>\n
+'''
+                for x in all_x:
+                    p_list = p_list + '''
+<tr>
+<td><a href="edit_peer?server=''' + str(x.server) + '''&amp;peer_name=''' + str(x.name) + '''&mode=xlx">''' + str(x.name) + '''</a></td>
+<td>XLX</td>
+</tr>\n
+'''
+                p_list = p_list + ''' </tbody></table>\n'''
+            content = '''
+
+<h3 style="text-align: center;">View/Edit Peers</h3>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><a href="edit_peer?add=mmdvm">Add MMDVM peer</a></strong></td>
+<td style="text-align: center;"><strong><a href="edit_peer?add=xlx">Add XLX peer</a></strong></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+
+''' + p_list
+
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    
+    @app.route('/manage_masters', methods=['POST', 'GET'])
+    def manage_masters():
+        if request.args.get('add'):
+            print('yay')
+
 
     @app.route('/add_user', methods=['POST', 'GET'])
     @login_required
@@ -1515,7 +2895,7 @@ def create_app():
     def auth():
         hblink_req = request.json
         print((hblink_req))
-        if hblink_req['secret'] in shared_secrets:
+        if hblink_req['secret'] in shared_secrets():
             if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
@@ -1573,10 +2953,24 @@ def create_app():
                 response = jsonify(
                                 logged=True
                                     )
-            elif hblink_req['burn_list']: # == 'burn_list':
+            elif 'burn_list' in hblink_req: # ['burn_list']: # == 'burn_list':
                 response = jsonify(
                                 burn_list=get_burnlist()
                                     )
+            elif hblink_req['get_config']: # == 'burn_list':
+                test_parsed = ast.literal_eval(os.popen('cat ./test_parsed.txt').read())
+                
+##                print((test_parsed))
+                try:
+                    response = jsonify(
+                            config=server_get(hblink_req['get_config']),
+                            peers=get_peer_configs(hblink_req['get_config'])
+
+                            )
+                except:
+                    message = jsonify(message='Config error')
+                    response = make_response(message, 401)
+                                    
      
         else:
             message = jsonify(message='Authentication error')

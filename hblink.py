@@ -109,7 +109,7 @@ def acl_check(_id, _acl):
 
 def download_burnlist(_CONFIG):
     user_man_url = _CONFIG['USER_MANAGER']['URL']
-    shared_secret = _CONFIG['USER_MANAGER']['SHARED_SECRET']
+    shared_secret = str(sha256(_CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
     burn_check = {
     'burn_list':True,
     'secret':shared_secret
@@ -257,7 +257,7 @@ class HBSYSTEM(DatagramProtocol):
     def check_user_man(self, _id, server_name, peer_ip):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
-        shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
+        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
         #print(int(str(int_id(_id))[:7]))
         auth_check = {
         'secret':shared_secret,
@@ -276,7 +276,7 @@ class HBSYSTEM(DatagramProtocol):
     def send_login_conf(self, _id, server_name, peer_ip, old_auth):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
-        shared_secret = self._CONFIG['USER_MANAGER']['SHARED_SECRET']
+        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
         #print(int(str(int_id(_id))[:7]))
         auth_conf = {
         'secret':shared_secret,
