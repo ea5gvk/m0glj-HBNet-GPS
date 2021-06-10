@@ -1,5 +1,5 @@
 
-### This is a branch of HBLink3 for development of a user authentication system for hotspots for PNW Digital.
+### This is a fork of HBLink3 that is being developed as an application.
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 

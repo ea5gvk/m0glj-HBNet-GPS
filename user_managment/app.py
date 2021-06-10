@@ -28,24 +28,8 @@ except:
 import os, ast
 ##import hb_config
 
-Sscript_links = {}
-##def gen_passphrase(dmr_id):
-##    _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
-##    b_list = create_app().get_burnlist()
-##    print(_new_peer_id)
-####    try:
-##    #if get_burnlist()[_new_peer_id] != 0:
-##    for ui in b_list:
-##        if b_list != 0:
-##            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + get_burnlist()[_new_peer_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
-####    except:
-##        else:
-##            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
-####    print(calc_passphrase)
-##    if use_short_passphrase == True:
-##        return str(calc_passphrase)[-9:-1]
-##    elif use_short_passphrase ==False:
-##        return str(calc_passphrase)[2:-1]
+script_links = {}
+
 # Query radioid.net for list of IDs
 def get_ids(callsign):
     try:
@@ -281,12 +265,15 @@ def create_app():
         report_interval = db.Column(db.Integer(), primary_key=False, server_default='60')
         report_port = db.Column(db.Integer(), primary_key=False, server_default='4321')
         report_clients =db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
+
     class MasterList(db.Model):
         __tablename__ = 'master_list'
         id = db.Column(db.Integer(), primary_key=True)
         name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         static_positions = db.Column(db.Boolean(), nullable=False, server_default='0')
         repeat = db.Column(db.Boolean(), nullable=False, server_default='1')
+        active = db.Column(db.Boolean(), nullable=False, server_default='1')
         max_peers = db.Column(db.Integer(), primary_key=False, server_default='10')
         ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         port = db.Column(db.Integer(), primary_key=False)
@@ -298,6 +285,28 @@ def create_app():
         sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+
+    class ProxyList(db.Model):
+        __tablename__ = 'proxy_list'
+        id = db.Column(db.Integer(), primary_key=True)
+        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        static_positions = db.Column(db.Boolean(), nullable=False, server_default='0')
+        repeat = db.Column(db.Boolean(), nullable=False, server_default='1')
+        enable_um = db.Column(db.Boolean(), nullable=False, server_default='1')
+        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        external_proxy = db.Column(db.Boolean(), nullable=False, server_default='0')
+        group_hang_time = db.Column(db.Integer(), primary_key=False)
+        internal_start_port = db.Column(db.Integer(), primary_key=False)
+        internal_stop_port = db.Column(db.Integer(), primary_key=False)
+        use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
+        reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         
     class BridgeRules(db.Model):
         __tablename__ = 'bridge_rules'
@@ -313,17 +322,15 @@ def create_app():
         off = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         reset = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         server_list = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
 
     class ExcludeUnit(db.Model):
         __tablename__ = 'exclude_unit'
         id = db.Column(db.Integer(), primary_key=True)
         system_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-    class ServerMisc(db.Model):
-        __tablename__ = 'server_misc'
-        id = db.Column(db.Integer(), primary_key=True)
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        unit_time = db.Column(db.Integer(), primary_key=False)
+
 
         
        
@@ -1685,8 +1692,6 @@ def create_app():
         db.session.delete(s)
         db.session.commit()
     def peer_delete(_mode, _server, _name):
-        print(_server)
-        print(_name)
         if _mode == 'mmdvm':
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
         if _mode == 'xlx':
@@ -1751,7 +1756,7 @@ def create_app():
         print(s_config['REPORTS'])
         return s_config
 
-    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients):
+    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time):
         s = ServerList.query.filter_by(name=_name).first()
         if _secret == '':
             s.secret = s.secret
@@ -1786,12 +1791,111 @@ def create_app():
         s.report_interval = _report_interval
         s.report_port = _report_port
         s.report_clients = _report_clients
+        s.unit_time = int(_unit_time)
+        db.session.commit()
+        
+    def master_delete(_mode, _server, _name):
+        if _mode == 'MASTER':
+            m = MasterList.query.filter_by(server=_server).filter_by(name=_name).first()
+        if _mode == 'PROXY':
+            m = ProxyList.query.filter_by(server=_server).filter_by(name=_name).first()
+        db.session.delete(m)
         db.session.commit()
 
+    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _notes, _external_proxy, _int_start_port, _int_stop_port):
+        if _mode == 'MASTER':
+            add_master = MasterList(
+                name = _name,
+                static_positions = _static_positions,
+                repeat = _repeat,
+                active = _active,
+                max_peers = int(_max_peers),
+                ip = _ip,
+                port = int(_port),
+                enable_um = _enable_um,
+                passphrase = _passphrase,
+                group_hang_time = int(_group_hang_time),
+                use_acl = _use_acl,
+                reg_acl = _reg_acl,
+                sub_acl = _sub_acl,
+                tg1_acl = _tg1_acl,
+                tg2_acl = _tg2_acl,
+                server = _server,
+                notes = _notes
+                )
+            db.session.add(add_master)
+            db.session.commit()
+        if _mode == 'PROXY':
+            add_proxy = ProxyList(
+                name = _name,
+                static_positions = _static_positions,
+                repeat = _repeat,
+                active = _active,
+                enable_um = _enable_um,
+                passphrase = _passphrase,
+                external_proxy = _external_proxy,
+                group_hang_time = int(_group_hang_time),
+                internal_start_port = int(_int_start_port),
+                internal_stop_port = int(_int_stop_port),
+                use_acl = _use_acl,
+                reg_acl = _reg_acl,
+                sub_acl = _sub_acl,
+                tg1_acl = _tg1_acl,
+                tg2_acl = _tg2_acl,
+                server = _server,
+                notes = _notes
+                )
+            db.session.add(add_master)
+            db.session.commit()
 
+    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _notes, _external_proxy, _int_start_port, _int_stop_port):
+        if _mode == 'MASTER':
+            add_master = MasterList(
+                name = _name,
+                static_positions = _static_positions,
+                repeat = _repeat,
+                active = _active,
+                max_peers = int(_max_peers),
+                ip = _ip,
+                port = int(_port),
+                enable_um = _enable_um,
+                passphrase = _passphrase,
+                group_hang_time = int(_group_hang_time),
+                use_acl = _use_acl,
+                reg_acl = _reg_acl,
+                sub_acl = _sub_acl,
+                tg1_acl = _tg1_acl,
+                tg2_acl = _tg2_acl,
+                server = _server,
+                notes = _notes
+                )
+            db.session.add(add_master)
+            db.session.commit()
+        if _mode == 'PROXY':
+            add_proxy = ProxyList(
+                name = _name,
+                static_positions = _static_positions,
+                repeat = _repeat,
+                active = _active,
+                enable_um = _enable_um,
+                passphrase = _passphrase,
+                external_proxy = _external_proxy,
+                group_hang_time = int(_group_hang_time),
+                internal_start_port = int(_int_start_port),
+                internal_stop_port = int(_int_stop_port),
+                use_acl = _use_acl,
+                reg_acl = _reg_acl,
+                sub_acl = _sub_acl,
+                tg1_acl = _tg1_acl,
+                tg2_acl = _tg2_acl,
+                server = _server,
+                notes = _notes
+                )
+            db.session.add(add_master)
+            db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients):
+    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
@@ -1823,7 +1927,8 @@ def create_app():
         report_enable = _report_enable,
         report_interval = _report_interval,
         report_port = _report_port,
-        report_clients = _report_clients
+        report_clients = _report_clients,
+        unit_time = int(_unit_time)
         )
         db.session.add(add_server)
         db.session.commit()
@@ -1970,10 +2075,12 @@ def create_app():
                 public_list = False
 
             if request.args.get('save_mode') == 'new':
-                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'))
+                print(request.form.get('unit_time'))
+                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
                 content = 'attempt save'
             if request.args.get('save_mode') == 'edit':
-                server_edit(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'))
+                print(request.form.get('unit_time'))
+                server_edit(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
                 content = 'attempt edit save'
         elif request.args.get('delete_server'):
             server_delete(request.args.get('delete_server'))
@@ -2007,6 +2114,10 @@ def create_app():
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Port (for listing on passphrase page):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="''' + str(s.port) + '''"/></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="''' + str(s.unit_time) + '''"/></td>
 </tr>
 <tr>
 <td><strong>&nbsp;Public list:</strong></td>
@@ -2203,6 +2314,10 @@ def create_app():
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Port:</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="62032"/></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="10080"/></td>
 </tr>
 <tr>
 <td><strong>&nbsp;Public list:</strong></td>
@@ -2819,8 +2934,237 @@ def create_app():
     
     @app.route('/manage_masters', methods=['POST', 'GET'])
     def manage_masters():
-        if request.args.get('add'):
-            print('yay')
+        if request.args.get('master_save'):
+##            print(request.form.get('aprs_pos'))
+            if request.form.get('aprs_pos') == 'False':
+                aprs_pos = False
+            if request.form.get('repeat') == 'True':
+                repeat = True
+            if request.form.get('active') == 'True':
+                active = True
+            if request.form.get('use_acl') == 'True':
+                use_acl = True
+            if request.form.get('enable_um') == 'True':
+                enable_um = True
+            else:
+                aprs_pos = True
+                repeat = False
+                active = False
+                use_acl = False
+                enable_um = False
+            aprs_pos = False
+            if request.args.get('master_save') == 'add':
+                add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, request.form.get('active'), request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), request.form.get('notes'), '', '', '')
+                content = 'saved master'
+            if request.args.get('master_save') == 'add':
+                content = 'maste edited'
+
+        if request.args.get('add_master'):
+            s = ServerList.query.all()
+            server_options = ''
+            for i in s:
+                server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
+            
+            content = '''
+        <form action = "manage_masters?master_save=add" method = "post">
+        <table style="width: 60%;" margin-left: auto; margin-right: auto;" border="1">
+        <tbody>
+        <tr>
+        <td style="width: 175.567px;"><strong>Assign to Server:</strong></td>
+        <td style="width: 399.433px;">&nbsp;<select name="server">
+        ''' + server_options + '''
+        </select></td>
+        </tr>
+        
+        <tr>
+        <td><strong>&nbsp;Name:</strong></td>
+        <td>&nbsp;<input name="name_text" type="text" value=""/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Active:</strong></td>
+        <td>&nbsp;<select name="enabled">
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Repeat:</strong></td>
+        <td>&nbsp;<select name="repeat">
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Max Peers:</strong></td>
+        <td>&nbsp;<input name="max_peers" type="text" value="5"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Static APRS positions:</strong></td>
+        <td>&nbsp;<select name="aprs_pos">
+        <option selected="selected" value="False">False</option>
+        <option value="True">True</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;User Manager for login:</strong></td>
+        <td>&nbsp;<select name="enable_um">
+        <option selected="selected" value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;IP:</strong></td>
+        <td>&nbsp;<input name="ip" type="text" value=""/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;PORT:</strong></td>
+        <td>&nbsp;<input name="port" type="text" value=""/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Passphrase:</strong></td>
+        <td>&nbsp;<input name="passphrase" type="text" value="passw0rd"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Group Hangtime:</strong></td>
+        <td>&nbsp;<input name="group_hangtime" type="text" value="5"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Use ACLs:</strong></td>
+        <td>&nbsp;<select name="use_acl">
+        <option selected="selected" value="True">Current - True</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Register ACLs:</strong></td>
+        <td>&nbsp;<input name="reg_acl" type="text" value="DENY:1"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Subscriber ACLs:</strong></td>
+        <td>&nbsp;<input name="sub_acl" type="text" value="DENY:1"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Talkgroup Slot 1 ACLs:</strong></td>
+        <td>&nbsp;<input name="ts1_acl" type="text" value="PERMIT:ALL"/></td>
+        <tr>
+        <td><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
+        <td>&nbsp;<input name="ts2_acl" type="text" value="PERMIT:ALL"/></td></td>
+        </tr>
+
+        <tr>
+        <td><strong>&nbsp;Notes:</strong></td>
+        <td>&nbsp;<textarea id="notes" name="notes" rows="4" cols="50"></textarea></td>
+        </tr>
+
+        </tbody>
+        </table>
+        <p>&nbsp;</p>
+        <input type = "submit" value = "Save"/>
+        </form>
+        <p>&nbsp;</p>
+'''
+        if request.args.get('edit_master'):
+##            s = ServerList.query.all()
+            m = MasterList.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('edit_master')).first()
+            
+            content = '''
+        <form action = "manage_masters?master_save=" method = "post">
+        <table style="width: 60%;" margin-left: auto; margin-right: auto;" border="1">
+        <tbody>
+        <tr>
+        <td><strong>&nbsp;Name:</strong></td>
+        <td>&nbsp;''' + str(m.name) + '''</td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Active:</strong></td>
+        <td>&nbsp;<select name="enabled">
+        <option selected="selected" value="''' + str(m.active) + '''">Current - ''' + str(m.active) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Repeat:</strong></td>
+        <td>&nbsp;<select name="repeat">
+        <option selected="selected" value="''' + str(m.repeat) + '''">Current - ''' + str(m.repeat) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Max Peers:</strong></td>
+        <td>&nbsp;<input name="max_peers" type="text" value="''' + str(m.max_peers) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Static APRS positions:</strong></td>
+        <td>&nbsp;<select name="aprs_pos">
+        <option selected="selected" value="''' + str(m.static_positions) + '''">Current - ''' + str(m.static_positions) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;User Manager for login:</strong></td>
+        <td>&nbsp;<select name="enable_um">
+        <option selected="selected" value="''' + str(m.enable_um) + '''">Current - ''' + str(m.static_positions) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;IP:</strong></td>
+        <td>&nbsp;<input name="ip" type="text" value="''' + str(m.ip) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;PORT:</strong></td>
+        <td>&nbsp;<input name="port" type="text" value="''' + str(m.port) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Passphrase:</strong></td>
+        <td>&nbsp;<input name="passphrase" type="text" value="''' + str(m.passphrase) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Group Hangtime:</strong></td>
+        <td>&nbsp;<input name="group_hangtime" type="text" value="''' + str(m.group_hang_time) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Use ACLs:</strong></td>
+        <td>&nbsp;<select name="use_acl">
+        <option selected="selected" value="''' + str(m.use_acl) + '''">Current - ''' + str(m.use_acl) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Register ACLs:</strong></td>
+        <td>&nbsp;<input name="reg_acl" type="text" value="''' + str(m.reg_acl) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Subscriber ACLs:</strong></td>
+        <td>&nbsp;<input name="sub_acl" type="text" value="''' + str(m.sub_acl) + '''"/></td>
+        </tr>
+        <tr>
+        <td><strong>&nbsp;Talkgroup Slot 1 ACLs:</strong></td>
+        <td>&nbsp;<input name="ts1_acl" type="text" value="''' + str(m.tg1_acl) + '''"/></td>
+        <tr>
+        <td><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
+        <td>&nbsp;<input name="ts2_acl" type="text" value="''' + str(m.tg1_acl) + '''"/></td></td>
+        </tr>
+
+        <tr>
+        <td><strong>&nbsp;Notes:</strong></td>
+        <td>&nbsp;<textarea id="notes" name="notes" rows="4" cols="50">''' + str(m.notes) + '''</textarea></td>
+        </tr>
+
+        </tbody>
+        </table>
+        <p>&nbsp;</p>
+        <input type = "submit" value = "Save"/>
+        </form>
+        <p>&nbsp;</p>
+'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
     @app.route('/add_user', methods=['POST', 'GET'])
