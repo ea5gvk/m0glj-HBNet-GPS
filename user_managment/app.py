@@ -285,6 +285,7 @@ def create_app():
         sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
 
@@ -1802,30 +1803,29 @@ def create_app():
         db.session.delete(m)
         db.session.commit()
 
-    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _notes, _external_proxy, _int_start_port, _int_stop_port):
+    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port):
         if _mode == 'MASTER':
-            add_master = MasterList(
-                name = _name,
-                static_positions = _static_positions,
-                repeat = _repeat,
-                active = _active,
-                max_peers = int(_max_peers),
-                ip = _ip,
-                port = int(_port),
-                enable_um = _enable_um,
-                passphrase = _passphrase,
-                group_hang_time = int(_group_hang_time),
-                use_acl = _use_acl,
-                reg_acl = _reg_acl,
-                sub_acl = _sub_acl,
-                tg1_acl = _tg1_acl,
-                tg2_acl = _tg2_acl,
-                server = _server,
-                notes = _notes
-                )
-            db.session.add(add_master)
+##            print(_name)
+            m = MasterList.query.filter_by(server=_server).filter_by(name=_name).first()
+##            m.name = _name,
+            m.static_positions = _static_positions
+            m.repeat = _repeat
+            m.active = _active
+            m.max_peers = int(_max_peers)
+            m.ip = _ip
+            m.port = int(_port)
+            m.enable_um = _enable_um
+            m.passphrase = str(_passphrase)
+            m.group_hang_time = int(_group_hang_time)
+            m.use_acl = _use_acl
+            m.reg_acl = _reg_acl
+            m.sub_acl = _sub_acl
+            m.tg1_acl = _tg1_acl
+            m.tg2_acl = _tg2_acl
+            m.enable_unit = _enable_unit
+##            m.server = _server
+            m.notes = _notes
             db.session.commit()
-        if _mode == 'PROXY':
             add_proxy = ProxyList(
                 name = _name,
                 static_positions = _static_positions,
@@ -1842,13 +1842,14 @@ def create_app():
                 sub_acl = _sub_acl,
                 tg1_acl = _tg1_acl,
                 tg2_acl = _tg2_acl,
+                enable_unit = _enable_unit,
                 server = _server,
                 notes = _notes
                 )
             db.session.add(add_master)
             db.session.commit()
 
-    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _notes, _external_proxy, _int_start_port, _int_stop_port):
+    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port):
         if _mode == 'MASTER':
             add_master = MasterList(
                 name = _name,
@@ -1866,6 +1867,7 @@ def create_app():
                 sub_acl = _sub_acl,
                 tg1_acl = _tg1_acl,
                 tg2_acl = _tg2_acl,
+                enable_unit = _enable_unit,
                 server = _server,
                 notes = _notes
                 )
@@ -1888,6 +1890,7 @@ def create_app():
                 sub_acl = _sub_acl,
                 tg1_acl = _tg1_acl,
                 tg2_acl = _tg2_acl,
+                enable_unit = _enable_unit,
                 server = _server,
                 notes = _notes
                 )
@@ -2005,8 +2008,8 @@ def create_app():
     def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl):
 ##        print(_mode)
         if _mode == 'mmdvm':
-            print(_server)
-            print(_name)
+##            print(_server)
+##            print(_name)
 ##            print(_name)
 ##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
@@ -2935,30 +2938,30 @@ def create_app():
     @app.route('/manage_masters', methods=['POST', 'GET'])
     def manage_masters():
         if request.args.get('master_save'):
-##            print(request.form.get('aprs_pos'))
-            if request.form.get('aprs_pos') == 'False':
-                aprs_pos = False
+            aprs_pos = False
+            repeat = False
+            active = False
+            use_acl = False
+            enable_um = False
+            enable_unit = False
+            if request.form.get('aprs_pos') == 'True':
+                aprs_pos = True
             if request.form.get('repeat') == 'True':
                 repeat = True
-            if request.form.get('active') == 'True':
+            if request.form.get('enabled') == 'True':
                 active = True
             if request.form.get('use_acl') == 'True':
                 use_acl = True
             if request.form.get('enable_um') == 'True':
                 enable_um = True
-            else:
-                aprs_pos = True
-                repeat = False
-                active = False
-                use_acl = False
-                enable_um = False
-            aprs_pos = False
+            if request.form.get('enable_unit') == 'True':
+                enable_unit = True
             if request.args.get('master_save') == 'add':
-                add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, request.form.get('active'), request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), request.form.get('notes'), '', '', '')
+                add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '')
                 content = 'saved master'
-            if request.args.get('master_save') == 'add':
+            elif request.args.get('master_save') == 'edit':
+                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '')
                 content = 'maste edited'
-
         if request.args.get('add_master'):
             s = ServerList.query.all()
             server_options = ''
@@ -2983,15 +2986,15 @@ def create_app():
         <tr>
         <td><strong>&nbsp;Active:</strong></td>
         <td>&nbsp;<select name="enabled">
-        <option value="True">True</option>
+        <option selected="selected" value="True">True</option>
         <option value="False">False</option>
         </select></td>
         </tr>
         <tr>
         <td><strong>&nbsp;Repeat:</strong></td>
         <td>&nbsp;<select name="repeat">
-        <option value="True">True</option>
-        <option value="False">False</option>
+        <option selected="selected" value="True">True</option>
+        <option value="False">False</optio>
         </select></td>
         </tr>
         <tr>
@@ -3031,7 +3034,6 @@ def create_app():
         <tr>
         <td><strong>&nbsp;Use ACLs:</strong></td>
         <td>&nbsp;<select name="use_acl">
-        <option selected="selected" value="True">Current - True</option>
         <option value="True">True</option>
         <option value="False">False</option>
         </select></td>
@@ -3053,6 +3055,14 @@ def create_app():
         </tr>
 
         <tr>
+        <td><strong>&nbsp;Enable Unit Calls:</strong></td>
+        <td>&nbsp;<select name="enable_unit">
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+
+        <tr>
         <td><strong>&nbsp;Notes:</strong></td>
         <td>&nbsp;<textarea id="notes" name="notes" rows="4" cols="50"></textarea></td>
         </tr>
@@ -3069,7 +3079,7 @@ def create_app():
             m = MasterList.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('edit_master')).first()
             
             content = '''
-        <form action = "manage_masters?master_save=" method = "post">
+        <form action = "manage_masters?master_save=edit&server=''' + request.args.get('server') + '''&name=''' + request.args.get('edit_master') + '''" method = "post">
         <table style="width: 60%;" margin-left: auto; margin-right: auto;" border="1">
         <tbody>
         <tr>
@@ -3153,6 +3163,15 @@ def create_app():
         </tr>
 
         <tr>
+        <td><strong>&nbsp;Enable Unit Calls:</strong></td>
+        <td>&nbsp;<select name="enable_unit">
+        <option selected="selected" value="''' + str(m.enable_unit) + '''">Current - ''' + str(m.enable_unit) + '''</option>
+        <option value="True">True</option>
+        <option value="False">False</option>
+        </select></td>
+        </tr>
+
+        <tr>
         <td><strong>&nbsp;Notes:</strong></td>
         <td>&nbsp;<textarea id="notes" name="notes" rows="4" cols="50">''' + str(m.notes) + '''</textarea></td>
         </tr>
@@ -3164,6 +3183,8 @@ def create_app():
         </form>
         <p>&nbsp;</p>
 '''
+        else:
+            content = 'mas home'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
