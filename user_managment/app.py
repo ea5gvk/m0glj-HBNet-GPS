@@ -1540,10 +1540,10 @@ def create_app():
     def get_peer_configs(_server_name):
         mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).all()
         xlx_pl = xlxPeer.query.filter_by(server=_server_name).all()
-        print(mmdvm_pl)
+##        print(mmdvm_pl)
         peer_config_list = {}
         for i in mmdvm_pl:
-            print(i)
+##            print(i)
 ##            print(i.master_ip)
             peer_config_list.update({i.name: {
                         'MODE': 'PEER',
@@ -1756,9 +1756,84 @@ def create_app():
                 })
         print(s_config['REPORTS'])
         return s_config
+    def masters_get(_name):
+##        print(_name)
+        #s = ServerList.query.filter_by(name=_name).first()
+       # print(s.name)        
+        i = MasterList.query.filter_by(server=_name).all()
+        print('get masters')
+        master_config_list = {}
+##        master_config_list['SYSTEMS'] = {}
+        print(i)
+        for m in i:
+            print (m.name)
+            master_config_list.update({m.name: {
+                'MODE': 'MASTER',
+                'ENABLED': m.active,
+                'STATIC_APRS_POSITION_ENABLED': m.static_positions,
+                'REPEAT': m.repeat,
+                'MAX_PEERS': m.max_peers,
+                'IP': m.ip,
+                'PORT': m.port,
+                'PASSPHRASE': bytes(m.passphrase, 'utf-8'),
+                'GROUP_HANGTIME': m.group_hang_time,
+                'USE_ACL': m.use_acl,
+                'REG_ACL': m.reg_acl,
+                'SUB_ACL': m.sub_acl,
+                'TG1_ACL': m.tg1_acl,
+                'TG2_ACL': m.tg2_acl
+            }})
+            master_config_list[m.name].update({'PEERS': {}})
+        print(master_config_list)
+        return master_config_list
+##        print(i.name)
+##        s_config = {}
+##        s_config['GLOBAL'] = {}
+##        s_config['REPORTS'] = {}
+##        s_config['ALIASES'] = {}
+##        s_config['USER_MANAGER'] = {}
+##
+##        s_config['GLOBAL'].update({
+##                    'PATH': i.global_path,
+##                    'PING_TIME': i.global_ping_time,
+##                    'MAX_MISSED': i.global_max_missed,
+##                    'USE_ACL': i.global_use_acl,
+##                    'REG_ACL': i.global_reg_acl,
+##                    'SUB_ACL': i.global_sub_acl,
+##                    'TG1_ACL': i.global_tg1_acl,
+##                    'TG2_ACL': i.global_tg2_acl
+##                })
+##        
+##        s_config['REPORTS'].update({
+##                    'REPORT': i.report_enable,
+##                    'REPORT_INTERVAL': i.report_interval,
+##                    'REPORT_PORT': i.report_port,
+##                    'REPORT_CLIENTS': i.report_clients.split(',')
+##                })
+##        s_config['ALIASES'].update({
+##                    'TRY_DOWNLOAD':i.ai_try_download,
+##                    'PATH': i.ai_path,
+##                    'PEER_FILE': i.ai_peer_file,
+##                    'SUBSCRIBER_FILE': i.ai_subscriber_file,
+##                    'TGID_FILE': i.ai_tgid_file,
+##                    'PEER_URL': i.ai_peer_url,
+##                    'SUBSCRIBER_URL': i.ai_subs_url,
+##                    'STALE_TIME': i.ai_stale * 86400,
+##                })
+##        s_config['USER_MANAGER'].update({
+##                    'APPEND_INT': append_int,
+##                    'SHORTEN_PASSPHRASE': i.um_shorten_passphrase,
+##                    'BURN_FILE': i.um_burn_file,
+##                    'BURN_INT': burn_int,
+##
+##
+##                })
+##        print(s_config['REPORTS'])
+##        return s_config
 
     def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time):
         s = ServerList.query.filter_by(name=_name).first()
+        print(_name)
         if _secret == '':
             s.secret = s.secret
         else:
@@ -2013,7 +2088,7 @@ def create_app():
 ##            print(_name)
 ##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
-##            print(p)
+            print(p)
             p.enabled = _enabled
             p.loose = _loose
             p.ip = _ip
@@ -2048,7 +2123,7 @@ def create_app():
 
 # Test server configs
 
-    @app.route('/edit_server', methods=['POST', 'GET'])
+    @app.route('/manage_servers', methods=['POST', 'GET'])
     @login_required
     @roles_required('Admin')
     def edit_server_db():
@@ -2082,8 +2157,8 @@ def create_app():
                 server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
                 content = 'attempt save'
             if request.args.get('save_mode') == 'edit':
-                print(request.form.get('unit_time'))
-                server_edit(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
+##                print(request.args.get('server'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
                 content = 'attempt edit save'
         elif request.args.get('delete_server'):
             server_delete(request.args.get('delete_server'))
@@ -2095,9 +2170,9 @@ def create_app():
             content = '''
 <p style="text-align: center;">&nbsp;</p>
 
-<p style="text-align: center;"><strong><a href="edit_server?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
+<p style="text-align: center;"><strong><a href="manage_servers?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
 
-<form action="edit_server?save_mode=edit" method="post">
+<form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
 <p style="text-align: center;">&nbsp;</p>
 <h3 style="text-align: center;"><strong>Server<br /></strong></h3>
 <table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
@@ -2297,7 +2372,7 @@ def create_app():
         # Add new server
         elif request.args.get('add'): # == 'yes':
             content = '''
-<form action="edit_server?save_mode=new" method="post">
+<form action="manage_servers?save_mode=new" method="post">
   <p style="text-align: center;">&nbsp;</p>
 <h3 style="text-align: center;"><strong>Server<br /></strong></h3>
 <table style="width: 300px; margin-left: auto; margin-right: auto;" border="1">
@@ -2493,7 +2568,7 @@ def create_app():
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong><a href="edit_server?add=new">Add Server Config</a></strong></td>
+<td style="text-align: center;"><strong><a href="manage_servers?add=new">Add Server Config</a></strong></td>
 </tr>
 </tbody>
 </table>
@@ -2505,7 +2580,7 @@ def create_app():
             for s in all_s:
                 p_list = p_list + '''
 <tr>
-<td style="text-align: center;"><a href="edit_server?edit_server=''' + str(s.name) + '''"><strong>''' + str(s.name) + '''</strong></a></td>
+<td style="text-align: center;"><a href="manage_servers?edit_server=''' + str(s.name) + '''"><strong>''' + str(s.name) + '''</strong></a></td>
 </tr>\n
 '''
             p_list = p_list + '''</tbody></table> '''
@@ -2513,7 +2588,7 @@ def create_app():
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
-    @app.route('/edit_peer', methods=['POST', 'GET'])
+    @app.route('/manage_peers', methods=['POST', 'GET'])
     @login_required
     @roles_required('Admin')
     def test_peer_db():
@@ -2539,7 +2614,7 @@ def create_app():
             s = ServerList.query.all()
             if request.args.get('add') == 'mmdvm':
                 mode = 'MMDVM'
-                submit_link = 'edit_peer?save_mode=mmdvm_peer'
+                submit_link = 'manage_peers?save_mode=mmdvm_peer'
                 xlx_module = ''
             if request.args.get('add') == 'xlx':
                 xlx_module = '''
@@ -2549,7 +2624,7 @@ def create_app():
 </tr>
 '''
                 mode = 'XLX'
-                submit_link = 'edit_peer?save_mode=xlx_peer'
+                submit_link = 'manage_peers?save_mode=xlx_peer'
             server_options = ''
             for i in s:
                 server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
@@ -2708,20 +2783,23 @@ def create_app():
             content = 'deleted peer'
         elif request.args.get('edit_mmdvm') == 'save':
 ##            print(request.form.get('enabled'))
-            if request.form.get('enabled') == 'True':
+            peer_enabled = False
+            use_acl = False
+            peer_loose = True
+            if request.form.get('enabled') == 'true':
                 peer_enabled = True
+                print(request.form.get('enabled'))
+                print('set to true')
 ##            if request.form.get('loose') == 'true':
 ##                peer_loose = True
             if request.form.get('use_acl') == 'True':
                 use_acl = True
-            else:
+##            else:
 ##                peer_loose = False
-                peer_enabled = False
-                use_acl = False
-            peer_loose = True
 ##            print(peer_enabled)
             print(request.args.get('server'))
-            peer_edit('mmdvm', request.args.get('server'), request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+            print(request.args.get('name'))
+            peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
             content = 'save edit'
         elif request.args.get('server') and request.args.get('peer_name') and request.args.get('mode'): # and request.args.get('edit_peer') and request.args.get('mode') == 'mmdvm':
             if request.args.get('mode') == 'mmdvm':
@@ -2742,14 +2820,14 @@ def create_app():
 <p>&nbsp;</p>
 <h2 style="text-align: center;"><strong>View/Edit an ''' + mode + ''' peer</strong></h2>
 
-<p style="text-align: center;"><strong><a href="edit_peer?peer_server=''' + str(p.server) + '''&delete_peer=''' + str(p.name) + '''&mode=''' + request.args.get('mode') + '''">Delete peer</a></strong></p>
+<p style="text-align: center;"><strong><a href="manage_peers?peer_server=''' + str(p.server) + '''&delete_peer=''' + str(p.name) + '''&mode=''' + request.args.get('mode') + '''">Delete peer</a></strong></p>
 
-<form action="edit_peer?edit_mmdvm=save&server=''' + str(p.server) + '''" method="post">
+<form action="manage_peers?edit_mmdvm=save&server=''' + str(p.server) + '''&name=''' + str(p.name) + '''" method="post">
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="width: 175.567px;"><strong>Connection Name: </strong></td>
-<td style="width: 399.433px;">&nbsp;<input name="name_text" type="text" value="''' + str(p.name) + '''" /></td>
+<td style="width: 399.433px;">&nbsp;''' + str(p.name) + '''</td>
 </tr>
 <tr>
 <td style="width: 175.567px;"><strong>&nbsp;Active:</strong></td>
@@ -2904,14 +2982,14 @@ def create_app():
                 for p in all_p:
                     p_list = p_list + '''
 <tr>
-<td><a href="edit_peer?server=''' + str(s.name) + '''&amp;peer_name=''' + str(p.name) + '''&mode=mmdvm">''' + str(p.name) + '''</a></td>
+<td><a href="manage_peers?server=''' + str(s.name) + '''&amp;peer_name=''' + str(p.name) + '''&mode=mmdvm">''' + str(p.name) + '''</a></td>
 <td>MMDVM</td>
 </tr>\n
 '''
                 for x in all_x:
                     p_list = p_list + '''
 <tr>
-<td><a href="edit_peer?server=''' + str(x.server) + '''&amp;peer_name=''' + str(x.name) + '''&mode=xlx">''' + str(x.name) + '''</a></td>
+<td><a href="manage_peers?server=''' + str(x.server) + '''&amp;peer_name=''' + str(x.name) + '''&mode=xlx">''' + str(x.name) + '''</a></td>
 <td>XLX</td>
 </tr>\n
 '''
@@ -2923,8 +3001,8 @@ def create_app():
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong><a href="edit_peer?add=mmdvm">Add MMDVM peer</a></strong></td>
-<td style="text-align: center;"><strong><a href="edit_peer?add=xlx">Add XLX peer</a></strong></td>
+<td style="text-align: center;"><strong><a href="manage_peers?add=mmdvm">Add MMDVM peer</a></strong></td>
+<td style="text-align: center;"><strong><a href="manage_peers?add=xlx">Add XLX peer</a></strong></td>
 </tr>
 </tbody>
 </table>
@@ -2962,6 +3040,10 @@ def create_app():
             elif request.args.get('master_save') == 'edit':
                 edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '')
                 content = 'maste edited'
+            elif request.args.get('master_save') == 'delete':
+                master_delete('MASTER', request.args.get('server'), request.args.get('name'))
+                content = 'master deleted'
+                print('delete')
         if request.args.get('add_master'):
             s = ServerList.query.all()
             server_options = ''
@@ -3074,11 +3156,17 @@ def create_app():
         </form>
         <p>&nbsp;</p>
 '''
-        if request.args.get('edit_master'):
+        elif request.args.get('edit_master'):
 ##            s = ServerList.query.all()
             m = MasterList.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('edit_master')).first()
             
             content = '''
+
+        <p>&nbsp;</p>
+        <h2 style="text-align: center;"><strong>View/Edit a MASTER</strong></h2>
+
+       <p style="text-align: center;"><strong><a href="manage_masters?master_save=delete&server=''' + str(m.server) + '''&name=''' + str(m.name) + '''">Delete MASTER</a></strong></p>
+
         <form action = "manage_masters?master_save=edit&server=''' + request.args.get('server') + '''&name=''' + request.args.get('edit_master') + '''" method = "post">
         <table style="width: 60%;" margin-left: auto; margin-right: auto;" border="1">
         <tbody>
@@ -3184,7 +3272,52 @@ def create_app():
         <p>&nbsp;</p>
 '''
         else:
-            content = 'mas home'
+            all_s = ServerList.query.all()
+            m_list = ''
+            for s in all_s:
+##                print(s.name)
+                m_list = m_list + '''
+<h4 style="text-align: center;">Server: ''' + str(s.name) + '''</h4>
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>Mode</strong></td>
+</tr>\n
+'''
+                all_m = MasterList.query.filter_by(server=s.name).all()
+                all_p = ProxyList.query.filter_by(server=s.name).all()
+                for p in all_p:
+                    m_list = m_list + '''
+<tr>
+<td><a href="manage_masterss?server=''' + str(s.name) + '''&amp;edit_proxy=''' + str(p.name) + '''">''' + str(p.name) + '''</a></td>
+<td>PROXY</td>
+</tr>\n
+'''
+                for x in all_m:
+                    m_list = m_list + '''
+<tr>
+<td><a href="manage_masters?server=''' + str(x.server) + '''&amp;edit_master=''' + str(x.name) + '''">''' + str(x.name) + '''</a></td>
+<td>MASTER</td>
+</tr>\n
+'''
+                m_list = m_list + ''' </tbody></table>\n'''
+            content = '''
+
+<h3 style="text-align: center;">View/Edit Master Instances</h3>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><a href="manage_masters?add_master=yes">Add MASTER</a></strong></td>
+<td style="text-align: center;"><strong><a href="manage_masters?add_proxy=yes">Add PROXY</a></strong></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+
+''' + m_list
+
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
@@ -3323,18 +3456,19 @@ def create_app():
                                 burn_list=get_burnlist()
                                     )
             elif hblink_req['get_config']: # == 'burn_list':
-                test_parsed = ast.literal_eval(os.popen('cat ./test_parsed.txt').read())
+##                test_parsed = ast.literal_eval(os.popen('cat ./test_parsed.txt').read())
                 
 ##                print((test_parsed))
-                try:
-                    response = jsonify(
-                            config=server_get(hblink_req['get_config']),
-                            peers=get_peer_configs(hblink_req['get_config'])
+##                try:
+                response = jsonify(
+                        config=server_get(hblink_req['get_config']),
+                        peers=get_peer_configs(hblink_req['get_config']),
+                        masters=masters_get(hblink_req['get_config']),
 
-                            )
-                except:
-                    message = jsonify(message='Config error')
-                    response = make_response(message, 401)
+                        )
+##                except:
+##                    message = jsonify(message='Config error')
+##                    response = make_response(message, 401)
                                     
      
         else:
