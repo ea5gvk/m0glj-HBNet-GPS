@@ -346,8 +346,7 @@ def create_app():
         on = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         off = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         reset = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        server_list = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
 
     class BridgeList(db.Model):
@@ -430,7 +429,8 @@ def create_app():
             email_confirmed_at=datetime.datetime.utcnow(),
             password=user_manager.hash_password('admin'),
             initial_admin_approved = True,
-            notes='Default admin account created during installation.'
+            notes='Default admin account created during installation.',
+            dmr_ids='{}'
         )
         user.roles.append(Role(name='Admin'))
         user.roles.append(Role(name='User'))
@@ -1747,7 +1747,7 @@ def create_app():
         bl.tg = _tg
         db.session.commit()
 
-    def bridge_delete(_name):
+    def bridge_delete(_name, _server):
         bl = BridgeList.query.filter_by(bridge_name=_name).first()
         db.session.delete(bl)
         db.session.commit()
@@ -1906,6 +1906,33 @@ def create_app():
             
         print(master_config_list)
         return master_config_list
+
+    def add_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server, _public_list):
+        add_system = BridgeRules(
+            bridge_name = _bridge_name,
+            system_name = _system_name,
+            ts = _ts,
+            tg = _tg,
+            active = _active,
+            timeout = _timeout,
+            to_type = _to_type,
+            on = _on,
+            off = _off,
+            reset = _reset,
+            server = _server,
+            public_list = _public_list
+            )
+        db.session.add(add_system)
+        db.session.commit()
+        
+    def delete_system_rule(_name, _server):
+        print(_name)
+        print(_server)
+        
+        dr = BridgeRules.query.filter_by(server=_server).filter_by(bridge_name=_name).first()
+        db.session.delete(dr)
+        db.session.commit()
+
 
     def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         s = ServerList.query.filter_by(name=_name).first()
@@ -4177,16 +4204,162 @@ def create_app():
             if request.form.get('public_list') == 'True':
                 public = True
             bridge_add(request.form.get('bridge_name'), request.form.get('description'), public, request.form.get('tg'))
-        if request.args.get('save_bridge') == 'edit':
+            content = 'saved_bridge'
+        elif request.args.get('save_bridge') == 'edit':
             public = False
             if request.form.get('public_list') == 'True':
                 public = True
             update_bridge_list(request.args.get('bridge'), request.form.get('description'), public, request.form.get('bridge_name'), request.form.get('tg'))
             content = 'edit'
-        if request.args.get('save_bridge') == 'delete':
+        elif request.args.get('save_bridge') == 'delete':
             bridge_delete(request.args.get('bridge'))
             content = 'deleted'
+
+
+        #Rules
+        elif request.args.get('save_rule'):
+            public_list = False
+            active = False
+            if request.form.get('active_dropdown') == 'True':
+                active = True
+            elif request.args.get('save_rule') == 'new':
+                add_system_rule(request.form.get('bridge_dropdown'), request.form.get('system_text'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'), public_list)
+                content = 'saved rule'
+            elif request.args.get('save_rule') == 'edit':
+                content = 'edit rule'
+            elif request.args.get('save_rule') == 'delete':
+                print(request.args.get('bridge'))
+                print(request.args.get('server'))
+                delete_system_rule(request.args.get('bridge'), request.args.get('server'))
+                content = 'deleted'
+
+        elif request.args.get('add_rule'):
+##            svl = ServerList.query.all()
+            bl = BridgeList.query.all() #filter(bridge_name== request.form.get('username')).all()
+            all_o = OBP.query.filter_by(server=request.args.get('add_rule')).all()
+            all_m = MasterList.query.filter_by(server=request.args.get('add_rule')).all()
+            all_p = ProxyList.query.filter_by(server=request.args.get('add_rule')).all()
+            m_l = mmdvmPeer.query.filter_by(server=request.args.get('add_rule')).all()
+            x_l = xlxPeer.query.filter_by(server=request.args.get('add_rule')).all()
+##            print(sl)
+##            print(bl)
+##            svl_option = ''
+            bl_option = ''
+            sl_option = ''
+            for i in all_o:
+                sl_option = sl_option + '''<option value="''' + str(i.name) + '''">''' + str(i.name) + '''</option>'''
+            for i in all_m:
+                sl_option = sl_option + '''<option value="''' + str(i.name) + '''">''' + str(i.name) + '''</option>'''
+            for i in all_p:
+                sl_option = sl_option + '''<option value="''' + str(i.name) + '''">''' + str(i.name) + '''</option>'''
+            for i in m_l:
+                sl_option = sl_option + '''<option value="''' + str(i.name) + '''">''' + str(i.name) + '''</option>'''
+            for i in x_l:
+                sl_option = sl_option + '''<option value="''' + str(i.name) + '''">''' + str(i.name) + '''</option>'''
+            for i in bl:
+                bl_option = bl_option + '''<option value="''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</option>'''
+            content = '''
+<h3 style="text-align: center;">Add rule to server: ''' + request.args.get('add_rule') + '''</h3>
+
+<form action="manage_rules?save_rule=new&server=''' + request.args.get('add_rule') + '''" method="post">
+<p style="text-align: center;">&nbsp;</p>
+<table style="margin-left: auto; margin-right: auto;" border="1" width="800">
+<tbody>
+<tr>
+<td><strong>Bridge (Talkgroup): </strong><select name="bridge_dropdown">
+''' + bl_option + '''
+</select></td>
+<td><strong>System: </strong><select name="system_text">
+''' + sl_option + '''
+</select></td>
+<td><strong>Timeslot: </strong><select name="ts_dropdown">
+<option selected="selected" value="1">1</option>
+<option selected="selected" value="2">2</option>
+</select></td>
+<td><strong>Talkgroup number: </strong> <input name="tgid" type="text" /></td>
+<td><strong>Activate on start:</strong> &nbsp;<select name="active_dropdown">
+<option selected="selected" value="True">True</option>
+<option selected="selected" value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>Timer Time (minutes): </strong> &nbsp;<input name="timer_time" type="text" /></td>
+<td><strong>Timer Type: &nbsp;</strong><select name="type_dropdown">
+<option selected="selected" value="NONE">None</option>
+<option selected="selected" value="ON">On</option>
+<option selected="selected" value="OFF">Off</option>
+</select></td>
+<td><strong>Trigger ON TGs: &nbsp;</strong> <input name="on" type="text" /></td>
+<td><strong>Trigger OFF TGs:</strong> &nbsp;<input name="off" type="text" /></td>
+<td><strong>Trigger Reset TGs: &nbsp; <input name="reset" type="text" /></strong></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Add Rule" /></p>
+</form>
+<p>&nbsp;</p>
+
+'''
+        elif request.args.get('edit_rule') and request.args.get('bridge'):
+            br = BridgeRules.query.filter_by(server=request.args.get('edit_rule')).filter_by(bridge_name=request.args.get('bridge')).all()
+            print(br)
+            br_view = '''<h3 style="text-align: center;">Rules for bridge  <span style="text-decoration: underline;">''' + request.args.get('bridge') + '''</span> on server <span style="text-decoration: underline;">''' + request.args.get('edit_rule') + '''</span>.</h3> '''
+            for i in br:
+                br_view = br_view + '''
+<table style="margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td>&nbsp;----</td>
+</tr>
+<tr>
+<td><form action="/cgi-bin/add_rule.py" method="post" >
+<p style="text-align: center;">&nbsp;</p>
+<table style="margin-left: auto; margin-right: auto;" border="1" width="800">
+<tbody>
+<tr>
+<td><strong>Bridge (Talkgroup): </strong>''' + str(i.bridge_name) + '''</td>
+<td><strong>System: </strong>''' + str(i.system_name) + '''</td>
+<td><strong>Timeslot: </strong><select name="ts_dropdown">
+<option selected="selected" value="''' + str(i.ts) + '''">Current - ''' + str(i.ts) + '''</option>
+<option  value="1">1</option>
+<option  value="2">2</option>
+</select></td>
+<td><strong>Talkgroup number: </strong> <input name="tgid" type="text" value="''' + str(i.tg) + '''"/></td>
+<td><strong>Activate on start:</strong> &nbsp;<select name="active_dropdown">
+<option selected="selected" value="''' + str(i.active) + '''">Current - ''' + str(i.active) + '''</option>
+<option  value="True">True</option>
+<option  value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>Timer Time (minutes): </strong> &nbsp;<input name="timer_time" type="text" value="''' + str(i.timeout) + '''"/></td>
+<td><strong>Timer Type: &nbsp;</strong><select name="type_dropdown">
+<option selected="selected" value="''' + str(i.to_type) + '''">Current - ''' + str(i.to_type) + '''</option>
+<option  value="NONE">None</option>
+<option  value="ON">On</option>
+<option  value="OFF">Off</option>
+</select></td>
+<td><strong>Trigger ON TGs: &nbsp;</strong> <input name="on" type="text" value="''' + str(i.on) + '''"/></td>
+<td><strong>Trigger OFF TGs:</strong> &nbsp;<input name="off" type="text" value="''' + str(i.off) + '''"/></td>
+<td><strong>Trigger Reset TGs:</strong> &nbsp; <input name="reset" type="text" value="''' + str(i.reset) + '''"/></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p style="text-align: center;"><input type="submit" value="Update Rule" /></p>
+</form>
+<p>&nbsp;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+
+'''
+            content = br_view
             
+        
         elif request.args.get('add_bridge'):
             s = ServerList.query.all()
 ##            server_options = ''
@@ -4281,6 +4454,7 @@ def create_app():
 '''
         else:
             all_b = BridgeList.query.all()
+            s = ServerList.query.all()
             b_list = '''
 <h3 style="text-align: center;">View/Edit Bridges (Talk Groups)</h3>
 
@@ -4310,7 +4484,44 @@ def create_app():
 <td style="text-align: center;">''' + str(i.description) + '''</td>
 </tr>
 '''
-            content = b_list + '</tbody></table>'
+            b_list = b_list + '''</tbody></table>
+<h3 style="text-align: center;">View/Edit Rules</h3>
+
+'''
+            r_list = ''
+            for i in s:
+                print(i)
+                r_list = r_list + '''
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+  <tbody>
+    <tr>
+<td style="text-align: center;"><strong>Add rule to <a href="manage_rules?add_rule=''' + str(i.name) + '''">''' + str(i.name) + '''</a></strong></td> 
+      </tr>
+  </tbody>
+</table>
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>-</strong></td>
+<td style="text-align: center;"><strong>-</strong></td>
+</tr>'''
+                br = BridgeRules.query.filter_by(server=i.name).all()
+                temp_list = []
+                for x in br:  #.filter_by(bridge_name=request.args.get('bridge')).all()
+                    if x.bridge_name in temp_list:
+                        pass
+                    else:
+                        temp_list.append(x.bridge_name)
+                        r_list = r_list + '''
+<tr>
+<td style="text-align: center;"><strong>''' + str(x.bridge_name) + '''</strong></td>
+<td style="text-align: center;"><a href="manage_rules?edit_rule=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Edit Bridge Rules</a></td>
+<td style="text-align: center;"><a href="manage_rules?save_rule=delete&server=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Delete Bridge Rules</a></td>
+</tr>
+'''
+                r_list = r_list + '''</tbody></table><p>&nbsp;</p>'''
+            content = b_list + r_list + '''</tbody></table>'''
             
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
