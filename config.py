@@ -296,7 +296,7 @@ def build_config(_config_file):
                         'TG1_ACL': config.get(section, 'TGID_ACL'),
                         'TG2_ACL': 'PERMIT:ALL'
                     }})
-                    
+                    print( CONFIG['SYSTEMS'][section])
     
     except configparser.Error as err:
         sys.exit('Error processing configuration file -- {}'.format(err))

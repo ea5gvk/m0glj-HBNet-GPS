@@ -98,7 +98,7 @@ def download_config(L_CONFIG_FILE, cli_file):
         corrected_config['LOGGER'].update(L_CONFIG_FILE['LOGGER'])
         corrected_config['USER_MANAGER'].update(L_CONFIG_FILE['USER_MANAGER'])
 ##        iterate_config.update(resp['masters'].copy())
-        print(iterate_config)
+##        print(iterate_config)
 ##        print(iterate_config)
 
 ##        corrected_config = CONFIG_FILE.copy()
@@ -117,21 +117,22 @@ def download_config(L_CONFIG_FILE, cli_file):
         corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 16776415)
 ##        corrected_config['SYSTEMS'] = {}
         for i in iterate_config:
-            print(i)
+##            print(i)
 ##            corrected_config['SYSTEMS'][i] = {}
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
-            else:
+                if iterate_config[i]['MODE'] == 'OPENBRIDGE':
+                    corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
+            if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['MASTER_SOCKADDR'] = tuple(iterate_config[i]['MASTER_SOCKADDR'])
                 corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
-            corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
-            corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
-            corrected_config['SYSTEMS'][i].update({'STATS':{
-                'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                if iterate_config[i]['MODE'] == 'PEER':
+                    corrected_config['SYSTEMS'][i].update({'STATS':{
+                        'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
                         'CONNECTED': None,
                         'PINGS_SENT': 0,
                         'PINGS_ACKD': 0,
@@ -140,6 +141,20 @@ def download_config(L_CONFIG_FILE, cli_file):
                         'LAST_PING_TX_TIME': 0,
                         'LAST_PING_ACK_TIME': 0,
                     }})
+                if iterate_config[i]['MODE'] == 'XLXPEER':
+                    corrected_config['SYSTEMS'][i].update({'XLXSTATS': {
+                        'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                        'CONNECTED': None,
+                        'PINGS_SENT': 0,
+                        'PINGS_ACKD': 0,
+                        'NUM_OUTSTANDING': 0,
+                        'PING_OUTSTANDING': False,
+                        'LAST_PING_TX_TIME': 0,
+                        'LAST_PING_ACK_TIME': 0,
+                    }})
+            corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
+            corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
+
             
 ##        print(iterate_masters)
 ##        for i in iterate_masters:
