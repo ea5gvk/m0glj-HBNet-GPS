@@ -327,6 +327,7 @@ def create_app():
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
         sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         
@@ -1771,6 +1772,7 @@ def create_app():
        # print(s.name)        
         i = MasterList.query.filter_by(server=_name).all()
         o = OBP.query.filter_by(server=_name).all()
+        p = ProxyList.query.filter_by(server=_name).all()
         print('get masters')
         master_config_list = {}
 ##        master_config_list['SYSTEMS'] = {}
@@ -1780,6 +1782,7 @@ def create_app():
             master_config_list.update({m.name: {
                 'MODE': 'MASTER',
                 'ENABLED': m.active,
+                'USE_USER_MAN': m.enable_um,
                 'STATIC_APRS_POSITION_ENABLED': m.static_positions,
                 'REPEAT': m.repeat,
                 'MAX_PEERS': m.max_peers,
@@ -1795,16 +1798,16 @@ def create_app():
             }})
             master_config_list[m.name].update({'PEERS': {}})
         for obp in o:
-            print(type(obp.network_id))
+##            print(type(obp.network_id))
             master_config_list.update({obp.name: {
                         'MODE': 'OPENBRIDGE',
                         'ENABLED': obp.enabled,
                         'NETWORK_ID': obp.network_id, #int(obp.network_id).to_bytes(4, 'big'),
                         'IP': gethostbyname(obp.ip),
                         'PORT': obp.port,
-##                        'PASSPHRASE': bytes(obp.passphrase.ljust(20,'\x00')[:20], 'utf-8'),
-##                        'TARGET_SOCK': (obp.target_ip, obp.target_port),
-##                        'TARGET_IP': gethostbyname(obp.target_ip),
+                        'PASSPHRASE': bytes(obp.passphrase.ljust(20,'\x00')[:20], 'utf-8'),
+                        'TARGET_SOCK': (obp.target_ip, obp.target_port),
+                        'TARGET_IP': gethostbyname(obp.target_ip),
                         'TARGET_PORT': obp.target_port,
                         'BOTH_SLOTS': obp.both_slots,
                         'USE_ACL': obp.use_acl,
@@ -1812,6 +1815,27 @@ def create_app():
                         'TG1_ACL': obp.tg_acl,
                         'TG2_ACL': 'PERMIT:ALL'
                     }})
+        for pr in p:
+            master_config_list.update({pr.name: {
+                        'MODE': 'PROXY',
+                        'ENABLED': pr.active,
+                        'EXTERNAL_PROXY_SCRIPT': pr.external_proxy,
+                        'STATIC_APRS_POSITION_ENABLED': pr.static_positions,
+                        'USE_USER_MAN': pr.enable_um,
+                        'REPEAT': pr.repeat,
+                        'PASSPHRASE': bytes(pr.passphrase, 'utf-8'),
+                        'EXTERNAL_PORT': pr.external_port,
+                        'INTERNAL_PORT_START': pr.internal_start_port,
+                        'INTERNAL_PORT_STOP': pr.internal_stop_port,
+                        'GROUP_HANGTIME': pr.group_hang_time,
+                        'USE_ACL': pr.use_acl,
+                        'REG_ACL': pr.reg_acl,
+                        'SUB_ACL': pr.sub_acl,
+                        'TG1_ACL': pr.tg1_acl,
+                        'TG2_ACL': pr.tg2_acl
+                    }})
+            master_config_list[pr.name].update({'PEERS': {}})
+            
         print(master_config_list)
         return master_config_list
 
@@ -1865,9 +1889,9 @@ def create_app():
         db.session.commit()
 
     def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots):
-        print(_mode)
-        print(_server)
-        print(_name)
+##        print(_mode)
+####        print(_server)
+##        print(_name)
         if _mode == 'MASTER':
 ##            print(_name)
             m = MasterList.query.filter_by(server=_server).filter_by(name=_name).first()
@@ -1891,6 +1915,8 @@ def create_app():
             m.notes = _notes
             db.session.commit()
         if _mode == 'OBP':
+            print(_enable_unit)
+##            print(enable_unit)
             o = OBP.query.filter_by(server=_server).filter_by(name=_name).first()
             o.enabled = _active
             o.network_id = _network_id
@@ -1904,11 +1930,12 @@ def create_app():
             o.sub_acl = _sub_acl
             o.tg1_acl = _tg1_acl
             o.tg2_acl = _tg2_acl
+            o.enable_unit = _enable_unit
             o.notes = _notes
             db.session.commit()
         if _mode == 'PROXY':
-            print(_int_start_port)
-            print(_int_stop_port)
+##            print(_int_start_port)
+##            print(_int_stop_port)
             p = ProxyList.query.filter_by(server=_server).filter_by(name=_name).first()
             p.name = _name
             p.static_positions = _static_positions
@@ -2017,6 +2044,7 @@ def create_app():
                     use_acl = _use_acl,
                     sub_acl = _sub_acl,
                     tg_acl = _tg1_acl,
+                    enable_unit = _enable_unit,
                     server = _server,
                     notes = _notes,
                     )
@@ -2894,8 +2922,6 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('edit_xlx') == 'save':
-                print(request.args.get('edit_xlx') == 'save')
-                print(request.args.get('server'))
                 peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
                 content = '''<h3 style="text-align: center;">XLX PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
@@ -3164,7 +3190,7 @@ def create_app():
             enable_unit = False
             both_slots = True
             if request.form.get('enabled') == 'True':
-                active = True
+                enabled = True
             if request.form.get('use_acl') == 'True':
                 use_acl = True
             if request.form.get('enable_unit') == 'True':
@@ -3246,7 +3272,6 @@ def create_app():
 <tr>
 <td><strong>&nbsp;Active:</strong></td>
 <td>&nbsp;<select name="enabled">
-<option selected="selected" value="True">Current - True</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
@@ -3751,6 +3776,7 @@ def create_app():
 <tr>
 <td><strong>&nbsp;Enable Unit Calls:</strong></td>
 <td>&nbsp;<select name="enable_unit">
+<option selected="selected" value="''' + str(o.enable_unit) + '''">Current - ''' + str(o.enable_unit) + '''</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>

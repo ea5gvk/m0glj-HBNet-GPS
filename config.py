@@ -296,7 +296,25 @@ def build_config(_config_file):
                         'TG1_ACL': config.get(section, 'TGID_ACL'),
                         'TG2_ACL': 'PERMIT:ALL'
                     }})
-                    print( CONFIG['SYSTEMS'][section])
+                elif config.get(section, 'MODE') == 'PROXY':
+                    CONFIG['SYSTEMS'].update({section: {
+                        'MODE': config.get(section, 'MODE'),
+                        'ENABLED': config.getboolean(section, 'ENABLED'),
+                        'EXTERNAL_PROXY_SCRIPT': config.getboolean(section, 'EXTERNAL_PROXY_SCRIPT'),
+                        'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+                        'REPEAT': config.getboolean(section, 'REPEAT'),
+                        'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
+                        'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),
+                        'INTERNAL_PORT_START': config.getint(section, 'INTERNAL_PORT_START'),
+                        'INTERNAL_PORT_STOP': config.getint(section, 'INTERNAL_PORT_STOP'),
+                        'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
+                        'USE_ACL': config.getboolean(section, 'USE_ACL'),
+                        'REG_ACL': config.get(section, 'REG_ACL'),
+                        'SUB_ACL': config.get(section, 'SUB_ACL'),
+                        'TG1_ACL': config.get(section, 'TG1_ACL'),
+                        'TG2_ACL': config.get(section, 'TG2_ACL')
+                    }})
+                    CONFIG['SYSTEMS'][section].update({'PEERS': {}})
     
     except configparser.Error as err:
         sys.exit('Error processing configuration file -- {}'.format(err))

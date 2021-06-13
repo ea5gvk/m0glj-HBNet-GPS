@@ -58,6 +58,13 @@ import logging
 logger = logging.getLogger(__name__)
 import os, ast
 import json, requests
+
+# User for different functions that need to be running: APRS, Proxy, etc
+import threading
+
+# Hotspot Proxy stuff
+from hotspot_proxy_v2 import Proxy
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
@@ -167,6 +174,50 @@ def download_config(L_CONFIG_FILE, cli_file):
     except requests.ConnectionError:
         logger.error('Config server unreachable, defaulting to local config')
         return config.build_config(cli_file)
+
+    
+# From hotspot_proxy2, FreeDMR
+def hotspot_proxy(listen_port, port_start, port_stop):
+    Master = "127.0.0.1"
+    ListenPort = listen_port
+    DestportStart = port_start
+    DestPortEnd = port_stop
+    Timeout = 30
+    Stats = True
+    Debug = False
+    BlackList = [1234567]
+    
+   
+    CONNTRACK = {}
+
+    for port in range(DestportStart,DestPortEnd+1,1):
+        CONNTRACK[port] = False
+    
+
+    reactor.listenUDP(ListenPort,Proxy(Master,ListenPort,CONNTRACK,BlackList,Timeout,Debug,DestportStart,DestPortEnd))
+
+    def loopingErrHandle(failure):
+        logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error innowtimed loop.\n {}'.format(failure))
+        reactor.stop()
+        
+    def stats():        
+        count = 0
+        nowtime = time()
+        for port in CONNTRACK:
+            if CONNTRACK[port]:
+                count = count+1
+                
+        totalPorts = DestPortEnd - DestportStart
+        freePorts = totalPorts - count
+        
+        print("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
+
+
+        
+    if Stats == True:
+        stats_task = task.LoopingCall(stats)
+        statsa = stats_task.start(30)
+        statsa.addErrback(loopingErrHandle)
 
 # Module gobal varaibles
 
@@ -1269,7 +1320,50 @@ if __name__ == '__main__':
         logger.info('(REPORT) TCP Socket reporting not configured')
 
     # HBlink instance creation
-    logger.info('(GLOBAL) HBlink \'bridge.py\' -- SYSTEM STARTING...')
+    logger.info('(GLOBAL) HBNet \'bridge.py\' -- SYSTEM STARTING...')
+
+    # Generate list of Enabled MODE: PROXY masters
+    proxy_master_list = []
+    for i in CONFIG['SYSTEMS']:
+        if CONFIG['SYSTEMS'][i]['ENABLED'] == True:
+            if CONFIG['SYSTEMS'][i]['MODE'] == 'PROXY':
+                proxy_master_list.append(i)
+    # Start proxy as a thread (if enabled in config) for each set of MASTERs
+    for m in proxy_master_list:
+        if CONFIG['SYSTEMS'][m]['EXTERNAL_PROXY_SCRIPT'] == False:
+            proxy_thread = threading.Thread(target=hotspot_proxy, args=(CONFIG['SYSTEMS'][m]['EXTERNAL_PORT'],CONFIG['SYSTEMS'][m]['INTERNAL_PORT_START'],CONFIG['SYSTEMS'][m]['INTERNAL_PORT_STOP'],))
+            proxy_thread.daemon = True
+            proxy_thread.start()
+            logger.info('Started thread for PROXY for MASTER set: ' + m)
+                
+    #Build Master configs from list
+    for i in proxy_master_list:
+        n_systems = CONFIG['SYSTEMS'][i]['INTERNAL_PORT_STOP'] - CONFIG['SYSTEMS'][i]['INTERNAL_PORT_START']
+        n_count = 0
+        while n_count < n_systems:
+            CONFIG['SYSTEMS'].update({i + '-' + str(n_count): {
+            'MODE': 'MASTER',
+            'ENABLED': True,
+            'STATIC_APRS_POSITION_ENABLED': CONFIG['SYSTEMS'][i]['STATIC_APRS_POSITION_ENABLED'],
+            'REPEAT': CONFIG['SYSTEMS'][i]['REPEAT'],
+            'MAX_PEERS': 1,
+            'IP': '127.0.0.1',
+            'PORT': CONFIG['SYSTEMS'][i]['INTERNAL_PORT_START'] + n_count,
+            'PASSPHRASE': CONFIG['SYSTEMS'][i]['PASSPHRASE'],
+            'GROUP_HANGTIME': CONFIG['SYSTEMS'][i]['GROUP_HANGTIME'],
+            'USE_ACL': CONFIG['SYSTEMS'][i]['USE_ACL'],
+            'REG_ACL': CONFIG['SYSTEMS'][i]['REG_ACL'],
+            'SUB_ACL': CONFIG['SYSTEMS'][i]['SUB_ACL'],
+            'TGID_TS1_ACL': CONFIG['SYSTEMS'][i]['TG1_ACL'],
+            'TGID_TS2_ACL': CONFIG['SYSTEMS'][i]['TG2_ACL']
+            }})
+            CONFIG['SYSTEMS'][i + '-' + str(n_count)].update({'PEERS': {}})
+            systems[i + '-' + str(n_count)] = routerHBP(i + '-' + str(n_count), CONFIG, report_server)
+            n_count = n_count + 1
+        # Remove original MASTER stanza to prevent errors
+        CONFIG['SYSTEMS'].pop(i)
+        logger.info('Generated MASTER instances for proxy set: ' + i)
+    
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
             if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
@@ -1293,7 +1387,8 @@ if __name__ == '__main__':
     stream_trimmer = stream_trimmer_task.start(5)
     stream_trimmer.addErrback(loopingErrHandle)
 
-
+    logger.info('Unit calls will be bridged to: ' + str(UNIT))
+    print(CONFIG['SYSTEMS'])
     # Download burn list
     with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
