@@ -2139,7 +2139,6 @@ def create_app():
 ##            print(_name)
 ##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
-            print(p)
             p.enabled = _enabled
             p.loose = _loose
             p.ip = _ip
@@ -2162,6 +2161,42 @@ def create_app():
             p.url = _url
             p.software_id = 'HBNet'
             p.package_id = 'v1'
+            p.group_hangtime = _grp_hang
+            p.options = _opt
+            p.use_acl = _use_acl
+            p.sub_acl = _sub_acl
+            p.tg1_acl = _1_acl
+            p.tg2_acl = _2_acl
+        if _mode == 'xlx':
+##            print(_server)
+##            print(_name)
+##            print(_name)
+##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+            p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+            p.enabled = _enabled
+            p.loose = _loose
+            p.ip = _ip
+            p.port = _port
+            p.master_ip = _master_ip
+            p.master_port = _master_port
+            p.passphrase = _passphrase
+            p.callsign = _callsign
+            p.radio_id = _radio_id
+            p.rx_freq = _rx
+            p.tx_freq = _tx
+            p.tx_power = _tx_power
+            p.color_code = _cc
+            p.latitude = _lat
+            p.longitude = _lon
+            p.height = _height
+            p.location = _loc
+            p.description = _desc
+            p.slots = _slots
+            p.url = _url
+            p.options = _opt
+            p.software_id = 'HBNet'
+            p.package_id = 'v1'
+            p.xlxmodule = _xlx_mod
             p.group_hangtime = _grp_hang
             p.use_acl = _use_acl
             p.sub_acl = _sub_acl
@@ -2204,17 +2239,21 @@ def create_app():
                 public_list = False
 
             if request.args.get('save_mode') == 'new':
-                print(request.form.get('unit_time'))
                 server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
-                content = 'attempt save'
+                content = '''<h3 style="text-align: center;">Server saved.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
                 server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
-                content = 'attempt edit save'
+                content = '''<h3 style="text-align: center;">Server changed.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_servers" />'''
         elif request.args.get('delete_server'):
             server_delete(request.args.get('delete_server'))
-            content = 'deleted server'
-            content = 'deleted ' + request.args.get('delete_server')
+            content = '''<h3 style="text-align: center;">Server deleted.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_servers" />'''
         elif request.args.get('edit_server'):
             s = ServerList.query.filter_by(name=request.args.get('edit_server')).first()
             
@@ -2615,7 +2654,6 @@ def create_app():
             all_s = ServerList.query.all()
             p_list = '''
 <h3 style="text-align: center;">View/Edit Servers</h3>
-        <p>&nbsp;</p>
 
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
@@ -2659,10 +2697,14 @@ def create_app():
             peer_loose = True
             if request.args.get('save_mode') == 'mmdvm_peer':
                 peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
-                content = 'saved mmdvm peer'
+                content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('save_mode') == 'xlx_peer':
                 peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
-                content = 'saved xlx peer'
+                content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
         elif request.args.get('add') == 'mmdvm' or request.args.get('add') == 'xlx':
             s = ServerList.query.all()
             if request.args.get('add') == 'mmdvm':
@@ -2830,37 +2872,43 @@ def create_app():
 
 ##        elif request.args.get('edit_server') and request.args.get('edit_peer') and request.args.get('mode') == 'mmdvm':
         elif request.args.get('delete_peer') and request.args.get('peer_server'):
-            print(request.args.get('peer_server'))
-            print(request.args.get('delete_peer'))
             peer_delete(request.args.get('mode'), request.args.get('peer_server'), request.args.get('delete_peer'))
-            content = 'deleted peer'
-        elif request.args.get('edit_mmdvm') == 'save':
-##            print(request.form.get('enabled'))
+            content = '''<h3 style="text-align: center;">PEER deleted.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
+        elif request.args.get('edit_mmdvm') == 'save' or request.args.get('edit_xlx') == 'save':
             peer_enabled = False
             use_acl = False
             peer_loose = True
             if request.form.get('enabled') == 'true':
                 peer_enabled = True
-                print(request.form.get('enabled'))
-                print('set to true')
 ##            if request.form.get('loose') == 'true':
 ##                peer_loose = True
             if request.form.get('use_acl') == 'True':
                 use_acl = True
 ##            else:
 ##                peer_loose = False
-##            print(peer_enabled)
-            print(request.args.get('server'))
-            print(request.args.get('name'))
-            peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
-            content = 'save edit'
+            if request.args.get('edit_mmdvm') == 'save':
+                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+                content = '''<h3 style="text-align: center;">MMDVM PEER changed.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
+            if request.args.get('edit_xlx') == 'save':
+                print(request.args.get('edit_xlx') == 'save')
+                print(request.args.get('server'))
+                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+                content = '''<h3 style="text-align: center;">XLX PEER changed.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
         elif request.args.get('server') and request.args.get('peer_name') and request.args.get('mode'): # and request.args.get('edit_peer') and request.args.get('mode') == 'mmdvm':
             if request.args.get('mode') == 'mmdvm':
                 p = mmdvmPeer.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('peer_name')).first()
                 xlx_module = ''
                 mode = "MMDVM"
+                form_submit = '''<form action="manage_peers?edit_mmdvm=save&server=''' + str(p.server) + '''&name=''' + str(p.name) + '''" method="post">'''
             if request.args.get('mode') == 'xlx':
                 p = xlxPeer.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('peer_name')).first()
+                form_submit = '''<form action="manage_peers?edit_xlx=save&server=''' + str(p.server) + '''&name=''' + str(p.name) + '''" method="post">'''
                 xlx_module = '''
 <tr>
 <td style="width: 175.567px;"><strong>&nbsp;XLX Module:</strong></td>
@@ -2875,7 +2923,7 @@ def create_app():
 
 <p style="text-align: center;"><strong><a href="manage_peers?peer_server=''' + str(p.server) + '''&delete_peer=''' + str(p.name) + '''&mode=''' + request.args.get('mode') + '''">Delete peer</a></strong></p>
 
-<form action="manage_peers?edit_mmdvm=save&server=''' + str(p.server) + '''&name=''' + str(p.name) + '''" method="post">
+''' + form_submit + '''
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
@@ -3397,7 +3445,6 @@ def create_app():
             
         elif request.args.get('add_proxy'):
             s = ServerList.query.all()
-            print(s)
             server_options = ''
             for i in s:
                 server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
