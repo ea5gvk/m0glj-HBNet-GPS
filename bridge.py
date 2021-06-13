@@ -74,6 +74,29 @@ __maintainer__ = 'Cort Buffington, N0MJS'
 __email__      = 'n0mjs@me.com'
 
 ##import os, ast
+
+# Function to download rules
+def download_rules(L_CONFIG_FILE, cli_file):
+    user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
+    shared_secret = str(sha256(L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    rules_check = {
+    'get_rules':L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME'],
+    'secret':shared_secret
+    }
+##    print(rules_check)
+    json_object = json.dumps(rules_check, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+        print(resp)
+        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable, defaulting to local config')
+        return config.build_config(cli_file)
+
+
+# Function to download config
 def download_config(L_CONFIG_FILE, cli_file):
     user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
     shared_secret = str(sha256(L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
@@ -1305,12 +1328,19 @@ if __name__ == '__main__':
         logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
     except (ImportError, FileNotFoundError):
         sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
+    # Attempt to use downloaded rules    
+    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+        
+        # Build the routing rules file
+        BRIDGES = make_bridges(rules_module.BRIDGES)
+        # Get rule parameter for private calls
+        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
 
-    # Build the routing rules file
-    BRIDGES = make_bridges(rules_module.BRIDGES)
-    
-    # Get rule parameter for private calls
-    UNIT = rules_module.UNIT
+    else:
+        # Build the routing rules file
+        BRIDGES = make_bridges(rules_module.BRIDGES)
+        # Get rule parameter for private calls
+        UNIT = rules_module.UNIT
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -1388,7 +1418,6 @@ if __name__ == '__main__':
     stream_trimmer.addErrback(loopingErrHandle)
 
     logger.info('Unit calls will be bridged to: ' + str(UNIT))
-    print(CONFIG['SYSTEMS'])
     # Download burn list
     with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))

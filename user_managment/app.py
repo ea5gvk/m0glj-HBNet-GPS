@@ -188,9 +188,8 @@ def create_app():
         description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        software_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        package_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
         sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
@@ -221,11 +220,10 @@ def create_app():
         description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        software_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        package_id = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         xlxmodule = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
         sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
@@ -1613,8 +1611,8 @@ def create_app():
                         'DESCRIPTION': bytes((i.description).ljust(19)[:19], 'utf-8'),
                         'SLOTS': bytes((i.slots), 'utf-8'),
                         'URL': bytes((i.url).ljust(124)[:124], 'utf-8'),
-                        'SOFTWARE_ID': bytes((i.software_id).ljust(40)[:40], 'utf-8'),
-                        'PACKAGE_ID': bytes((i.package_id).ljust(40)[:40], 'utf-8'),
+                        'SOFTWARE_ID': bytes(('HBNet DMR').ljust(40)[:40], 'utf-8'),
+                        'PACKAGE_ID': bytes(('Dev').ljust(40)[:40], 'utf-8'),
                         'GROUP_HANGTIME': i.group_hangtime,
                         'XLXMODULE': i.xlxmodule,
                         'OPTIONS':  b''.join([b'Type=HBlink;', bytes(i.options, 'utf-8')]),
@@ -1716,6 +1714,39 @@ def create_app():
         for i in s:
             r_list.append(str(i.secret))
         return r_list
+
+    def generate_rules(_name):
+
+        # generate UNIT list
+        xlx_p = xlxPeer.query.filter_by(server=_name).all()
+        mmdvm_p = mmdvmPeer.query.filter_by(server=_name).all()
+        all_m = MasterList.query.filter_by(server=_name).all()
+        all_o = OBP.query.filter_by(server=_name).all()
+        all_p = ProxyList.query.filter_by(server=_name).all()
+        UNIT = []
+        BRIDGES = {}
+        for i in all_m:
+            if i.enable_unit == True:
+                UNIT.append(i.name)
+        for i in all_p:
+            if i.enable_unit == True:
+                n_systems = i.internal_stop_port - i.internal_start_port
+                n_count = 0
+                while n_count < n_systems:
+                    UNIT.append(i.name + '-' + str(n_count))
+                    n_count = n_count + 1
+        for i in all_o:
+            if i.enable_unit == True:
+                UNIT.append(i.name)
+        for i in xlx_p:
+            if i.enable_unit == True:
+                UNIT.append(i.name)
+        for i in mmdvm_p:
+            if i.enable_unit == True:
+                UNIT.append(i.name)
+        print(UNIT)
+        return [UNIT, BRIDGES]
+
 
     def server_get(_name):
 ##        print(_name)
@@ -2089,7 +2120,7 @@ def create_app():
         )
         db.session.add(add_server)
         db.session.commit()
-    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr):
+    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr, _enable_unit):
         if _mode == 'xlx':
             xlx_peer_add = xlxPeer(
                     name = _name,
@@ -2114,8 +2145,7 @@ def create_app():
                     slots = _slots,
                     xlxmodule = _xlx_mod,
                     url = _url,
-                    software_id = 'HBNet',
-                    package_id = 'v1',
+                    enable_unit = _enable_unit,
                     group_hangtime = _grp_hang,
                     use_acl = _use_acl,
                     sub_acl = _sub_acl,
@@ -2148,8 +2178,7 @@ def create_app():
                     description = _desc,
                     slots = _slots,
                     url = _url,
-                    software_id = 'HBNet',
-                    package_id = 'v1',
+                    enable_unit = _enable_unit,
                     group_hangtime = _grp_hang,
                     use_acl = _use_acl,
                     sub_acl = _sub_acl,
@@ -2159,7 +2188,7 @@ def create_app():
                         )
             db.session.add(mmdvm_peer_add)
             db.session.commit()
-    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl):
+    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _enable_unit):
 ##        print(_mode)
         if _mode == 'mmdvm':
 ##            print(_server)
@@ -2187,8 +2216,7 @@ def create_app():
             p.description = _desc
             p.slots = _slots
             p.url = _url
-            p.software_id = 'HBNet'
-            p.package_id = 'v1'
+            p.enable_unit = _enable_unit
             p.group_hangtime = _grp_hang
             p.options = _opt
             p.use_acl = _use_acl
@@ -2196,11 +2224,17 @@ def create_app():
             p.tg1_acl = _1_acl
             p.tg2_acl = _2_acl
         if _mode == 'xlx':
-##            print(_server)
-##            print(_name)
-##            print(_name)
+##            print(type(_server))
+##            print(type(_name))
+##            print(type(_enabled))
+            print((_enable_unit))
+##            print(type(_use_acl))
+####            print(_port)
+
+
 ##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
             p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+            print(type(p.enable_unit))
             p.enabled = _enabled
             p.loose = _loose
             p.ip = _ip
@@ -2222,8 +2256,7 @@ def create_app():
             p.slots = _slots
             p.url = _url
             p.options = _opt
-            p.software_id = 'HBNet'
-            p.package_id = 'v1'
+            p.enable_unit = _enable_unit
             p.xlxmodule = _xlx_mod
             p.group_hangtime = _grp_hang
             p.use_acl = _use_acl
@@ -2718,18 +2751,23 @@ def create_app():
 ##                peer_loose = True
             if request.form.get('use_acl') == 'true':
                 use_acl = True
-            else:
+            if request.form.get('enable_unit') == 'True':
+                unit_enabled = True
+##            else:
 ##                peer_loose = False
-                peer_enabled = False
-                use_acl = False
+            peer_enabled = False
+            use_acl = False
+            unit_enabled = False
             peer_loose = True
+##            print(request.form.get('enable_unit'))
+##            print(enable_unit)
             if request.args.get('save_mode') == 'mmdvm_peer':
-                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
+                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled)
                 content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('save_mode') == 'xlx_peer':
-                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'))
+                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled)
                 content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -2874,9 +2912,16 @@ def create_app():
 </tr>
 ''' + xlx_module + '''
 <tr>
+<td><strong>&nbsp;Enable Unit Calls:</strong></td>
+<td>&nbsp;<select name="enable_unit">
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
 <td style="width: 175.567px;"><strong>&nbsp;Use ACLs:</strong></td>
 <td style="width: 399.433px;">&nbsp;<select name="use_acl">
-<option selected="selected" value="true">True</option>
+<option selected="selected" value="True">True</option>
 <option value="False">False</option>
 </select></td>
 </tr>
@@ -2908,21 +2953,27 @@ def create_app():
             peer_enabled = False
             use_acl = False
             peer_loose = True
+            unit_enabled = False
             if request.form.get('enabled') == 'true':
                 peer_enabled = True
 ##            if request.form.get('loose') == 'true':
 ##                peer_loose = True
             if request.form.get('use_acl') == 'True':
                 use_acl = True
+            if request.form.get('enable_unit') == 'True':
+                unit_enabled = True
 ##            else:
 ##                peer_loose = False
+##            print((unit_enabled))
+##            print(type(peer_enabled))
+##            print(type(use_acl))
             if request.args.get('edit_mmdvm') == 'save':
-                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled)
                 content = '''<h3 style="text-align: center;">MMDVM PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('edit_xlx') == 'save':
-                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'))
+                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled)
                 content = '''<h3 style="text-align: center;">XLX PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -3062,6 +3113,14 @@ def create_app():
 <tr>
 <td style="width: 175.567px;"><strong>&nbsp;Options:</strong></td>
 <td style="width: 399.433px;">&nbsp;<input name="options" type="text" value="''' + str(p.options) + '''" /></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Enable Unit Calls:</strong></td>
+<td>&nbsp;<select name="enable_unit">
+<option selected="selected" value="''' + str(p.enable_unit) + '''">Current: ''' + str(p.enable_unit) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
 </tr>
 <tr>
 <td style="width: 175.567px;"><strong>&nbsp;Use ACLs:</strong></td>
@@ -4109,22 +4168,33 @@ def create_app():
                 response = jsonify(
                                 burn_list=get_burnlist()
                                     )
-            elif hblink_req['get_config']: # == 'burn_list':
-##                test_parsed = ast.literal_eval(os.popen('cat ./test_parsed.txt').read())
-                
-##                print((test_parsed))
-##                try:
-                response = jsonify(
-                        config=server_get(hblink_req['get_config']),
-                        peers=get_peer_configs(hblink_req['get_config']),
-                        masters=masters_get(hblink_req['get_config']),
-##                        OBP=get_OBP(hblink_req['get_config'])
 
-                        )
-##                except:
-##                    message = jsonify(message='Config error')
-##                    response = make_response(message, 401)
-                                    
+            elif 'get_config' in hblink_req:
+                if hblink_req['get_config']: 
+                    
+    ##                try:
+                    response = jsonify(
+                            config=server_get(hblink_req['get_config']),
+                            peers=get_peer_configs(hblink_req['get_config']),
+                            masters=masters_get(hblink_req['get_config']),
+    ##                        OBP=get_OBP(hblink_req['get_config'])
+
+                            )
+    ##                except:
+    ##                    message = jsonify(message='Config error')
+    ##                    response = make_response(message, 401)
+            elif 'get_rules' in hblink_req:
+                if hblink_req['get_rules']: # == 'burn_list':
+                    
+    ##                try:
+                    response = jsonify(
+                            rules=generate_rules(hblink_req['get_rules']),
+    ##                        OBP=get_OBP(hblink_req['get_config'])
+
+                            )
+    ##                except:
+    ##                    message = jsonify(message='Config error')
+    ##                    response = make_response(message, 401)
      
         else:
             message = jsonify(message='Authentication error')
