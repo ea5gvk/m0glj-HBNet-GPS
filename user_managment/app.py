@@ -196,6 +196,8 @@ def create_app():
         tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes =  db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+
     class xlxPeer(db.Model):
         __tablename__ = 'XLX_peers'
         id = db.Column(db.Integer(), primary_key=True)
@@ -229,6 +231,7 @@ def create_app():
         tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
     class ServerList(db.Model):
         __tablename__ = 'server_list'
         name = db.Column(db.String(100, collation='NOCASE'), unique=True, primary_key=True)
@@ -264,6 +267,7 @@ def create_app():
         report_port = db.Column(db.Integer(), primary_key=False, server_default='4321')
         report_clients =db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
         unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
+        notes =  db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -346,6 +350,17 @@ def create_app():
         description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
 
+    class BridgeList(db.Model):
+        __tablename__ = 'bridge_list'
+        id = db.Column(db.Integer(), primary_key=True)
+        bridge_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
+        tg = db.Column(db.Integer(), primary_key=False)
+
+
+
+        
     # Customize Flask-User
     class CustomUserManager(UserManager):
     # Override or extend the default login view method
@@ -1715,6 +1730,28 @@ def create_app():
             r_list.append(str(i.secret))
         return r_list
 
+    def bridge_add(_name, _desc, _public, _tg):
+        add_bridge = BridgeList(
+            bridge_name = _name,
+            description = _desc,
+            public_list = _public,
+            tg = _tg
+            )
+        db.session.add(add_bridge)
+        db.session.commit()
+    def update_bridge_list(_name, _desc, _public, _new_name, _tg):
+        bl = BridgeList.query.filter_by(bridge_name=_name).first()
+        bl.bridge_name = _new_name
+        bl.description = _desc
+        bl.public_list = _public
+        bl.tg = _tg
+        db.session.commit()
+
+    def bridge_delete(_name):
+        bl = BridgeList.query.filter_by(bridge_name=_name).first()
+        db.session.delete(bl)
+        db.session.commit()
+        
     def generate_rules(_name):
 
         # generate UNIT list
@@ -1870,7 +1907,7 @@ def create_app():
         print(master_config_list)
         return master_config_list
 
-    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time):
+    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         s = ServerList.query.filter_by(name=_name).first()
         print(_name)
         if _secret == '':
@@ -1907,6 +1944,7 @@ def create_app():
         s.report_port = _report_port
         s.report_clients = _report_clients
         s.unit_time = int(_unit_time)
+        s.notes = _notes
         db.session.commit()
         
     def master_delete(_mode, _server, _name):
@@ -2083,7 +2121,7 @@ def create_app():
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time):
+    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
@@ -2116,11 +2154,12 @@ def create_app():
         report_interval = _report_interval,
         report_port = _report_port,
         report_clients = _report_clients,
-        unit_time = int(_unit_time)
+        unit_time = int(_unit_time),
+        notes = _notes
         )
         db.session.add(add_server)
         db.session.commit()
-    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr, _enable_unit):
+    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr, _enable_unit, _notes):
         if _mode == 'xlx':
             xlx_peer_add = xlxPeer(
                     name = _name,
@@ -2151,7 +2190,8 @@ def create_app():
                     sub_acl = _sub_acl,
                     tg1_acl = _1_acl,
                     tg2_acl = _2_acl,
-                    server = _svr
+                    server = _svr,
+                    notes = _notes
                         )
             db.session.add(xlx_peer_add)
             db.session.commit()
@@ -2184,11 +2224,12 @@ def create_app():
                     sub_acl = _sub_acl,
                     tg1_acl = _1_acl,
                     tg2_acl = _2_acl,
-                    server = _svr
+                    server = _svr,
+                    notes = _notes
                         )
             db.session.add(mmdvm_peer_add)
             db.session.commit()
-    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _enable_unit):
+    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _enable_unit, _notes):
 ##        print(_mode)
         if _mode == 'mmdvm':
 ##            print(_server)
@@ -2223,11 +2264,12 @@ def create_app():
             p.sub_acl = _sub_acl
             p.tg1_acl = _1_acl
             p.tg2_acl = _2_acl
+            p.notes = _notes
         if _mode == 'xlx':
 ##            print(type(_server))
 ##            print(type(_name))
 ##            print(type(_enabled))
-            print((_enable_unit))
+##            print((_enable_unit))
 ##            print(type(_use_acl))
 ####            print(_port)
 
@@ -2263,6 +2305,7 @@ def create_app():
             p.sub_acl = _sub_acl
             p.tg1_acl = _1_acl
             p.tg2_acl = _2_acl
+            p.notes = _notes
         db.session.commit()
             
             
@@ -2300,13 +2343,13 @@ def create_app():
                 public_list = False
 
             if request.args.get('save_mode') == 'new':
-                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
+                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">Server saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -2354,8 +2397,11 @@ def create_app():
 <option selected="selected" value="''' + str(s.public_list) + '''">Current: ''' + str(s.public_list) + '''</option>
 <option value="False">False</option>
 <option value="True">True</option>
-
 </select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Notes:</strong></td>
+<td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(s.notes) + '''</textarea></td>
 </tr>
 </tbody>
 </table>
@@ -2555,6 +2601,10 @@ def create_app():
 <option value="False">False</option>
 </select></td>
 </tr>
+<tr>
+<td><strong>&nbsp;Notes:</strong></td>
+<td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
+</tr>
 </tbody>
 </table>
 <h3 style="text-align: center;"><strong>Global</strong></h3>
@@ -2728,11 +2778,14 @@ def create_app():
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <td style="text-align: center;"><h5><strong>Name</strong><h5></td>
+<td style="text-align: center;"><h5><strong>Notes</strong><h5></td>
+
 '''
             for s in all_s:
                 p_list = p_list + '''
 <tr>
 <td style="text-align: center;"><a href="manage_servers?edit_server=''' + str(s.name) + '''"><strong>''' + str(s.name) + '''</strong></a></td>
+<td>''' + s.notes + '''</td>
 </tr>\n
 '''
             p_list = p_list + '''</tbody></table> '''
@@ -2762,12 +2815,12 @@ def create_app():
 ##            print(request.form.get('enable_unit'))
 ##            print(enable_unit)
             if request.args.get('save_mode') == 'mmdvm_peer':
-                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled)
+                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('save_mode') == 'xlx_peer':
-                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled)
+                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -2937,6 +2990,10 @@ def create_app():
 <td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
 <td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="PERMIT:ALL" /></td>
 </tr>
+<tr>
+<td><strong>&nbsp;Notes:</strong></td>
+<td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
+</tr>
 </tbody>
 </table>
 <p>&nbsp;</p>
@@ -2968,12 +3025,12 @@ def create_app():
 ##            print(type(peer_enabled))
 ##            print(type(use_acl))
             if request.args.get('edit_mmdvm') == 'save':
-                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled)
+                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">MMDVM PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('edit_xlx') == 'save':
-                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled)
+                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">XLX PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -3142,6 +3199,10 @@ def create_app():
 <td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
 <td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="''' + str(p.tg2_acl) + '''" /></td>
 </tr>
+<tr>
+<td><strong>&nbsp;Notes:</strong></td>
+<td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(p.notes) + '''</textarea></td>
+</tr>
 </tbody>
 </table>
 <p>&nbsp;</p>
@@ -3161,6 +3222,8 @@ def create_app():
 <tr>
 <td style="text-align: center;"><strong>Name</strong></td>
 <td style="text-align: center;"><strong>Mode</strong></td>
+<td style="text-align: center;"><strong>Notes</strong></td>
+
 </tr>\n
 '''
                 all_p = mmdvmPeer.query.filter_by(server=s.name).all()
@@ -3170,14 +3233,18 @@ def create_app():
 <tr>
 <td><a href="manage_peers?server=''' + str(s.name) + '''&amp;peer_name=''' + str(p.name) + '''&mode=mmdvm">''' + str(p.name) + '''</a></td>
 <td>MMDVM</td>
-</tr>\n
+<td>''' + p.notes + '''</td>
+
+</tr>
 '''
                 for x in all_x:
                     p_list = p_list + '''
 <tr>
 <td><a href="manage_peers?server=''' + str(x.server) + '''&amp;peer_name=''' + str(x.name) + '''&mode=xlx">''' + str(x.name) + '''</a></td>
 <td>XLX</td>
-</tr>\n
+<td>''' + x.notes + '''</td>
+
+</tr>
 '''
                 p_list = p_list + ''' </tbody></table>\n'''
             content = '''
@@ -3979,7 +4046,7 @@ def create_app():
 <td style="text-align: center;"><strong>Mode</strong></td>
 <td style="text-align: center;"><strong>Notes</strong></td>
 
-</tr>\n
+</tr>
 '''
                 all_m = MasterList.query.filter_by(server=s.name).all()
                 all_p = ProxyList.query.filter_by(server=s.name).all()
@@ -4100,6 +4167,151 @@ def create_app():
             elif User.query.filter(User.username == request.form.get('username')).first():
                 content = 'Existing user: ' + str(request.form.get('username') + '. New user not created.')
                 
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/manage_rules', methods=['POST', 'GET'])
+    def manage_rules():
+        
+        if request.args.get('save_bridge') == 'save':
+            public = False
+            if request.form.get('public_list') == 'True':
+                public = True
+            bridge_add(request.form.get('bridge_name'), request.form.get('description'), public, request.form.get('tg'))
+        if request.args.get('save_bridge') == 'edit':
+            public = False
+            if request.form.get('public_list') == 'True':
+                public = True
+            update_bridge_list(request.args.get('bridge'), request.form.get('description'), public, request.form.get('bridge_name'), request.form.get('tg'))
+            content = 'edit'
+        if request.args.get('save_bridge') == 'delete':
+            bridge_delete(request.args.get('bridge'))
+            content = 'deleted'
+            
+        elif request.args.get('add_bridge'):
+            s = ServerList.query.all()
+##            server_options = ''
+##            for i in s:
+##                server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
+
+            content = '''
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><strong>Add a Talk Group</strong></h2>
+<form action="manage_rules?save_bridge=save" method="POST">
+<table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Name:</label><br /> <input id="bridge_name" name="bridge_name" type="text" /><p>&nbsp;</p>
+</td>
+</tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="tg">Talk Group ID:</label><br /> <input id="tg" name="tg" type="text" value = "1234"/><p>&nbsp;</p>
+</td>
+</tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="description">Description:</label><br /> <textarea id="notes" cols="30" name="description" rows="4"></textarea></td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="public_list">Public List:</label><br /><select name="public_list">
+<option selected="selected" value="True">True</option>
+<option value="False">False</option>
+</select><p>&nbsp;</p>
+</td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;">
+<p>&nbsp;</p>
+
+<p><input type="submit" value="Submit" /></p>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+'''
+        elif request.args.get('edit_bridge'):
+            b = BridgeList.query.filter_by(bridge_name=request.args.get('edit_bridge')).first()
+##            s = ServerList.query.all()
+##            server_options = ''
+##            for i in s:
+##                server_options = server_options + '''<option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
+
+            content = '''
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><strong>Edit a Talk Group</strong></h2>
+<p style="text-align: center;"><strong><a href="manage_rules?bridge=''' + request.args.get('edit_bridge') + '''&save_bridge=delete">Delete Talk Group</a></strong></p>
+<p>&nbsp;</p>
+
+<form action="manage_rules?save_bridge=edit&bridge=''' + request.args.get('edit_bridge') + '''" method="POST">
+<table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Name:</label><br /> <input id="bridge_name" name="bridge_name" type="text" value = "''' + str(b.bridge_name) + '''"/><p>&nbsp;</p>
+</td>
+</tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="tg">Talk Group ID:</label><br /> <input id="tg" name="tg" type="text" value = "''' + str(b.tg) + '''"/><p>&nbsp;</p>
+</td>
+</tr>
+
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="description">Description:</label><br /> <textarea id="notes" cols="30" name="description" rows="4">''' + str(b.description) + '''</textarea></td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="public_list">Public List:</label><br /><select name="public_list">
+<option selected="selected" value="''' + str(b.public_list) + '''">Current - ''' + str(b.public_list) + '''</option>
+<option value="False">False</option>
+<option value="True">True</option>
+
+</select><p>&nbsp;</p>
+</td>
+</tr>
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;">
+<p>&nbsp;</p>
+
+<p><input type="submit" value="Submit" /></p>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+'''
+        else:
+            all_b = BridgeList.query.all()
+            b_list = '''
+<h3 style="text-align: center;">View/Edit Bridges (Talk Groups)</h3>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><a href="manage_rules?add_bridge=yes">Add Bridge</a></strong></td>
+
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+
+<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>Public</strong></td>
+<td style="text-align: center;"><strong>Description</strong></td>
+</tr>
+'''
+            for i in all_b:
+                b_list = b_list + '''
+<tr>
+<td style="text-align: center;"><a href="manage_rules?edit_bridge=''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</a>
+<td style="text-align: center;">''' + str(i.public_list) + '''</td>
+<td style="text-align: center;">''' + str(i.description) + '''</td>
+</tr>
+'''
+            content = b_list + '</tbody></table>'
+            
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/auth', methods=['POST'])
