@@ -4515,7 +4515,7 @@ def create_app():
                         temp_list.append(x.bridge_name)
                         r_list = r_list + '''
 <tr>
-<td style="text-align: center;"><strong>''' + str(x.bridge_name) + '''</strong></td>
+<td style="text-align: center;">''' + str(x.bridge_name) + '''</td>
 <td style="text-align: center;"><a href="manage_rules?edit_rule=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Edit Bridge Rules</a></td>
 <td style="text-align: center;"><a href="manage_rules?save_rule=delete&server=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Delete Bridge Rules</a></td>
 </tr>
