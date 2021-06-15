@@ -1,5 +1,27 @@
+![ ](https://raw.githubusercontent.com/kf7eel/hblink3/hbnet/HBNet.png  "Logo")
 
-### This is a fork of HBLink3 that is being developed as an application.
+HBNet is a fork of HBLink3 the extends the functionality of HBLink through several optional features, making it more of a usable application and less of a framework. HBNet aims to be complete and easy to use application that can be used to build, administrate, and run a DMR network.
+
+HBNet consists of 2 parts, web control panel, and the actual DMR server, based on HBLink.
+
+
+### User end features:
+
+* Handles user registration and email verification, and more
+
+* Individual passphrases for each user
+
+
+### Administrative features:
+
+* Administrate multiple DMR servers through the web panel
+
+* Multiple Admin user logins
+
+* Entirely configure HBLink in web panel
+
+
+
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###
 
