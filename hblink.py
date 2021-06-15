@@ -435,7 +435,7 @@ class HBSYSTEM(DatagramProtocol):
 
     # Aliased in __init__ to datagramReceived if system is a master
     def master_datagramReceived(self, _data, _sockaddr):
-        global user_db
+##        global user_db
         # Keep This Line Commented Unless HEAVILY Debugging!
         # logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_data))
 
@@ -525,7 +525,7 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = self.ums_response['allow']
                     else:
                         user_auth = False
-                    print(user_auth)
+##                    print(user_auth)
                 if self._config['USE_USER_MAN'] == False:
                    # print('False')
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):

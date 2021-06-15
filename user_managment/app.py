@@ -348,6 +348,7 @@ def create_app():
         reset = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
+        proxy = db.Column(db.Boolean(), nullable=False, server_default='0')
 
     class BridgeList(db.Model):
         __tablename__ = 'bridge_list'
@@ -1561,12 +1562,11 @@ def create_app():
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     def get_peer_configs(_server_name):
-        mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).all()
-        xlx_pl = xlxPeer.query.filter_by(server=_server_name).all()
+        mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).filter_by(enabled=True).all()
+        xlx_pl = xlxPeer.query.filter_by(server=_server_name).filter_by(enabled=True).all()
 ##        print(mmdvm_pl)
         peer_config_list = {}
         for i in mmdvm_pl:
-##            print(i)
 ##            print(i.master_ip)
             peer_config_list.update({i.name: {
                         'MODE': 'PEER',
@@ -1578,32 +1578,31 @@ def create_app():
                         'MASTER_SOCKADDR': (gethostbyname(i.master_ip), i.master_port),
                         'MASTER_IP': i.master_ip,
                         'MASTER_PORT': i.master_port,
-                        'PASSPHRASE': bytes((i.passphrase), 'utf-8'),
-                        'CALLSIGN': bytes((i.callsign).ljust(8)[:8], 'utf-8'),
+
+                        'PASSPHRASE': i.passphrase,
+                        'CALLSIGN': i.callsign,
                         'RADIO_ID': int(i.radio_id), #int(i.radio_id).to_bytes(4, 'big'),
-                        'RX_FREQ': bytes((i.rx_freq).ljust(9)[:9], 'utf-8'),
-                        'TX_FREQ': bytes((i.tx_freq).ljust(9)[:9], 'utf-8'),
-                        'TX_POWER': bytes((i.tx_power).rjust(2,'0'), 'utf-8'),
-                        'COLORCODE': bytes((i.color_code).rjust(2,'0'), 'utf-8'),
-                        'LATITUDE': bytes((i.latitude).ljust(8)[:8], 'utf-8'),
-                        'LONGITUDE': bytes((i.longitude).ljust(9)[:9], 'utf-8'),
-                        'HEIGHT': bytes((i.height).rjust(3,'0'), 'utf-8'),
-                        'LOCATION': bytes((i.location).ljust(20)[:20], 'utf-8'),
-                        'DESCRIPTION': bytes((i.description).ljust(19)[:19], 'utf-8'),
-                        'SLOTS': bytes((i.slots), 'utf-8'),
-                        'URL': bytes((i.url).ljust(124)[:124], 'utf-8'),
-                        'SOFTWARE_ID': bytes((i.software_id).ljust(40)[:40], 'utf-8'),
-                        'PACKAGE_ID': bytes((i.package_id).ljust(40)[:40], 'utf-8'),
+                        'RX_FREQ': i.rx_freq,
+                        'TX_FREQ': i.tx_freq,
+                        'TX_POWER': i.tx_power,
+                        'COLORCODE': i.color_code,
+                        'LATITUDE': i.latitude,
+                        'LONGITUDE': i.longitude,
+                        'HEIGHT': i.height,
+                        'LOCATION': i.location,
+                        'DESCRIPTION': i.description,
+                        'SLOTS': i.slots,
+                        'URL': i.url,
                         'GROUP_HANGTIME': i.group_hangtime,
-                        'OPTIONS':  b''.join([b'Type=HBlink;', bytes(i.options, 'utf-8')]),
+                        'OPTIONS':  i.options,
                         'USE_ACL': i.use_acl,
                         'SUB_ACL': i.sub_acl,
                         'TG1_ACL': i.tg1_acl,
                         'TG2_ACL': i.tg2_acl
                     }})
-            for i in xlx_pl:
-                            peer_config_list.update({i: {
-                        'MODE': 'XLX',
+        for i in xlx_pl:
+            peer_config_list.update({i.name: {
+                        'MODE': 'XLXPEER',
                         'ENABLED': i.enabled,
                         'LOOSE': i.loose,
                         'SOCK_ADDR': (gethostbyname(i.ip), i.port),
@@ -1612,31 +1611,31 @@ def create_app():
                         'MASTER_SOCKADDR': (gethostbyname(i.master_ip), i.master_port),
                         'MASTER_IP': i.master_ip,
                         'MASTER_PORT': i.master_port,
-                        'PASSPHRASE': bytes((i.passphrase), 'utf-8'),
-                        'CALLSIGN': bytes((i.callsign).ljust(8)[:8], 'utf-8'),
-                        'RADIO_ID': int(i.radio_id),
-                        'RX_FREQ': bytes((i.rx_freq).ljust(9)[:9], 'utf-8'),
-                        'TX_FREQ': bytes((i.tx_freq).ljust(9)[:9], 'utf-8'),
-                        'TX_POWER': bytes((i.tx_power).rjust(2,'0'), 'utf-8'),
-                        'COLORCODE': bytes((i.color_code).rjust(2,'0'), 'utf-8'),
-                        'LATITUDE': bytes((i.latitude).ljust(8)[:8], 'utf-8'),
-                        'LONGITUDE': bytes((i.longitude).ljust(9)[:9], 'utf-8'),
-                        'HEIGHT': bytes((i.height).rjust(3,'0'), 'utf-8'),
-                        'LOCATION': bytes((i.location).ljust(20)[:20], 'utf-8'),
-                        'DESCRIPTION': bytes((i.description).ljust(19)[:19], 'utf-8'),
-                        'SLOTS': bytes((i.slots), 'utf-8'),
-                        'URL': bytes((i.url).ljust(124)[:124], 'utf-8'),
-                        'SOFTWARE_ID': bytes(('HBNet DMR').ljust(40)[:40], 'utf-8'),
-                        'PACKAGE_ID': bytes(('Dev').ljust(40)[:40], 'utf-8'),
+
+                        'PASSPHRASE': i.passphrase,
+                        'CALLSIGN': i.callsign,
+                        'RADIO_ID': int(i.radio_id), #int(i.radio_id).to_bytes(4, 'big'),
+                        'RX_FREQ': i.rx_freq,
+                        'TX_FREQ': i.tx_freq,
+                        'TX_POWER': i.tx_power,
+                        'COLORCODE': i.color_code,
+                        'LATITUDE': i.latitude,
+                        'LONGITUDE': i.longitude,
+                        'HEIGHT': i.height,
+                        'LOCATION': i.location,
+                        'DESCRIPTION': i.description,
+                        'SLOTS': i.slots,
+                        'URL': i.url,
+                        'OPTIONS':  i.options,
                         'GROUP_HANGTIME': i.group_hangtime,
                         'XLXMODULE': i.xlxmodule,
-                        'OPTIONS':  b''.join([b'Type=HBlink;', bytes(i.options, 'utf-8')]),
                         'USE_ACL': i.use_acl,
                         'SUB_ACL': i.sub_acl,
                         'TG1_ACL': i.tg1_acl,
                         'TG2_ACL': i.tg2_acl
                     }})
-            print((peer_config_list))
+####                            print('peers')
+##                print('----------------')
         return peer_config_list
 
     def get_burnlist():
@@ -1755,33 +1754,97 @@ def create_app():
     def generate_rules(_name):
 
         # generate UNIT list
+        print('get rules')
+        print(_name)
         xlx_p = xlxPeer.query.filter_by(server=_name).all()
         mmdvm_p = mmdvmPeer.query.filter_by(server=_name).all()
         all_m = MasterList.query.filter_by(server=_name).all()
         all_o = OBP.query.filter_by(server=_name).all()
         all_p = ProxyList.query.filter_by(server=_name).all()
+        rules = BridgeRules.query.filter_by(server=_name).all()
         UNIT = []
         BRIDGES = {}
+        disabled = {}
         for i in all_m:
-            if i.enable_unit == True:
-                UNIT.append(i.name)
+            if i.active == False:
+                disabled[i.name] = i.name
+            else:
+                if i.enable_unit == True:
+                    UNIT.append(i.name)
         for i in all_p:
-            if i.enable_unit == True:
-                n_systems = i.internal_stop_port - i.internal_start_port
-                n_count = 0
-                while n_count < n_systems:
-                    UNIT.append(i.name + '-' + str(n_count))
-                    n_count = n_count + 1
+            if i.active == False:
+                disabled[i.name] = i.name
+            else:
+                if i.enable_unit == True:
+                    n_systems = i.internal_stop_port - i.internal_start_port
+                    n_count = 0
+                    while n_count < n_systems:
+                        UNIT.append(i.name + '-' + str(n_count))
+                        n_count = n_count + 1
         for i in all_o:
-            if i.enable_unit == True:
-                UNIT.append(i.name)
+            if i.enabled == False:
+                disabled[i.name] = i.name
+            else:
+                if i.enable_unit == True:
+                    UNIT.append(i.name)
         for i in xlx_p:
-            if i.enable_unit == True:
-                UNIT.append(i.name)
+            if i.enabled == False:
+                disabled[i.name] = i.name
+            else:
+                if i.enable_unit == True:
+                    UNIT.append(i.name)
         for i in mmdvm_p:
-            if i.enable_unit == True:
-                UNIT.append(i.name)
-        print(UNIT)
+            if i.enabled == False:
+                disabled[i.name] = i.name
+            else:
+                if i.enable_unit == True:
+                    UNIT.append(i.name)
+        temp_dict = {}
+        # populate dict with needed bridges
+        for r in rules:
+##            print(r.bridge_name)
+##            b = BridgeRules.query.filter_by(server=_name).filter_by(server=_name).all()
+##            for d in temp_dict.items():
+##                if r.bridge_name == d[0]:
+##                    print('update rule')
+##                if r.bridge_name != d[0]:
+##                    print('add dict entry and rule')
+            temp_dict[r.bridge_name] = []
+##        print(temp_dict)
+        BRIDGES = temp_dict.copy()
+        for r in temp_dict.items():
+            b = BridgeRules.query.filter_by(bridge_name=r[0]).filter_by(server=_name).all()
+            for s in b:
+                try:
+                    if s.system_name == disabled[s.system_name]:
+                        pass
+                except:
+                    if s.timeout == '':
+                        timeout = 0
+                    else:
+                        timeout = int(s.timeout)
+                    if s.proxy == True:
+                        p = ProxyList.query.filter_by(server=_name).filter_by(name=s.system_name).first()
+                        print(p.external_port)
+                        n_systems = p.internal_stop_port - p.internal_start_port
+                        n_count = 0
+                        while n_count < n_systems:
+                            BRIDGES[r[0]].append({'SYSTEM': s.system_name + '-' + str(n_count),    'TS': s.ts, 'TGID': s.tg,    'ACTIVE': s.active, 'TIMEOUT': timeout, 'TO_TYPE': s.to_type,  'ON': ast.literal_eval(str('[' + s.on + ']')), 'OFF': ast.literal_eval(str('[' + s.off + ']')), 'RESET': ast.literal_eval(str('[' + s.reset + ']'))})
+                            n_count = n_count + 1
+
+                    else:
+                       BRIDGES[r[0]].append({'SYSTEM': s.system_name,    'TS': s.ts, 'TGID': s.tg,    'ACTIVE': s.active, 'TIMEOUT': timeout, 'TO_TYPE': s.to_type,  'ON': ast.literal_eval(str('[' + s.on + ']')), 'OFF': ast.literal_eval(str('[' + s.off + ']')), 'RESET': ast.literal_eval(str('[' + s.reset + ']'))})
+            
+##            for d in b:
+##                print(b.system_name)
+        
+##                if r.bridge_name == d[0]:
+##                    print('update rule')
+##                if r.bridge_name != d[0]:
+##                    print('add dict entry and rule')
+            
+##            print(r.tg)
+##            print(BRIDGES)
         return [UNIT, BRIDGES]
 
 
@@ -1838,9 +1901,9 @@ def create_app():
 ##        print(_name)
         #s = ServerList.query.filter_by(name=_name).first()
        # print(s.name)        
-        i = MasterList.query.filter_by(server=_name).all()
-        o = OBP.query.filter_by(server=_name).all()
-        p = ProxyList.query.filter_by(server=_name).all()
+        i = MasterList.query.filter_by(server=_name).filter_by(active=True).all()
+        o = OBP.query.filter_by(server=_name).filter_by(enabled=True).all()
+        p = ProxyList.query.filter_by(server=_name).filter_by(active=True).all()
         print('get masters')
         master_config_list = {}
 ##        master_config_list['SYSTEMS'] = {}
@@ -1856,7 +1919,7 @@ def create_app():
                 'MAX_PEERS': m.max_peers,
                 'IP': m.ip,
                 'PORT': m.port,
-                'PASSPHRASE': bytes(m.passphrase, 'utf-8'),
+                'PASSPHRASE': m.passphrase, #bytes(m.passphrase, 'utf-8'),
                 'GROUP_HANGTIME': m.group_hang_time,
                 'USE_ACL': m.use_acl,
                 'REG_ACL': m.reg_acl,
@@ -1873,7 +1936,7 @@ def create_app():
                         'NETWORK_ID': obp.network_id, #int(obp.network_id).to_bytes(4, 'big'),
                         'IP': gethostbyname(obp.ip),
                         'PORT': obp.port,
-                        'PASSPHRASE': bytes(obp.passphrase.ljust(20,'\x00')[:20], 'utf-8'),
+                        'PASSPHRASE': obp.passphrase, #bytes(obp.passphrase.ljust(20,'\x00')[:20], 'utf-8'),
                         'TARGET_SOCK': (obp.target_ip, obp.target_port),
                         'TARGET_IP': gethostbyname(obp.target_ip),
                         'TARGET_PORT': obp.target_port,
@@ -1891,7 +1954,7 @@ def create_app():
                         'STATIC_APRS_POSITION_ENABLED': pr.static_positions,
                         'USE_USER_MAN': pr.enable_um,
                         'REPEAT': pr.repeat,
-                        'PASSPHRASE': bytes(pr.passphrase, 'utf-8'),
+                        'PASSPHRASE': pr.passphrase, #bytes(pr.passphrase, 'utf-8'),
                         'EXTERNAL_PORT': pr.external_port,
                         'INTERNAL_PORT_START': pr.internal_start_port,
                         'INTERNAL_PORT_STOP': pr.internal_stop_port,
@@ -1908,6 +1971,13 @@ def create_app():
         return master_config_list
 
     def add_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server, _public_list):
+        proxy = ProxyList.query.filter_by(server=_server).filter_by(name=_system_name).first()
+        is_proxy = False
+        try:
+            if _system_name == proxy.name:
+                is_proxy = True
+        except:
+            pass
         add_system = BridgeRules(
             bridge_name = _bridge_name,
             system_name = _system_name,
@@ -1920,7 +1990,8 @@ def create_app():
             off = _off,
             reset = _reset,
             server = _server,
-            public_list = _public_list
+            public_list = _public_list,
+            proxy = is_proxy
             )
         db.session.add(add_system)
         db.session.commit()
@@ -4525,7 +4596,7 @@ def create_app():
             
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-    @app.route('/auth', methods=['POST'])
+    @app.route('/svr', methods=['POST'])
     def auth():
         hblink_req = request.json
         print((hblink_req))
@@ -4596,6 +4667,7 @@ def create_app():
                 if hblink_req['get_config']: 
                     
     ##                try:
+##                    print(get_peer_configs(hblink_req['get_config']))
                     response = jsonify(
                             config=server_get(hblink_req['get_config']),
                             peers=get_peer_configs(hblink_req['get_config']),

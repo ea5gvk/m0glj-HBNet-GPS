@@ -152,15 +152,38 @@ def download_config(L_CONFIG_FILE, cli_file):
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
+                corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')
                 if iterate_config[i]['MODE'] == 'OPENBRIDGE':
                     corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
+                    corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'].ljust(20,'\x00')[:20], 'utf-8')
+
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
                 corrected_config['SYSTEMS'][i]['MASTER_SOCKADDR'] = tuple(iterate_config[i]['MASTER_SOCKADDR'])
                 corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
-                if iterate_config[i]['MODE'] == 'PEER':
+                corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes((iterate_config[i]['PASSPHRASE']), 'utf-8')
+                corrected_config['SYSTEMS'][i]['CALLSIGN'] = bytes((iterate_config[i]['CALLSIGN']).ljust(8)[:8], 'utf-8')
+                corrected_config['SYSTEMS'][i]['RX_FREQ']: bytes((iterate_config[i]['RX_FREQ']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['TX_FREQ'] = bytes((iterate_config[i]['TX_FREQ']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['TX_POWER'] = bytes((iterate_config[i]['TX_POWER']).rjust(2,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['COLORCODE'] = bytes((iterate_config[i]['COLORCODE']).rjust(2,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['LATITUDE'] = bytes((iterate_config[i]['LATITUDE']).ljust(8)[:8], 'utf-8')
+                corrected_config['SYSTEMS'][i]['LONGITUDE'] = bytes((iterate_config[i]['LONGITUDE']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['HEIGHT'] = bytes((iterate_config[i]['HEIGHT']).rjust(3,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['LOCATION'] = bytes((iterate_config[i]['LOCATION']).ljust(20)[:20], 'utf-8')
+                corrected_config['SYSTEMS'][i]['DESCRIPTION'] = bytes((iterate_config[i]['DESCRIPTION']).ljust(19)[:19], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SLOTS'] = bytes((iterate_config[i]['SLOTS']), 'utf-8')
+                corrected_config['SYSTEMS'][i]['URL'] = bytes((iterate_config[i]['URL']).ljust(124)[:124], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('HBNet DMR').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['PACKAGE_ID'] = bytes(('Dev').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['OPTIONS'] = b''.join([b'Type=HBlink;', bytes(iterate_config[i]['OPTIONS'], 'utf-8')])
+
+
+
+            
+            if iterate_config[i]['MODE'] == 'PEER':
                     corrected_config['SYSTEMS'][i].update({'STATS':{
                         'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
                         'CONNECTED': None,
@@ -171,17 +194,17 @@ def download_config(L_CONFIG_FILE, cli_file):
                         'LAST_PING_TX_TIME': 0,
                         'LAST_PING_ACK_TIME': 0,
                     }})
-                if iterate_config[i]['MODE'] == 'XLXPEER':
-                    corrected_config['SYSTEMS'][i].update({'XLXSTATS': {
-                        'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
-                        'CONNECTED': None,
-                        'PINGS_SENT': 0,
-                        'PINGS_ACKD': 0,
-                        'NUM_OUTSTANDING': 0,
-                        'PING_OUTSTANDING': False,
-                        'LAST_PING_TX_TIME': 0,
-                        'LAST_PING_ACK_TIME': 0,
-                    }})
+            if iterate_config[i]['MODE'] == 'XLXPEER':
+                corrected_config['SYSTEMS'][i].update({'XLXSTATS': {
+                    'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                    'CONNECTED': None,
+                    'PINGS_SENT': 0,
+                    'PINGS_ACKD': 0,
+                    'NUM_OUTSTANDING': 0,
+                    'PING_OUTSTANDING': False,
+                    'LAST_PING_TX_TIME': 0,
+                    'LAST_PING_ACK_TIME': 0,
+                }})
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
             corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
 
@@ -190,8 +213,8 @@ def download_config(L_CONFIG_FILE, cli_file):
 ##        for i in iterate_masters:
 ##            iterate_masters['SYSTEMS']
 ##        config.process_acls(corrected_config)
-        print(corrected_config['SYSTEMS'])
-        print('-------')
+##        print(corrected_config['SYSTEMS'])
+##        print('-------')
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -233,7 +256,7 @@ def hotspot_proxy(listen_port, port_start, port_stop):
         totalPorts = DestPortEnd - DestportStart
         freePorts = totalPorts - count
         
-        print("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
+        logger.info("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
 
 
         
@@ -249,7 +272,7 @@ def hotspot_proxy(listen_port, port_start, port_stop):
 # target system for a unit is identified
 # format 'unit_id': ('SYSTEM', time)
 UNIT_MAP = {} 
-
+BRIDGES = {}
 
 # Timed loop used for reporting HBP status
 #
@@ -1321,26 +1344,34 @@ if __name__ == '__main__':
     peer_ids, subscriber_ids, talkgroup_ids = mk_aliases(CONFIG)
     
     # Import the ruiles file as a module, and create BRIDGES from it
-    spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
-    rules_module = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(rules_module)
-        logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
-    except (ImportError, FileNotFoundError):
-        sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
-    # Attempt to use downloaded rules    
-    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
-        
-        # Build the routing rules file
-        BRIDGES = make_bridges(rules_module.BRIDGES)
-        # Get rule parameter for private calls
-        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
-
-    else:
-        # Build the routing rules file
-        BRIDGES = make_bridges(rules_module.BRIDGES)
-        # Get rule parameter for private calls
-        UNIT = rules_module.UNIT
+##    spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
+##    rules_module = importlib.util.module_from_spec(spec)
+##    print(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE))
+##    try:
+##        spec.loader.exec_module(rules_module)
+##        logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
+##    except (ImportError, FileNotFoundError):
+##        sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
+##    # Attempt to use downloaded rules    
+##    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+##        
+##        # Build the routing rules file
+##        BRIDGES = make_bridges(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[1]) #make_bridges(rules_module.BRIDGES)
+##        # Get rule parameter for private calls
+##        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
+##
+##    else:
+##        try:
+##            spec.loader.exec_module(rules_module)
+##            logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
+##        except (ImportError, FileNotFoundError):
+##            sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
+##            spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
+##        rules_module = importlib.util.module_from_spec(spec)
+##        # Build the routing rules file
+##        BRIDGES = make_bridges(rules_module.BRIDGES)
+##        # Get rule parameter for private calls
+##        UNIT = rules_module.UNIT
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -1375,6 +1406,7 @@ if __name__ == '__main__':
             'MODE': 'MASTER',
             'ENABLED': True,
             'STATIC_APRS_POSITION_ENABLED': CONFIG['SYSTEMS'][i]['STATIC_APRS_POSITION_ENABLED'],
+            'USE_USER_MAN': CONFIG['SYSTEMS'][i]['USE_USER_MAN'],
             'REPEAT': CONFIG['SYSTEMS'][i]['REPEAT'],
             'MAX_PEERS': 1,
             'IP': '127.0.0.1',
@@ -1393,7 +1425,29 @@ if __name__ == '__main__':
         # Remove original MASTER stanza to prevent errors
         CONFIG['SYSTEMS'].pop(i)
         logger.info('Generated MASTER instances for proxy set: ' + i)
-    
+
+    # Attempt to use downloaded rules    
+    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+        
+        # Build the routing rules file
+        BRIDGES = make_bridges(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[1]) #make_bridges(rules_module.BRIDGES)
+        # Get rule parameter for private calls
+        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
+
+    else:
+        try:
+            spec.loader.exec_module(rules_module)
+            logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
+        except (ImportError, FileNotFoundError):
+            sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
+            spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
+        rules_module = importlib.util.module_from_spec(spec)
+        # Build the routing rules file
+        BRIDGES = make_bridges(rules_module.BRIDGES)
+        # Get rule parameter for private calls
+        UNIT = rules_module.UNIT
+        
+   
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
             if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
@@ -1422,5 +1476,4 @@ if __name__ == '__main__':
     with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
     
-
     reactor.run()
