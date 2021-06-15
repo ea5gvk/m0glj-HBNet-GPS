@@ -1343,35 +1343,6 @@ if __name__ == '__main__':
     # Create the name-number mapping dictionaries
     peer_ids, subscriber_ids, talkgroup_ids = mk_aliases(CONFIG)
     
-    # Import the ruiles file as a module, and create BRIDGES from it
-##    spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
-##    rules_module = importlib.util.module_from_spec(spec)
-##    print(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE))
-##    try:
-##        spec.loader.exec_module(rules_module)
-##        logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
-##    except (ImportError, FileNotFoundError):
-##        sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
-##    # Attempt to use downloaded rules    
-##    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
-##        
-##        # Build the routing rules file
-##        BRIDGES = make_bridges(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[1]) #make_bridges(rules_module.BRIDGES)
-##        # Get rule parameter for private calls
-##        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
-##
-##    else:
-##        try:
-##            spec.loader.exec_module(rules_module)
-##            logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
-##        except (ImportError, FileNotFoundError):
-##            sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
-##            spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
-##        rules_module = importlib.util.module_from_spec(spec)
-##        # Build the routing rules file
-##        BRIDGES = make_bridges(rules_module.BRIDGES)
-##        # Get rule parameter for private calls
-##        UNIT = rules_module.UNIT
 
     # INITIALIZE THE REPORTING LOOP
     if CONFIG['REPORTS']['REPORT']:
@@ -1428,11 +1399,25 @@ if __name__ == '__main__':
 
     # Attempt to use downloaded rules    
     if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
-        
-        # Build the routing rules file
-        BRIDGES = make_bridges(download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[1]) #make_bridges(rules_module.BRIDGES)
-        # Get rule parameter for private calls
-        UNIT = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)[0]
+        try:
+            remote_config = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)
+            # Build the routing rules file
+            BRIDGES = make_bridges(remote_config[1]) #make_bridges(rules_module.BRIDGES)
+            # Get rule parameter for private calls
+            UNIT = remote_config[0]
+        except:
+            logger.error('Control server unreachable or other error. Using local config.')
+            spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
+            rules_module = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(rules_module)
+                logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
+            except (ImportError, FileNotFoundError):
+                sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
+            # Build the routing rules file
+            BRIDGES = make_bridges(rules_module.BRIDGES)
+            # Get rule parameter for private calls
+            UNIT = rules_module.UNIT
 
     else:
         try:

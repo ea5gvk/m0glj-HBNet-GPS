@@ -1746,9 +1746,12 @@ def create_app():
         bl.tg = _tg
         db.session.commit()
 
-    def bridge_delete(_name, _server):
+    def bridge_delete(_name): #, _server):
         bl = BridgeList.query.filter_by(bridge_name=_name).first()
         db.session.delete(bl)
+        sl = ServerList.query.all()
+        for i in sl:
+            delete_system_bridge(_name, i.name)
         db.session.commit()
         
     def generate_rules(_name):
@@ -4271,6 +4274,8 @@ def create_app():
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/manage_rules', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
     def manage_rules():
         
         if request.args.get('save_bridge') == 'save':
@@ -4547,12 +4552,14 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 
-<table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="text-align: center;"><strong>Name</strong></td>
 <td style="text-align: center;"><strong>Public</strong></td>
 <td style="text-align: center;"><strong>Description</strong></td>
+<td style="text-align: center;"><strong>TGID</strong></td>
+
 </tr>
 '''
             for i in all_b:
@@ -4561,6 +4568,8 @@ def create_app():
 <td style="text-align: center;"><a href="manage_rules?edit_bridge=''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</a>
 <td style="text-align: center;">''' + str(i.public_list) + '''</td>
 <td style="text-align: center;">''' + str(i.description) + '''</td>
+<td style="text-align: center;">''' + str(i.tg) + '''</td>
+
 </tr>
 '''
             b_list = b_list + '''</tbody></table>
@@ -4574,14 +4583,14 @@ def create_app():
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
   <tbody>
     <tr>
-<td style="text-align: center;"><strong>Add rule to <a href="manage_rules?add_rule=''' + str(i.name) + '''">''' + str(i.name) + '''</a></strong></td> 
+<td style="text-align: center;"><strong>Add a rule to server: <a href="manage_rules?add_rule=''' + str(i.name) + '''">''' + str(i.name) + '''</a></strong></td> 
       </tr>
   </tbody>
 </table>
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>Bridge Name</strong></td>
 <td style="text-align: center;"><strong>-</strong></td>
 <td style="text-align: center;"><strong>-</strong></td>
 </tr>'''
@@ -4596,7 +4605,7 @@ def create_app():
 <tr>
 <td style="text-align: center;">''' + str(x.bridge_name) + '''</td>
 <td style="text-align: center;"><a href="manage_rules?edit_rule=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Edit Bridge Rules</a></td>
-<td style="text-align: center;"><a href="manage_rules?save_rule=delete&server=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Delete Bridge Rules</a></td>
+<td style="text-align: center;"><a href="manage_rules?save_rule=delete&server=''' + str(i.name) + '''&bridge=''' + str(x.bridge_name) + '''">Delete Bridge from this server</a></td>
 </tr>
 '''
                 r_list = r_list + '''</tbody></table><p>&nbsp;</p>'''
