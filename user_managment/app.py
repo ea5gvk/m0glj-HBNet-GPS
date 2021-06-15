@@ -1995,12 +1995,15 @@ def create_app():
             )
         db.session.add(add_system)
         db.session.commit()
+
+    def delete_system_bridge(_name, _server):
+        dr = BridgeRules.query.filter_by(server=_server).filter_by(bridge_name=_name).all()
+        for i in dr:
+            db.session.delete(i)
+        db.session.commit()
         
-    def delete_system_rule(_name, _server):
-        print(_name)
-        print(_server)
-        
-        dr = BridgeRules.query.filter_by(server=_server).filter_by(bridge_name=_name).first()
+    def delete_system_rule(_name, _server, _system):
+        dr = BridgeRules.query.filter_by(server=_server).filter_by(bridge_name=_name).filter_by(system_name=_system).first()
         db.session.delete(dr)
         db.session.commit()
 
@@ -4301,7 +4304,12 @@ def create_app():
             elif request.args.get('save_rule') == 'delete':
                 print(request.args.get('bridge'))
                 print(request.args.get('server'))
-                delete_system_rule(request.args.get('bridge'), request.args.get('server'))
+                if request.args.get('system'):
+                    delete_system_rule(request.args.get('bridge'), request.args.get('server'), request.args.get('system'))
+                else:
+                    delete_system_bridge(request.args.get('bridge'), request.args.get('server'))
+        
+##                delete_system_rule(request.args.get('bridge'), request.args.get('server'), request.args.get('system'))
                 content = 'deleted'
 
         elif request.args.get('add_rule'):
@@ -4381,7 +4389,7 @@ def create_app():
 <table style="margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td>&nbsp;----</td>
+&nbsp;<td style="text-align: center;"><a href="manage_rules?save_rule=delete&server=''' + str(i.server) + '''&bridge=''' + str(i.bridge_name) + '''&system=''' + str(i.system_name) + '''">Delete SYSTEM Rule</a></td>
 </tr>
 <tr>
 <td><form action="/cgi-bin/add_rule.py" method="post" >
