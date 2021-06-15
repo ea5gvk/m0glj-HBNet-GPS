@@ -141,17 +141,17 @@ def download_config(L_CONFIG_FILE, cli_file):
 ##        print((iterate_config['test']))
 ##        print(corrected_config)
         
-        corrected_config['GLOBAL']['TG1_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 16776415)
-        corrected_config['GLOBAL']['TG2_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 16776415)
-        corrected_config['GLOBAL']['REG_ACL'] = config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 16776415)
-        corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 16776415)
+        corrected_config['GLOBAL']['TG1_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 4294967295)
+        corrected_config['GLOBAL']['TG2_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 4294967295)
+        corrected_config['GLOBAL']['REG_ACL'] = config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 4294967295)
+        corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 4294967295)
 ##        corrected_config['SYSTEMS'] = {}
         for i in iterate_config:
 ##            print(i)
 ##            corrected_config['SYSTEMS'][i] = {}
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
-                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
-                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')
                 if iterate_config[i]['MODE'] == 'OPENBRIDGE':
                     corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
@@ -159,8 +159,8 @@ def download_config(L_CONFIG_FILE, cli_file):
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
-                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 16776415)
-                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 16776415)
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['MASTER_SOCKADDR'] = tuple(iterate_config[i]['MASTER_SOCKADDR'])
                 corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes((iterate_config[i]['PASSPHRASE']), 'utf-8')

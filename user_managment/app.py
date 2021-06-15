@@ -461,10 +461,10 @@ def create_app():
         _new_peer_id = bytes_4(int(str(dmr_id)[:7]))
         trimmed_id = int(str(dmr_id)[:7])
         b_list = get_burnlist()
-        print(b_list)
+        # print(b_list)
         burned = False
         for ui in b_list.items():
-            print(ui)
+            # print(ui)
             #print(b_list)
             if ui[0] == trimmed_id:
                 if ui[0] != 0:
@@ -1719,6 +1719,7 @@ def create_app():
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
         if _mode == 'xlx':
             p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
+        
         db.session.delete(p)
         db.session.commit()
 
@@ -1901,16 +1902,16 @@ def create_app():
         print(s_config['REPORTS'])
         return s_config
     def masters_get(_name):
-##        print(_name)
+##        # print(_name)
         #s = ServerList.query.filter_by(name=_name).first()
        # print(s.name)        
         i = MasterList.query.filter_by(server=_name).filter_by(active=True).all()
         o = OBP.query.filter_by(server=_name).filter_by(enabled=True).all()
         p = ProxyList.query.filter_by(server=_name).filter_by(active=True).all()
-        print('get masters')
+        # print('get masters')
         master_config_list = {}
 ##        master_config_list['SYSTEMS'] = {}
-        print(i)
+        # print(i)
         for m in i:
             print (m.name)
             master_config_list.update({m.name: {
@@ -1970,7 +1971,7 @@ def create_app():
                     }})
             master_config_list[pr.name].update({'PEERS': {}})
             
-        print(master_config_list)
+        # print(master_config_list)
         return master_config_list
 
     def add_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server, _public_list):
@@ -2013,7 +2014,7 @@ def create_app():
 
     def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         s = ServerList.query.filter_by(name=_name).first()
-        print(_name)
+        # print(_name)
         if _secret == '':
             s.secret = s.secret
         else:
@@ -2088,7 +2089,7 @@ def create_app():
             m.notes = _notes
             db.session.commit()
         if _mode == 'OBP':
-            print(_enable_unit)
+            # print(_enable_unit)
 ##            print(enable_unit)
             o = OBP.query.filter_by(server=_server).filter_by(name=_name).first()
             o.enabled = _active
@@ -2153,7 +2154,7 @@ def create_app():
 ##            db.session.add(add_master)
 
     def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots):
-        print(_mode)
+        # print(_mode)
         if _mode == 'MASTER':
             add_master = MasterList(
                 name = _name,
@@ -2202,8 +2203,8 @@ def create_app():
             db.session.add(add_proxy)
             db.session.commit()
         if _mode == 'OBP':
-                print(_name)
-                print(_network_id)
+                # print(_name)
+                # print(_network_id)
                 add_OBP = OBP(
                     name = _name,
                     enabled = _active,
@@ -2380,7 +2381,7 @@ def create_app():
 
 ##            s = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
             p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
-            print(type(p.enable_unit))
+            # print(type(p.enable_unit))
             p.enabled = _enabled
             p.loose = _loose
             p.ip = _ip
@@ -3318,7 +3319,7 @@ def create_app():
             all_s = ServerList.query.all()
             p_list = ''
             for s in all_s:
-                print(s.name)
+                # print(s.name)
                 p_list = p_list + '''
 <h4 style="text-align: center;">Server: ''' + str(s.name) + '''</h4>
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
@@ -3573,8 +3574,8 @@ def create_app():
 
 '''
         elif request.args.get('edit_proxy'):
-            print(request.args.get('server'))
-            print(request.args.get('edit_proxy'))
+            # print(request.args.get('server'))
+            # print(request.args.get('edit_proxy'))
             p = ProxyList.query.filter_by(server=request.args.get('server')).filter_by(name=request.args.get('edit_proxy')).first()
             content = '''
 <p>&nbsp;</p>
@@ -4307,8 +4308,8 @@ def create_app():
             elif request.args.get('save_rule') == 'edit':
                 content = 'edit rule'
             elif request.args.get('save_rule') == 'delete':
-                print(request.args.get('bridge'))
-                print(request.args.get('server'))
+                # print(request.args.get('bridge'))
+                # print(request.args.get('server'))
                 if request.args.get('system'):
                     delete_system_rule(request.args.get('bridge'), request.args.get('server'), request.args.get('system'))
                 else:
@@ -4578,7 +4579,7 @@ def create_app():
 '''
             r_list = ''
             for i in s:
-                print(i)
+                # print(i)
                 r_list = r_list + '''
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
   <tbody>
@@ -4616,7 +4617,7 @@ def create_app():
     @app.route('/svr', methods=['POST'])
     def auth():
         hblink_req = request.json
-        print((hblink_req))
+        # print((hblink_req))
         if hblink_req['secret'] in shared_secrets():
             if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
@@ -4635,14 +4636,14 @@ def create_app():
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] != '' or isinstance(authorized_peer(hblink_req['login_id'])[1], int) == False:
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Attempt')
-                            print(authorized_peer(hblink_req['login_id']))
+                            # print(authorized_peer(hblink_req['login_id']))
                             response = jsonify(
                                     allow=True,
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
-                        print('log fail')
+##                        print('log fail')
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
                         response = jsonify(
                                     allow=False)

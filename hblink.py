@@ -258,7 +258,7 @@ class HBSYSTEM(DatagramProtocol):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
         shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
-        #print(int(str(int_id(_id))[:7]))
+##        print(int(str(int_id(_id))[:7]))
         auth_check = {
         'secret':shared_secret,
         'login_id':int(str(int_id(_id))[:7]),
@@ -269,6 +269,7 @@ class HBSYSTEM(DatagramProtocol):
         try:
             req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
             resp = json.loads(req.text)
+##            print(resp)
             return resp
         except requests.ConnectionError:
             return {'allow':True}
@@ -517,6 +518,7 @@ class HBSYSTEM(DatagramProtocol):
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
                 if self._config['USE_USER_MAN'] == True:
+##                    print(str(_peer_id) + ' - hblink.py')
                     self.ums_response = self.check_user_man(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0])
 ##                    print(self.ums_response)
                     #Will allow anyone to attempt authentication, used for a transition period

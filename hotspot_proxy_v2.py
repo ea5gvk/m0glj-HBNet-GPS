@@ -66,21 +66,30 @@ class Proxy(DatagramProtocol):
         #If the packet comes from the master
         if host == self.master:
             _command = data[:4]
+            _lng_command = data[:6]
+####            print(_lng_command)
+
             
             if _command == DMRD:
                 _peer_id = data[11:15]
+##                print(self.peerTrack[_peer_id]['timer'])
             elif  _command == RPTA:
                     if data[6:10] in self.peerTrack:
                         _peer_id = data[6:10]
                     else:
                         _peer_id = self.connTrack[port]
-            elif _command == MSTN:
+            elif _lng_command == MSTNAK:
+                _peer_id = data[6:10]
+
+            elif _command == MSTN and MSTNAK not in _lng_command:
                     _peer_id = data[6:10]
+
                     self.peerTrack[_peer_id]['timer'].cancel()
                     self.reaper(_peer_id)
                     return
             elif _command == MSTP:
                     _peer_id = data[7:11]
+##                    print(self.peerTrack)
             elif _command == MSTC:
                     _peer_id = data[5:9]
                     self.peerTrack[_peer_id]['timer'].cancel()
@@ -150,6 +159,7 @@ class Proxy(DatagramProtocol):
                 self.transport.write(data, (self.master,_dport))
                 if self.debug:
                     print(data)
+
                 return
 
 
