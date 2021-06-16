@@ -1712,14 +1712,35 @@ def create_app():
 
     def server_delete(_name):
         s = ServerList.query.filter_by(name=_name).first()
+        m = MasterList.query.filter_by(server=_name).all()
+        p = ProxyList.query.filter_by(server=_name).all()
+        o = OBP.query.filter_by(server=_name).all()
+        dr = BridgeRules.query.filter_by(server=_name).all()
+        mp = mmdvmPeer.query.filter_by(server=_name).all()
+        xp = xlxPeer.query.filter_by(server=_name).all()
+        for d in m:
+            db.session.delete(d)
+        for d in p:
+            db.session.delete(d)
+        for d in o:
+            db.session.delete(d)
+        for d in dr:
+            db.session.delete(d)
+        for d in mp:
+            db.session.delete(d)
+        for d in xp:
+            db.session.delete(d)
         db.session.delete(s)
+        
         db.session.commit()
     def peer_delete(_mode, _server, _name):
         if _mode == 'mmdvm':
             p = mmdvmPeer.query.filter_by(server=_server).filter_by(name=_name).first()
         if _mode == 'xlx':
             p = xlxPeer.query.filter_by(server=_server).filter_by(name=_name).first()
-        
+        dr = BridgeRules.query.filter_by(server=_server).filter_by(system_name=_name).all()
+        for d in dr:
+            db.session.delete(d)
         db.session.delete(p)
         db.session.commit()
 
@@ -1758,8 +1779,8 @@ def create_app():
     def generate_rules(_name):
 
         # generate UNIT list
-        print('get rules')
-        print(_name)
+##        print('get rules')
+##        print(_name)
         xlx_p = xlxPeer.query.filter_by(server=_name).all()
         mmdvm_p = mmdvmPeer.query.filter_by(server=_name).all()
         all_m = MasterList.query.filter_by(server=_name).all()
@@ -2059,6 +2080,9 @@ def create_app():
             m = ProxyList.query.filter_by(server=_server).filter_by(name=_name).first()
         if _mode == 'OBP':
             m = OBP.query.filter_by(server=_server).filter_by(name=_name).first()
+        dr = BridgeRules.query.filter_by(server=_server).filter_by(system_name=_name).all()
+        for d in dr:
+            db.session.delete(d)
         db.session.delete(m)
         db.session.commit()
 
@@ -2448,10 +2472,15 @@ def create_app():
                 public_list = False
 
             if request.args.get('save_mode') == 'new':
-                server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
-                content = '''<h3 style="text-align: center;">Server saved.</h3>
+                if request.form.get('server_name') == '':
+                    content = '''<h3 style="text-align: center;">Server can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
+                else:
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
+                    content = '''<h3 style="text-align: center;">Server saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
                 server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
@@ -2919,16 +2948,21 @@ def create_app():
             peer_loose = True
 ##            print(request.form.get('enable_unit'))
 ##            print(enable_unit)
-            if request.args.get('save_mode') == 'mmdvm_peer':
-                peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
-                content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
+            if request.form.get('name_text') == '':
+                content = '''<h3 style="text-align: center;">Peer can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
-<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
-            if request.args.get('save_mode') == 'xlx_peer':
-                peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
-                content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
-<p style="text-align: center;">Redirecting in 3 seconds.</p>
-<meta http-equiv="refresh" content="3; URL=manage_peers" />'''
+<meta http-equiv="refresh" content="3; URL=manage_masters" />'''
+            else:
+                if request.args.get('save_mode') == 'mmdvm_peer':
+                    peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
+                    content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
+                if request.args.get('save_mode') == 'xlx_peer':
+                    peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
+                    content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
         elif request.args.get('add') == 'mmdvm' or request.args.get('add') == 'xlx':
             s = ServerList.query.all()
             if request.args.get('add') == 'mmdvm':
@@ -3399,10 +3433,15 @@ def create_app():
             if request.form.get('external_proxy') == 'True':
                 external_proxy = True
             if request.args.get('proxy_save') == 'add':
-                add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '')
-                content = '''<h3 style="text-align: center;">PROXY saved.</h3>
+                if request.form.get('name_text') == '':
+                    content = '''<h3 style="text-align: center;">PROXY can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
+                else:
+                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '')
+                    content = '''<h3 style="text-align: center;">PROXY saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('proxy_save') == 'edit':
 ##                print(request.args.get('name'))
                 edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '')
@@ -3429,10 +3468,15 @@ def create_app():
             if request.form.get('both_slots') == 'False':
                 both_slots = False
             if request.args.get('OBP_save') == 'add':
-                add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots)
-                content = '''<h3 style="text-align: center;">OpenBridge connection saved.</h3>
+                if request.form.get('name_text') == '':
+                    content = '''<h3 style="text-align: center;">OpenBridge connection can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
+                else:
+                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots)
+                    content = '''<h3 style="text-align: center;">OpenBridge connection saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('OBP_save') == 'edit':
                 edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots)
                 content = '''<h3 style="text-align: center;">OpenBridge connection changed.</h3>
@@ -3464,10 +3508,15 @@ def create_app():
             if request.form.get('enable_unit') == 'True':
                 enable_unit = True
             if request.args.get('master_save') == 'add':
-                add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '')
-                content = '''<h3 style="text-align: center;">MASTER saved.</h3>
+                if request.form.get('name_text') == '':
+                    content = '''<h3 style="text-align: center;">MASTER can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
+                else:
+                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '')
+                    content = '''<h3 style="text-align: center;">MASTER saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('master_save') == 'edit':
                 edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '')
                 content = '''<h3 style="text-align: center;">MASTER changed.</h3>
@@ -3765,12 +3814,12 @@ def create_app():
 <td style="width: 392.617px;">&nbsp;<input name="external_port" type="text" value="62032" /></td>
 </tr>
   <tr>
-<td style="width: 189.383px;"><strong>&nbsp;Internal Port Start:</strong></td>
-<td style="width: 392.617px;">&nbsp;<input name="int_port_start" type="text" value="54001" /></td>
+<td style="width: 189.383px;"><strong>&nbsp;Internal Port Start (lower than stop port):</strong></td>
+<td style="width: 392.617px;">&nbsp;<input name="int_port_start" type="text" value="53000" /></td>
 </tr>
     <tr>
 <td style="width: 189.383px;"><strong>&nbsp;Internal Port Stop:</strong></td>
-<td style="width: 392.617px;">&nbsp;<input name="int_port_stop" type="text" value="54010" /></td>
+<td style="width: 392.617px;">&nbsp;<input name="int_port_stop" type="text" value="53010" /></td>
 </tr>
 <tr>
 <td style="width: 189.383px;"><strong>&nbsp;Passphrase:</strong></td>
@@ -3817,7 +3866,7 @@ def create_app():
 </tbody>
 </table>
 <p>&nbsp;</p>
-<input type="submit" value="Save" /></form>
+<p style="text-align: center;"><input type="submit" value="Save" /></form></p>
 <p>&nbsp;</p>
 '''
             
@@ -4283,17 +4332,28 @@ def create_app():
             public = False
             if request.form.get('public_list') == 'True':
                 public = True
-            bridge_add(request.form.get('bridge_name'), request.form.get('description'), public, request.form.get('tg'))
-            content = 'saved_bridge'
+            if request.form.get('bridge_name') == '':
+                    content = '''<h3 style="text-align: center;">Bridge can't have blank name.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" />'''
+            else:
+                bridge_add(request.form.get('bridge_name'), request.form.get('description'), public, request.form.get('tg'))
+                content = '''<h3 style="text-align: center;">Bridge (talkgroup) saved.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
         elif request.args.get('save_bridge') == 'edit':
             public = False
             if request.form.get('public_list') == 'True':
                 public = True
             update_bridge_list(request.args.get('bridge'), request.form.get('description'), public, request.form.get('bridge_name'), request.form.get('tg'))
-            content = 'edit'
+            content = '''<h3 style="text-align: center;">Bridge (talkgroup) changed.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
         elif request.args.get('save_bridge') == 'delete':
             bridge_delete(request.args.get('bridge'))
-            content = 'deleted'
+            content = '''<h3 style="text-align: center;">Bridge (talkgroup) deleted.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
 
 
         #Rules
@@ -4304,9 +4364,13 @@ def create_app():
                 active = True
             elif request.args.get('save_rule') == 'new':
                 add_system_rule(request.form.get('bridge_dropdown'), request.form.get('system_text'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'), public_list)
-                content = 'saved rule'
+                content = '''<h3 style="text-align: center;">Bridge (talkgroup) rule saved.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
             elif request.args.get('save_rule') == 'edit':
-                content = 'edit rule'
+                content = '''<h3 style="text-align: center;">Bridge (talkgroup) rule changed.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
             elif request.args.get('save_rule') == 'delete':
                 # print(request.args.get('bridge'))
                 # print(request.args.get('server'))
@@ -4316,7 +4380,9 @@ def create_app():
                     delete_system_bridge(request.args.get('bridge'), request.args.get('server'))
         
 ##                delete_system_rule(request.args.get('bridge'), request.args.get('server'), request.args.get('system'))
-                content = 'deleted'
+                content = '''<h3 style="text-align: center;">Bridge (talkgroup) rule deleted.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
 
         elif request.args.get('add_rule'):
 ##            svl = ServerList.query.all()
