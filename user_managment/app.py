@@ -29,6 +29,7 @@ import os, ast
 ##import hb_config
 
 script_links = {}
+active_tgs = {}
 
 # Query radioid.net for list of IDs
 def get_ids(callsign):
@@ -236,7 +237,7 @@ def create_app():
         __tablename__ = 'server_list'
         name = db.Column(db.String(100, collation='NOCASE'), unique=True, primary_key=True)
         secret = db.Column(db.String(255), nullable=False, server_default='')
-        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+##        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
         id = db.Column(db.Integer(), primary_key=False)
         ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         port = db.Column(db.Integer(), primary_key=False)
@@ -290,6 +291,8 @@ def create_app():
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+
 
     class ProxyList(db.Model):
         __tablename__ = 'proxy_list'
@@ -313,6 +316,8 @@ def create_app():
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
         notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+
         
     class OBP(db.Model):
         __tablename__ = 'OpenBridge'
@@ -1450,6 +1455,56 @@ def create_app():
             content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    @app.route('/self_care')
+    def tg_status():
+        cu = current_user
+        u = User.query.filter_by(username=cu.username).first()
+        sl = ServerList.query.all()
+        user_ids = ast.literal_eval(u.dmr_ids)
+        content = '<p style="text-align: center;">Currently active talkgroups. Updated every 2 minutes.</p>'
+        for s in sl:
+            for i in user_ids.items():
+##                try:
+                content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">
+<h3><strong>Server:</strong> ''' + str(s.name) + '''</h3>
+<p><strong>DMR ID:</strong> ''' + str(i[0]) + '''</p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;
+<table style="width: 499px; float: left;" border="1">
+<tbody>
+<tr>
+<td style="width: 85.7px;"><strong>Timeslot 1</strong></td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][i[0]][0]['1'])[1:-1] + '''</td>
+</tr>
+<tr>
+<td style="width: 85.7px;"><strong>Timeslot 2</strong></td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][i[0]][1]['2'])[1:-1] + '''</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>'''
+##                except:
+##                    pass
+           
+       
+##                #TS1
+##                for tg in active_tgs[s.name][i[0]][1]['2']:
+##                    content = content + '''<td style="width: 377.3px;">&nbsp;''' + str(tg) + '''</td>
+##'''
+##                print(active_tgs[s.name][i[0]])
+####                content = active_tgs[s.name][i[0]][1]['2']
+##        content = 'hji'
+        
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
 
     @app.route('/test')
     def test_peer():
@@ -1463,7 +1518,7 @@ def create_app():
         #user.add_roles('Admin')
         #db.session.add(user)
         #db.session.commit()
-        u = User.query.filter_by(username='kf7eel').first()
+        u = User.query.filter_by(username='admin').first()
         #u = Role.query.all()
 ##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
         #u = User.query.all()
@@ -1558,7 +1613,12 @@ def create_app():
 ##        a = AuthLog.query.all()
 ##        print(a)
 ##        authlog_flush()
-        peer_delete('mmdvm', 1)
+##        peer_delete('mmdvm', 1)
+        user_ids = ast.literal_eval(u.dmr_ids)
+        for i in user_ids.items():# active_tgs:
+            print(active_tgs['test'][i[0]])
+            content = active_tgs['test'][i[0]][1]['2']
+##        content = user_ids
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     def get_peer_configs(_server_name):
@@ -1854,7 +1914,7 @@ def create_app():
                         n_systems = p.internal_stop_port - p.internal_start_port
                         n_count = 0
                         while n_count < n_systems:
-                            BRIDGES[r[0]].append({'SYSTEM': s.system_name + '-' + str(n_count),    'TS': s.ts, 'TGID': s.tg,    'ACTIVE': s.active, 'TIMEOUT': timeout, 'TO_TYPE': s.to_type,  'ON': ast.literal_eval(str('[' + s.on + ']')), 'OFF': ast.literal_eval(str('[' + s.off + ']')), 'RESET': ast.literal_eval(str('[' + s.reset + ']'))})
+                            BRIDGES[r[0]].append({'SYSTEM': s.system_name + '-' + str(n_count),    'TS': s.ts, 'TGID': s.tg,    'ACTIVE': s.active, 'TIMEOUT': timeout, 'TO_TYPE': s.to_type,  'ON': ast.literal_eval(str('[' + s.on + ']')), 'OFF': ast.literal_eval(str('[4000,' + s.off + ']')), 'RESET': ast.literal_eval(str('[' + s.reset + ']'))})
                             n_count = n_count + 1
 
                     else:
@@ -2086,7 +2146,7 @@ def create_app():
         db.session.delete(m)
         db.session.commit()
 
-    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots):
+    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public):
 ##        print(_mode)
 ####        print(_server)
 ##        print(_name)
@@ -2111,6 +2171,7 @@ def create_app():
             m.enable_unit = _enable_unit
 ##            m.server = _server
             m.notes = _notes
+            m.public_list = _public
             db.session.commit()
         if _mode == 'OBP':
             # print(_enable_unit)
@@ -2154,6 +2215,7 @@ def create_app():
             p.enable_unit = _enable_unit
             p.server = _server
             p.notes = _notes
+            p.public_list = _public
             db.session.commit()
 ##            add_proxy = ProxyList(
 ##                name = _name,
@@ -2177,7 +2239,7 @@ def create_app():
 ##                )
 ##            db.session.add(add_master)
 
-    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots):
+    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public):
         # print(_mode)
         if _mode == 'MASTER':
             add_master = MasterList(
@@ -2198,7 +2260,8 @@ def create_app():
                 tg2_acl = _tg2_acl,
                 enable_unit = _enable_unit,
                 server = _server,
-                notes = _notes
+                notes = _notes,
+                public_list = _public
                 )
             db.session.add(add_master)
             db.session.commit()
@@ -2222,7 +2285,8 @@ def create_app():
                 tg2_acl = _tg2_acl,
                 enable_unit = _enable_unit,
                 server = _server,
-                notes = _notes
+                notes = _notes,
+                public_list = _public
                 )
             db.session.add(add_proxy)
             db.session.commit()
@@ -2250,11 +2314,11 @@ def create_app():
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
+    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
-        public_list = _public_list,
+##        public_list = _public_list,
         ip = _ip,
         port = _port,
         global_path =_global_path,
@@ -2462,14 +2526,14 @@ def create_app():
                 _um_shorten_passphrase = True
             if request.form.get('report') == 'True':
                 _report_enabled = True
-            if  request.form.get('public_list') == 'True':
-                public_list = True
+##            if  request.form.get('public_list') == 'True':
+##                public_list = True
             else:
                 _global_use_acl = False
                 _ai_try_download = False
                 _um_shorten_passphrase = False
                 _report_enabled = False
-                public_list = False
+##                public_list = False
 
             if request.args.get('save_mode') == 'new':
                 if request.form.get('server_name') == '':
@@ -2477,13 +2541,13 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
                 else:
-                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
                     content = '''<h3 style="text-align: center;">Server saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), public_list, _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -3418,6 +3482,7 @@ def create_app():
             aprs_pos = False
             enable_um = True
             external_proxy = False
+            public = False
             if request.form.get('enable_um') == 'False':
                 enable_um = False
             if request.form.get('aprs_pos') == 'True':
@@ -3432,19 +3497,21 @@ def create_app():
                 repeat = False
             if request.form.get('external_proxy') == 'True':
                 external_proxy = True
+            if request.form.get('public_list') == 'True':
+                public = True
             if request.args.get('proxy_save') == 'add':
                 if request.form.get('name_text') == '':
                     content = '''<h3 style="text-align: center;">PROXY can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '')
+                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public)
                     content = '''<h3 style="text-align: center;">PROXY saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('proxy_save') == 'edit':
 ##                print(request.args.get('name'))
-                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '')
+                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public)
                 content = '''<h3 style="text-align: center;">PROXY changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -3473,12 +3540,12 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots)
+                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '')
                     content = '''<h3 style="text-align: center;">OpenBridge connection saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('OBP_save') == 'edit':
-                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots)
+                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '')
                 content = '''<h3 style="text-align: center;">OpenBridge connection changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -3495,6 +3562,7 @@ def create_app():
             use_acl = False
             enable_um = False
             enable_unit = False
+            public = False
             if request.form.get('aprs_pos') == 'True':
                 aprs_pos = True
             if request.form.get('repeat') == 'True':
@@ -3507,18 +3575,20 @@ def create_app():
                 enable_um = True
             if request.form.get('enable_unit') == 'True':
                 enable_unit = True
+            if request.form.get('public_list') == 'True':
+                public = True
             if request.args.get('master_save') == 'add':
                 if request.form.get('name_text') == '':
                     content = '''<h3 style="text-align: center;">MASTER can't have blank name.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '')
+                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public)
                     content = '''<h3 style="text-align: center;">MASTER saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('master_save') == 'edit':
-                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '')
+                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public)
                 content = '''<h3 style="text-align: center;">MASTER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" /> '''
@@ -4362,7 +4432,7 @@ def create_app():
             active = False
             if request.form.get('active_dropdown') == 'True':
                 active = True
-            elif request.args.get('save_rule') == 'new':
+            if request.args.get('save_rule') == 'new':
                 add_system_rule(request.form.get('bridge_dropdown'), request.form.get('system_text'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'), public_list)
                 content = '''<h3 style="text-align: center;">Bridge (talkgroup) rule saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
@@ -4708,6 +4778,7 @@ def create_app():
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
+                        active_tgs[hblink_req['login_server']][hblink_req['login_id']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}]
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
 ##                        print('log fail')
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
@@ -4749,7 +4820,8 @@ def create_app():
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 
-                    
+                    active_tgs[hblink_req['get_config']] = {}
+                    print(active_tgs)
     ##                try:
 ##                    print(get_peer_configs(hblink_req['get_config']))
                     response = jsonify(
@@ -4774,7 +4846,39 @@ def create_app():
     ##                except:
     ##                    message = jsonify(message='Config error')
     ##                    response = make_response(message, 401)
-     
+            elif 'update_tg' in hblink_req:
+                if hblink_req['update_tg']:
+                    print(hblink_req)
+                    if 'on' == hblink_req['mode']:
+                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
+##                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
+                        if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][0]['1']:
+                            active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][0]['1'].append(hblink_req['data'][1]['ts1'])
+                        if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][1]['2']:
+                            active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][1]['2'].append(hblink_req['data'][2]['ts2'])
+                    elif 'off' == hblink_req['mode']:
+                        for system in active_tgs[hblink_req['update_tg']].items():
+                            if system[1][2]['SYSTEM'] == hblink_req['data'][0]['SYSTEM']:
+##                                print(system[0])
+##                                print(active_tgs[hblink_req['update_tg']][system[0]])
+                                new_ts = str(hblink_req['data'][1]['ts'])
+                                if hblink_req['data'][1]['ts'] == 1:
+##                                    print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
+                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].remove(hblink_req['data'][2]['tg'])
+##                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
+                                if hblink_req['data'][1]['ts'] == 2:
+##                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
+                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].remove(hblink_req['data'][2]['tg'])
+##                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+    
+##                            print()
+##                            print(system)
+##                            print(system[1][2]['SYSTEM'])
+                        print('off')
+##                        print(hblink_req['data'][1]['ts'])
+##                        print(hblink_req['data'][2]['tg'])
+                    print(active_tgs)
+                    response = 'got it'
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)

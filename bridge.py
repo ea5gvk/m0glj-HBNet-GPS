@@ -65,6 +65,10 @@ import threading
 # Hotspot Proxy stuff
 from hotspot_proxy_v2 import Proxy
 
+# Used for converting time
+from datetime import datetime
+
+
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
 __copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
@@ -74,6 +78,32 @@ __maintainer__ = 'Cort Buffington, N0MJS'
 __email__      = 'n0mjs@me.com'
 
 ##import os, ast
+
+# Function to download rules
+def update_tg(CONFIG, mode, dmr_id, data):
+    user_man_url = CONFIG['USER_MANAGER']['URL']
+    shared_secret = str(sha256(CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    update_srv = {
+    'update_tg':CONFIG['USER_MANAGER']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'dmr_id': dmr_id,
+##    'ts1': data['ts1'],
+##    'ts2': data['ts2'],
+    'mode': mode,
+    'data': data
+    }
+##    print(rules_check)
+    json_object = json.dumps(update_srv, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable, defaulting to local config')
+##        return config.build_config(cli_file)
+
 
 # Function to download rules
 def download_rules(L_CONFIG_FILE, cli_file):
@@ -326,7 +356,8 @@ def rule_timer_loop():
     global UNIT_MAP
     logger.debug('(ROUTER) routerHBP Rule timer loop started')
     _now = time()
-
+    #This is a good place to get and modify rules for users
+##    print(BRIDGES)
     for _bridge in BRIDGES:
         for _system in BRIDGES[_bridge]:
             if _system['TO_TYPE'] == 'ON':
@@ -334,6 +365,10 @@ def rule_timer_loop():
                     if _system['TIMER'] < _now:
                         _system['ACTIVE'] = False
                         logger.info('(ROUTER) Conference Bridge TIMEOUT: DEACTIVATE System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
+                        # Send not active POST
+                        update_tg(CONFIG, 'off', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
+
+##                        print(_system)
                     else:
                         timeout_in = _system['TIMER'] - _now
                         logger.info('(ROUTER) Conference Bridge ACTIVE (ON timer running): System: %s Bridge: %s, TS: %s, TGID: %s, Timeout in: %.2fs,', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']),  timeout_in)
@@ -344,6 +379,7 @@ def rule_timer_loop():
                     if _system['TIMER'] < _now:
                         _system['ACTIVE'] = True
                         logger.info('(ROUTER) Conference Bridge TIMEOUT: ACTIVATE System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
+                        # POST ON
                     else:
                         timeout_in = _system['TIMER'] - _now
                         logger.info('(ROUTER) Conference Bridge INACTIVE (OFF timer running): System: %s Bridge: %s, TS: %s, TGID: %s, Timeout in: %.2fs,', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']),  timeout_in)
@@ -854,7 +890,8 @@ class routerHBP(HBSYSTEM):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
-        
+
+    
         # Make/update an entry in the UNIT_MAP for this subscriber
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
 
@@ -882,6 +919,7 @@ class routerHBP(HBSYSTEM):
                 self.STATUS[_slot]['RX_LC'] = LC_OPT + _dst_id + _rf_src
 
         for _bridge in BRIDGES:
+##            print(BRIDGES)
             for _system in BRIDGES[_bridge]:
 
                 if (_system['SYSTEM'] == self._system and _system['TGID'] == _dst_id and _system['TS'] == _slot and _system['ACTIVE'] == True):
@@ -1045,6 +1083,10 @@ class routerHBP(HBSYSTEM):
             for _bridge in BRIDGES:
                 for _system in BRIDGES[_bridge]:
                     if _system['SYSTEM'] == self._system:
+##                        # Insert POST for TG timer update?
+##                        print(_system)
+##                        print()
+##                        print(datetime.fromtimestamp(_system['TIMER']).strftime('%H:%M:%S - %m/%d/%y'))
 
                         # TGID matches a rule source, reset its timer
                         if _slot == _system['TS'] and _dst_id == _system['TGID'] and ((_system['TO_TYPE'] == 'ON' and (_system['ACTIVE'] == True)) or (_system['TO_TYPE'] == 'OFF' and _system['ACTIVE'] == False)):
@@ -1053,11 +1095,28 @@ class routerHBP(HBSYSTEM):
 
                         # TGID matches an ACTIVATION trigger
                         if (_dst_id in _system['ON'] or _dst_id in _system['RESET']) and _slot == _system['TS']:
+                            # Insert POST for TG timer update?
+                            print(self.STATUS[2])
+                            print()
+                            print(_system['SYSTEM'])
+                            print()
+                            print(datetime.fromtimestamp(_system['TIMER']).strftime('%H:%M:%S - %m/%d/%y'))
+                            
+##                            update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[i]['RX_TGID'])}, {'ts1':int_id(self.STATUS[2]['RX_TGID'])}])
+                            update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[1]['RX_TGID'])}, {'ts2':int_id(self.STATUS[2]['RX_TGID'])}])
+
+##                            update_tg(CONFIG, mode, dmr_id, data)
                             # Set the matching rule as ACTIVE
                             if _dst_id in _system['ON']:
                                 if _system['ACTIVE'] == False:
                                     _system['ACTIVE'] = True
                                     _system['TIMER'] = pkt_time + _system['TIMEOUT']
+                                    
+
+##                                    print()
+##                                    print(int_id(self.STATUS[2]['RX_PEER']))
+##                                    print()
+                                    
                                     logger.info('(%s) Bridge: %s, connection changed to state: %s', self._system, _bridge, _system['ACTIVE'])
                                     # Cancel the timer if we've enabled an "OFF" type timeout
                                     if _system['TO_TYPE'] == 'OFF':
@@ -1075,6 +1134,9 @@ class routerHBP(HBSYSTEM):
                                 if _system['ACTIVE'] == True:
                                     _system['ACTIVE'] = False
                                     logger.info('(%s) Bridge: %s, connection changed to state: %s', self._system, _bridge, _system['ACTIVE'])
+                                    # POST off
+                                    update_tg(CONFIG, 'off', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
+                                    update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[1]['RX_TGID'])}, {'ts2':int_id(self.STATUS[2]['RX_TGID'])}])
                                     # Cancel the timer if we've enabled an "ON" type timeout
                                     if _system['TO_TYPE'] == 'ON':
                                         _system['TIMER'] = pkt_time
@@ -1387,8 +1449,8 @@ if __name__ == '__main__':
             'USE_ACL': CONFIG['SYSTEMS'][i]['USE_ACL'],
             'REG_ACL': CONFIG['SYSTEMS'][i]['REG_ACL'],
             'SUB_ACL': CONFIG['SYSTEMS'][i]['SUB_ACL'],
-            'TGID_TS1_ACL': CONFIG['SYSTEMS'][i]['TG1_ACL'],
-            'TGID_TS2_ACL': CONFIG['SYSTEMS'][i]['TG2_ACL']
+            'TG1_ACL': CONFIG['SYSTEMS'][i]['TG1_ACL'],
+            'TG2_ACL': CONFIG['SYSTEMS'][i]['TG2_ACL']
             }})
             CONFIG['SYSTEMS'][i + '-' + str(n_count)].update({'PEERS': {}})
             systems[i + '-' + str(n_count)] = routerHBP(i + '-' + str(n_count), CONFIG, report_server)
@@ -1460,5 +1522,5 @@ if __name__ == '__main__':
     # Download burn list
     with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
-    
+
     reactor.run()

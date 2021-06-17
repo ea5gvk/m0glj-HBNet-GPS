@@ -442,6 +442,7 @@ class HBSYSTEM(DatagramProtocol):
 
         # Extract the command, which is various length, all but one 4 significant characters -- RPTCL
         _command = _data[:4]
+##        print(self._config)
 
         if _command == DMRD:    # DMRData -- encapsulated DMR data frame
             _peer_id = _data[11:15]
