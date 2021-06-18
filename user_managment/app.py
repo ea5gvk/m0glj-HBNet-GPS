@@ -473,12 +473,14 @@ def create_app():
             #print(b_list)
             if ui[0] == trimmed_id:
                 if ui[0] != 0:
-                    calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+                    calc_passphrase = hashlib.sha256(str(extra_1).encode() + str(extra_int_1).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + b_list[trimmed_id].to_bytes(2, 'big') + burn_int.to_bytes(2, 'big') + append_int.to_bytes(2, 'big'))))[2:].zfill(8))) + hashlib.sha256(str(extra_2).encode() + str(extra_int_2).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
                     burned = True
         if burned == False:
-            calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))
+            calc_passphrase = hashlib.sha256(str(extra_1).encode() + str(extra_int_1).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + append_int.to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + append_int.to_bytes(2, 'big'))))[2:].zfill(8))) + hashlib.sha256(str(extra_2).encode() + str(extra_int_2).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
         if use_short_passphrase == True:
-            return str(calc_passphrase)[-9:-1]
+            trim_pass = str(calc_passphrase)[2:-1]
+            new_pass = trim_pass[::int(shorten_sample)][-int(shorten_length):]
+            return str(new_pass)
         elif use_short_passphrase ==False:
             return str(calc_passphrase)[2:-1]
 
@@ -569,63 +571,63 @@ def create_app():
     @login_required
     def gen():
         #print(str(gen_passphrase(3153591))) #(int(i[0])))
-        try:
+##        try:
             #content = Markup('<strong>The HTML String</strong>')
             #user_id = request.args.get('user_id')
-            u = current_user
-    ##        print(u.username)
-            id_dict = ast.literal_eval(u.dmr_ids)
-            #u = User.query.filter_by(username=user).first()
-    ##        print(user_id)
-    ##        print(request.args.get('mode'))
-    ##        if request.args.get('mode') == 'generated':
-            #print(id_dict)
-            content = '\n'
-            for i in id_dict.items():
-                if isinstance(i[1], int) == True and i[1] != 0:
-                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
-                    script_links[i[0]] = link_num
-                    #print(script_links)
-                    content = content + '''\n
+        u = current_user
+##        print(u.username)
+        id_dict = ast.literal_eval(u.dmr_ids)
+        #u = User.query.filter_by(username=user).first()
+##        print(user_id)
+##        print(request.args.get('mode'))
+##        if request.args.get('mode') == 'generated':
+        #print(id_dict)
+        content = '\n'
+        for i in id_dict.items():
+            if isinstance(i[1], int) == True and i[1] != 0:
+                link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                script_links[i[0]] = link_num
+                #print(script_links)
+                content = content + '''\n
 <table style="width: 300px;" border="1">
 <tbody>
 <tr>
 <td>
-            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+        <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+        <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
 <hr />
 
-            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+        <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
 
 </td>
 </tr>
 </tbody>
 </table>
-            <p>&nbsp;</p>
-        '''
-                elif i[1] == 0:
-                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
-                    script_links[i[0]] = link_num
-                    #print(script_links)
-                    content = content + '''\n
+        <p>&nbsp;</p>
+    '''
+            elif i[1] == 0:
+                link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                script_links[i[0]] = link_num
+                #print(script_links)
+                content = content + '''\n
 <table style="width: 300px;" border="1">
 <tbody>
 <tr>
 <td>
-            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+        <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+        <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
 <hr />
 
-            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+        <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
 
 </td>
 </tr>
 </tbody>
 </table>
-            <p>&nbsp;</p>
-        '''
-                elif i[1] == '':
-                    content = content + '''
+        <p>&nbsp;</p>
+    '''
+            elif i[1] == '':
+                content = content + '''
 <table style="width: 300px;" border="1">
 <tbody>
 <tr>
@@ -638,9 +640,9 @@ def create_app():
 </tr>
 </tbody>
 </table>
-            <p>&nbsp;</p>'''
-                else:
-                    content = content + '''
+        <p>&nbsp;</p>'''
+            else:
+                content = content + '''
 <table style="width: 300px;" border="1">
 <tbody>
 <tr>
@@ -653,11 +655,11 @@ def create_app():
 </tr>
 </tbody>
 </table>
-            <p>&nbsp;</p>
+        <p>&nbsp;</p>
 '''
             #content = content + '\n\n' + str(script_links[i[0]])
-        except:
-            content = Markup('<strong>No DMR IDs found or other error.</strong>')
+##        except:
+##            content = Markup('<strong>No DMR IDs found or other error.</strong>')
         
             
         #return str(content)
@@ -1464,8 +1466,20 @@ def create_app():
         content = '<p style="text-align: center;">Currently active talkgroups. Updated every 2 minutes.</p>'
         for s in sl:
             for i in user_ids.items():
+                for ts in active_tgs.items():
+                    for x in ts[1]:
+                        print(x)
+                        print(s.name)
+##                    print(active_tgs[s.name])
+##                        print(str(active_tgs[ts[1]]))
+                # Remove 0 from TG list
+                        try:
+                            active_tgs[s.name][x][0]['1'].remove(0)
+                            active_tgs[s.name][x][1]['2'].remove(0)
+                        except:
+                            pass
 ##                try:
-                content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+                        content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="text-align: center;">
@@ -1479,11 +1493,11 @@ def create_app():
 <tbody>
 <tr>
 <td style="width: 85.7px;"><strong>Timeslot 1</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][i[0]][0]['1'])[1:-1] + '''</td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][x][0]['1'])[1:-1] + '''</td>
 </tr>
 <tr>
 <td style="width: 85.7px;"><strong>Timeslot 2</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][i[0]][1]['2'])[1:-1] + '''</td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][x][1]['2'])[1:-1] + '''</td>
 </tr>
 </tbody>
 </table>
@@ -4778,7 +4792,8 @@ def create_app():
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
-                        active_tgs[hblink_req['login_server']][hblink_req['login_id']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}]
+                        active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
+                        print(active_tgs)
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
 ##                        print('log fail')
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
@@ -4849,36 +4864,87 @@ def create_app():
             elif 'update_tg' in hblink_req:
                 if hblink_req['update_tg']:
                     print(hblink_req)
+##                    print(hblink_req['data'][0]['SYSTEM'])
                     if 'on' == hblink_req['mode']:
-                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
-##                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
-                        if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][0]['1']:
-                            active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][0]['1'].append(hblink_req['data'][1]['ts1'])
-                        if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][1]['2']:
-                            active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']][1]['2'].append(hblink_req['data'][2]['ts2'])
+##                        try:
+                              if hblink_req['dmr_id'] == 0:
+                                print('id 0')
+##                                print(active_tgs)
+                                for system in active_tgs[hblink_req['update_tg']].items():
+    ##                                print(system)
+    ##                                print('sys')
+                                    if system[0] == hblink_req['data'][0]['SYSTEM']:
+                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'])
+##                                        print(hblink_req['data'][2]['tg'])
+                                        print('---------')
+                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'])
+        ##                                print(hblink_req['data'][1]['ts'])
+                                        if hblink_req['data'][1]['ts'] == 1:
+        ####                                  print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
+
+                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'] == hblink_req['data'][2]['tg']:
+                                                pass
+                                            else:
+                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][2]['tg'])
+        ####                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
+                                        if hblink_req['data'][1]['ts'] == 2:
+                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'] == hblink_req['data'][2]['tg']:
+                                                pass
+        ####                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
+                                            else:
+                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['tg'])
+                              else:
+                                    print('---------on------------')
+                                    print(hblink_req['data'])
+                                    print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'])
+                                    print(hblink_req['data'][2]['ts2'])
+                                    print('-----------------------')
+        ##                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
+        ####                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
+                                    if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1']:
+                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][1]['ts1'])
+                                    if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2']:
+                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['ts2'])
+##                                        print('append')
+        ####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+        ##                        print(hblink_req['data'][0]['SYSTEM'])
+
+    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']])
+    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['2'])
+    ##                            print(hblink_req['data'][1]['ts2'])
+        ##                        print(active_tgs[hblink_req['update_tg']])
+                                
+##                        except:
+##                            pass
+
+                            
                     elif 'off' == hblink_req['mode']:
+                        print('off')
                         for system in active_tgs[hblink_req['update_tg']].items():
-                            if system[1][2]['SYSTEM'] == hblink_req['data'][0]['SYSTEM']:
-##                                print(system[0])
-##                                print(active_tgs[hblink_req['update_tg']][system[0]])
-                                new_ts = str(hblink_req['data'][1]['ts'])
+                            print(system)
+                            if system[0] == hblink_req['data'][0]['SYSTEM']:
+                                print('yes it is')
+####                                print(system[0])
+####                                print(active_tgs[hblink_req['update_tg']][system[0]])
                                 if hblink_req['data'][1]['ts'] == 1:
-##                                    print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
-                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].remove(hblink_req['data'][2]['tg'])
-##                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
+####                                    print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
+                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].remove(hblink_req['data'][2]['tg'])
+####                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
                                 if hblink_req['data'][1]['ts'] == 2:
-##                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
-                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].remove(hblink_req['data'][2]['tg'])
-##                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+####                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
+                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].remove(hblink_req['data'][2]['tg'])
+####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+
+                                    
     
 ##                            print()
 ##                            print(system)
 ##                            print(system[1][2]['SYSTEM'])
-                        print('off')
+##                        print('off')
 ##                        print(hblink_req['data'][1]['ts'])
 ##                        print(hblink_req['data'][2]['tg'])
-                    print(active_tgs)
-                    response = 'got it'
+                print(active_tgs)
+                response = 'got it'
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)

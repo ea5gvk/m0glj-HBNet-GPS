@@ -380,11 +380,15 @@ def rule_timer_loop():
                         _system['ACTIVE'] = True
                         logger.info('(ROUTER) Conference Bridge TIMEOUT: ACTIVATE System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
                         # POST ON
+##                        update_tg(CONFIG, 'on', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
                     else:
                         timeout_in = _system['TIMER'] - _now
                         logger.info('(ROUTER) Conference Bridge INACTIVE (OFF timer running): System: %s Bridge: %s, TS: %s, TGID: %s, Timeout in: %.2fs,', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']),  timeout_in)
                 elif _system['ACTIVE'] == True:
                     logger.debug('(ROUTER) Conference Bridge ACTIVE (no change): System: %s Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
+                    # POST on
+##                    print(_system)
+##                    update_tg(CONFIG, 'on', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
             else:
                 logger.debug('(ROUTER) Conference Bridge NO ACTION: System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
 
@@ -1095,15 +1099,9 @@ class routerHBP(HBSYSTEM):
 
                         # TGID matches an ACTIVATION trigger
                         if (_dst_id in _system['ON'] or _dst_id in _system['RESET']) and _slot == _system['TS']:
-                            # Insert POST for TG timer update?
-                            print(self.STATUS[2])
-                            print()
-                            print(_system['SYSTEM'])
-                            print()
-                            print(datetime.fromtimestamp(_system['TIMER']).strftime('%H:%M:%S - %m/%d/%y'))
-                            
-##                            update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[i]['RX_TGID'])}, {'ts1':int_id(self.STATUS[2]['RX_TGID'])}])
+                            # POST update TG for self care
                             update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[1]['RX_TGID'])}, {'ts2':int_id(self.STATUS[2]['RX_TGID'])}])
+##                            print(datetime.fromtimestamp(_system['TIMER']).strftime('%H:%M:%S - %m/%d/%y'))
 
 ##                            update_tg(CONFIG, mode, dmr_id, data)
                             # Set the matching rule as ACTIVE
@@ -1111,12 +1109,7 @@ class routerHBP(HBSYSTEM):
                                 if _system['ACTIVE'] == False:
                                     _system['ACTIVE'] = True
                                     _system['TIMER'] = pkt_time + _system['TIMEOUT']
-                                    
 
-##                                    print()
-##                                    print(int_id(self.STATUS[2]['RX_PEER']))
-##                                    print()
-                                    
                                     logger.info('(%s) Bridge: %s, connection changed to state: %s', self._system, _bridge, _system['ACTIVE'])
                                     # Cancel the timer if we've enabled an "OFF" type timeout
                                     if _system['TO_TYPE'] == 'OFF':
@@ -1136,7 +1129,7 @@ class routerHBP(HBSYSTEM):
                                     logger.info('(%s) Bridge: %s, connection changed to state: %s', self._system, _bridge, _system['ACTIVE'])
                                     # POST off
                                     update_tg(CONFIG, 'off', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
-                                    update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[1]['RX_TGID'])}, {'ts2':int_id(self.STATUS[2]['RX_TGID'])}])
+##                                    update_tg(CONFIG, 'on', int(str(int_id(self.STATUS[2]['RX_PEER']))[:7]), [{'SYSTEM':_system['SYSTEM']}, {'ts1':int_id(self.STATUS[1]['RX_TGID'])}, {'ts2':int_id(self.STATUS[2]['RX_TGID'])}])
                                     # Cancel the timer if we've enabled an "ON" type timeout
                                     if _system['TO_TYPE'] == 'ON':
                                         _system['TIMER'] = pkt_time
