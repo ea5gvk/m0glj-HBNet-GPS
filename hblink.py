@@ -339,7 +339,7 @@ class HBSYSTEM(DatagramProtocol):
             if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
                 pass
             _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-##        print(calc_passphrase)
+        print(calc_passphrase)
         #    print(_calc_hash)
         return _calc_hash
 

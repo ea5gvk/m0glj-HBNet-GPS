@@ -571,95 +571,95 @@ def create_app():
     @login_required
     def gen():
         #print(str(gen_passphrase(3153591))) #(int(i[0])))
-##        try:
+        try:
             #content = Markup('<strong>The HTML String</strong>')
             #user_id = request.args.get('user_id')
-        u = current_user
-##        print(u.username)
-        id_dict = ast.literal_eval(u.dmr_ids)
-        #u = User.query.filter_by(username=user).first()
-##        print(user_id)
-##        print(request.args.get('mode'))
-##        if request.args.get('mode') == 'generated':
-        #print(id_dict)
-        content = '\n'
-        for i in id_dict.items():
-            if isinstance(i[1], int) == True and i[1] != 0:
-                link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
-                script_links[i[0]] = link_num
-                #print(script_links)
-                content = content + '''\n
-<table style="width: 300px;" border="1">
-<tbody>
-<tr>
-<td>
-        <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-        <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
-<hr />
+            u = current_user
+    ##        print(u.username)
+            id_dict = ast.literal_eval(u.dmr_ids)
+            #u = User.query.filter_by(username=user).first()
+    ##        print(user_id)
+    ##        print(request.args.get('mode'))
+    ##        if request.args.get('mode') == 'generated':
+            #print(id_dict)
+            content = '\n'
+            for i in id_dict.items():
+                if isinstance(i[1], int) == True and i[1] != 0:
+                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                    script_links[i[0]] = link_num
+                    #print(script_links)
+                    content = content + '''\n
+    <table style="width: 300px;" border="1">
+    <tbody>
+    <tr>
+    <td>
+            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+    <hr />
 
-        <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
 
-</td>
-</tr>
-</tbody>
-</table>
-        <p>&nbsp;</p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+            <p>&nbsp;</p>
+        '''
+                elif i[1] == 0:
+                    link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
+                    script_links[i[0]] = link_num
+                    #print(script_links)
+                    content = content + '''\n
+    <table style="width: 300px;" border="1">
+    <tbody>
+    <tr>
+    <td>
+            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
+    <hr />
+
+            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
+
+    </td>
+    </tr>
+    </tbody>
+    </table>
+            <p>&nbsp;</p>
+        '''
+                elif i[1] == '':
+                    content = content + '''
+    <table style="width: 300px;" border="1">
+    <tbody>
+    <tr>
+    <td>
+    <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+    <p style="text-align: center;">Copy and paste: <strong>''' + legacy_passphrase + '''</strong></p>
+    <hr />
+    <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(legacy_passphrase) + '''</em></span></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+            <p>&nbsp;</p>'''
+                else:
+                    content = content + '''
+    <table style="width: 300px;" border="1">
+    <tbody>
+    <tr>
+    <td>
+    <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
+    <p style="text-align: center;">Copy and paste: <strong>''' + str(i[1]) + '''</strong></p>
+    <hr />
+    <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(i[1])) + '''</em></span></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+            <p>&nbsp;</p>
     '''
-            elif i[1] == 0:
-                link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
-                script_links[i[0]] = link_num
-                #print(script_links)
-                content = content + '''\n
-<table style="width: 300px;" border="1">
-<tbody>
-<tr>
-<td>
-        <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-        <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
-<hr />
-
-        <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
-
-</td>
-</tr>
-</tbody>
-</table>
-        <p>&nbsp;</p>
-    '''
-            elif i[1] == '':
-                content = content + '''
-<table style="width: 300px;" border="1">
-<tbody>
-<tr>
-<td>
-<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-<p style="text-align: center;">Copy and paste: <strong>''' + legacy_passphrase + '''</strong></p>
-<hr />
-<p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(legacy_passphrase) + '''</em></span></p>
-</td>
-</tr>
-</tbody>
-</table>
-        <p>&nbsp;</p>'''
-            else:
-                content = content + '''
-<table style="width: 300px;" border="1">
-<tbody>
-<tr>
-<td>
-<p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-<p style="text-align: center;">Copy and paste: <strong>''' + str(i[1]) + '''</strong></p>
-<hr />
-<p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(i[1])) + '''</em></span></p>
-</td>
-</tr>
-</tbody>
-</table>
-        <p>&nbsp;</p>
-'''
             #content = content + '\n\n' + str(script_links[i[0]])
-##        except:
-##            content = Markup('<strong>No DMR IDs found or other error.</strong>')
+        except:
+            content = Markup('<strong>No DMR IDs found or other error.</strong>')
         
             
         #return str(content)
@@ -1987,6 +1987,12 @@ def create_app():
                     'STALE_TIME': i.ai_stale * 86400,
                 })
         s_config['USER_MANAGER'].update({
+                    'SHORTEN_LENGTH': shorten_length,
+                    'SHORTEN_SAMPLE': shorten_sample,
+                    'EXTRA_1': extra_1,
+                    'EXTRA_2': extra_2,
+                    'EXTRA_INT_1': extra_int_1,
+                    'EXTRA_INT_2': extra_int_2,
                     'APPEND_INT': append_int,
                     'SHORTEN_PASSPHRASE': i.um_shorten_passphrase,
                     'BURN_FILE': i.um_burn_file,
@@ -4792,8 +4798,12 @@ def create_app():
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
-                        active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
-                        print(active_tgs)
+                        try:
+                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
+##                            print('Restart ' + hblink_req['login_server'] + ' please.')
+                        except:
+                            active_tgs[hblink_req['login_server']] = {}
+                            pass
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
 ##                        print('log fail')
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')

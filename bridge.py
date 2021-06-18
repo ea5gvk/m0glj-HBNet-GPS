@@ -156,7 +156,15 @@ def download_config(L_CONFIG_FILE, cli_file):
         iterate_config.update(resp['masters'].copy())
         corrected_config['SYSTEMS'].update(iterate_config)
         corrected_config['LOGGER'].update(L_CONFIG_FILE['LOGGER'])
-        corrected_config['USER_MANAGER'].update(L_CONFIG_FILE['USER_MANAGER'])
+##        corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
+##        print(resp['config']['USER_MANAGER'])
+        corrected_config['USER_MANAGER'] = {}
+        corrected_config['USER_MANAGER']['THIS_SERVER_NAME'] = L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME']
+        corrected_config['USER_MANAGER']['URL'] = L_CONFIG_FILE['USER_MANAGER']['URL']
+        corrected_config['USER_MANAGER']['SHARED_SECRET'] = L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET']
+        corrected_config['USER_MANAGER']['REMOTE_CONFIG_ENABLED'] = L_CONFIG_FILE['USER_MANAGER']['REMOTE_CONFIG_ENABLED']
+        corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
+
 ##        iterate_config.update(resp['masters'].copy())
 ##        print(iterate_config)
 ##        print(iterate_config)
@@ -238,13 +246,7 @@ def download_config(L_CONFIG_FILE, cli_file):
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
             corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
 
-            
-##        print(iterate_masters)
-##        for i in iterate_masters:
-##            iterate_masters['SYSTEMS']
-##        config.process_acls(corrected_config)
-##        print(corrected_config['SYSTEMS'])
-##        print('-------')
+##            print(corrected_config)
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -825,6 +827,7 @@ class routerHBP(HBSYSTEM):
 
     def __init__(self, _name, _config, _report):
         HBSYSTEM.__init__(self, _name, _config, _report)
+##        print(_config)
         self.name = _name
 
         # list of self._targets for unit (subscriber, private) calls
@@ -1352,26 +1355,12 @@ if __name__ == '__main__':
 
     # Call the external routine to build the configuration dictionary
     LOCAL_CONFIG = config.build_config(cli_args.CONFIG_FILE)
-    #print(LOCAL_CONFIG)
-    #print(download_config(LOCAL_CONFIG))
-    #if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
-    #print(download_config(LOCAL_CONFIG)['config'])
-##    CONFIG = config.build_config(download_config(LOCAL_CONFIG))
-    #CONFIG = download_config(LOCAL_CONFIG)
-    #if not LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
-##    print(download_config(LOCAL_CONFIG)['config'])
-##    CONFIG = config.build_config(cli_args.CONFIG_FILE)
-    #print((CONFIG))
-
-
-##    config.process_acls(LOCAL_CONFIG)
     if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
         CONFIG = download_config(LOCAL_CONFIG, cli_args.CONFIG_FILE)
+        print('enabled')
     else:
         CONFIG = config.build_config(cli_args.CONFIG_FILE)
 
-    
-##    print(CONFIG)
 
     # Ensure we have a path for the rules file, if one wasn't specified, then use the default (top of file)
     if not cli_args.RULES_FILE:
@@ -1486,8 +1475,7 @@ if __name__ == '__main__':
         BRIDGES = make_bridges(rules_module.BRIDGES)
         # Get rule parameter for private calls
         UNIT = rules_module.UNIT
-        
-   
+
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
             if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
