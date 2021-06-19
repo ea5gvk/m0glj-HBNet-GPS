@@ -297,7 +297,8 @@ def hotspot_proxy(listen_port, port_start, port_stop):
         statsa = stats_task.start(30)
         statsa.addErrback(loopingErrHandle)
 
-# Module gobal varaibles
+# Used to track if we have downloaded user custon rules
+user_rules = {}
 
 # Dictionary for dynamically mapping unit (subscriber) to a system.
 # This is for pruning unit-to-uint calls to not broadcast once the
@@ -824,7 +825,6 @@ class routerOBP(OPENBRIDGE):
 
 
 class routerHBP(HBSYSTEM):
-
     def __init__(self, _name, _config, _report):
         HBSYSTEM.__init__(self, _name, _config, _report)
 ##        print(_config)
@@ -890,15 +890,12 @@ class routerHBP(HBSYSTEM):
                     }
                 }
             }
-
-
     def group_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data):
         global UNIT_MAP
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
 
-    
         # Make/update an entry in the UNIT_MAP for this subscriber
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
 
@@ -924,11 +921,22 @@ class routerHBP(HBSYSTEM):
             # just make a new one from the HBP header. This is good enough, and it saves lots of time
             else:
                 self.STATUS[_slot]['RX_LC'] = LC_OPT + _dst_id + _rf_src
-
+        # Download rules
+        if _rf_src not in user_rules:
+            user_rules[_rf_src] = self.name
+        if _rf_src in user_rules:
+            print('in')
+            if user_rules[_rf_src] != self.name:
+                user_rules[_rf_src] = self.name
+                print('updated')
+        print(user_rules)
         for _bridge in BRIDGES:
 ##            print(BRIDGES)
+            print(_bridge)
+            # Match bridge name here
             for _system in BRIDGES[_bridge]:
-
+                print(_system)
+                # Modify rule here for indiv system
                 if (_system['SYSTEM'] == self._system and _system['TGID'] == _dst_id and _system['TS'] == _slot and _system['ACTIVE'] == True):
 
                     for _target in BRIDGES[_bridge]:
@@ -1298,7 +1306,6 @@ class routerHBP(HBSYSTEM):
         self.STATUS[_slot]['RX_TGID']      = _dst_id
         self.STATUS[_slot]['RX_TIME']      = pkt_time
         self.STATUS[_slot]['RX_STREAM_ID'] = _stream_id
-
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         if _call_type == 'group':

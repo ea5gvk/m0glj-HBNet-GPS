@@ -385,6 +385,52 @@ def create_app():
         description = db.Column(db.String(100), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
         tg = db.Column(db.Integer(), primary_key=False)
+        
+    class GPS_LocLog(db.Model):
+        __tablename__ = 'gps_locations'
+        id = db.Column(db.Integer(), primary_key=True)
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
+        comment = db.Column(db.String(100), nullable=False, server_default='')
+        lat = db.Column(db.String(100), nullable=False, server_default='')
+        lon = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        dmr_id = db.Column(db.Integer(), primary_key=False)
+        
+    class BulletinBoard(db.Model):
+        __tablename__ = 'sms_bb'
+        id = db.Column(db.Integer(), primary_key=True)
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
+        bulletin = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        dmr_id = db.Column(db.Integer(), primary_key=False)
+
+    class SMSLog(db.Model):
+        __tablename__ = 'sms_log'
+        id = db.Column(db.Integer(), primary_key=True)
+        snd_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        rcv_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        snd_id = db.Column(db.Integer(), primary_key=False)
+        rcv_id = db.Column(db.Integer(), primary_key=False)
+        
+    class MailBox(db.Model):
+        __tablename__ = 'sms_aprs_mailbox'
+        id = db.Column(db.Integer(), primary_key=True)
+        snd_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        rcv_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        snd_id = db.Column(db.Integer(), primary_key=False)
+        rcv_id = db.Column(db.Integer(), primary_key=False)
 
 
 
@@ -1489,21 +1535,37 @@ def create_app():
         sl = ServerList.query.all()
         user_ids = ast.literal_eval(u.dmr_ids)
         content = '<p style="text-align: center;">Currently active talkgroups. Updated every 2 minutes.</p>'
+##        print(active_tgs)
         for s in sl:
             for i in user_ids.items():
-                for ts in active_tgs.items():
-                    for x in ts[1]:
-                        print(x)
-                        print(s.name)
-##                    print(active_tgs[s.name])
-##                        print(str(active_tgs[ts[1]]))
-                # Remove 0 from TG list
+                for ts in active_tgs[s.name].items():
+##                    print(ts)
+##                    print(ts[1][3]['peer_id'])
+                    if i[0] == ts[1][3]['peer_id']:
+##                        print(i[0])
+                        print(ts)
+##                    if i[0] in active_tgs[s.name]:
+##                        for x in ts[1]:
+##                            print(x)
+##    ##                            if i[0] != ts[1][x][3]['peer_id']:
+##    ##                                print('nope')
+##    ##                                pass
+##    ##                            elif i[0] == ts[1][x][3]['peer_id']:
+##    ##                            print(x)
+##    ##                            print(s.name)
+##    ##                            print('-----ts-----')
+##    ##                            print(ts[1][x][3]['peer_id']) #[s.name][3]['peer_id'])
+##    ##                            print(active_tgs)
+##                            
+##        ##                    print(active_tgs[s.name])
+##        ##                        print(str(active_tgs[ts[1]]))
+##                        # Remove 0 from TG list
                         try:
-                            active_tgs[s.name][x][0]['1'].remove(0)
-                            active_tgs[s.name][x][1]['2'].remove(0)
+                            active_tgs[s.name][ts[0]][0]['1'].remove(0)
+                            active_tgs[s.name][ts[0]][1]['2'].remove(0)
                         except:
                             pass
-##                try:
+####                try:
                         content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
@@ -1518,11 +1580,11 @@ def create_app():
 <tbody>
 <tr>
 <td style="width: 85.7px;"><strong>Timeslot 1</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][x][0]['1'])[1:-1] + '''</td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][0]['1'])[1:-1] + '''</td>
 </tr>
 <tr>
 <td style="width: 85.7px;"><strong>Timeslot 2</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][x][1]['2'])[1:-1] + '''</td>
+<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][1]['2'])[1:-1] + '''</td>
 </tr>
 </tbody>
 </table>
@@ -1539,7 +1601,7 @@ def create_app():
 ##                    content = content + '''<td style="width: 377.3px;">&nbsp;''' + str(tg) + '''</td>
 ##'''
 ##                print(active_tgs[s.name][i[0]])
-####                content = active_tgs[s.name][i[0]][1]['2']
+##                content = active_tgs[s.name][i[0]][1]['2']
 ##        content = 'hji'
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
@@ -2634,14 +2696,7 @@ def create_app():
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="''' + str(s.unit_time) + '''"/></td>
 </tr>
-<tr>
-<td><strong>&nbsp;Public list:</strong></td>
-<td>&nbsp;<select name="public_list">
-<option selected="selected" value="''' + str(s.public_list) + '''">Current: ''' + str(s.public_list) + '''</option>
-<option value="False">False</option>
-<option value="True">True</option>
-</select></td>
-</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(s.notes) + '''</textarea></td>
@@ -2837,13 +2892,7 @@ def create_app():
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="10080"/></td>
 </tr>
-<tr>
-<td><strong>&nbsp;Public list:</strong></td>
-<td>&nbsp;<select name="public_list">
-<option selected="selected" value="True">True</option>
-<option value="False">False</option>
-</select></td>
-</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
@@ -3853,6 +3902,14 @@ def create_app():
 </select></td>
 </tr>
 <tr>
+<td><strong>&nbsp;Public List:</strong></td>
+<td>&nbsp;<select name="public_list">
+<option selected="selected" value="''' + str(p.public_list) + '''">Current - ''' + str(p.public_list) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
 <td style="width: 189.383px;"><strong>&nbsp;Notes:</strong></td>
 <td style="width: 392.617px;">&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(p.notes) + '''</textarea></td>
 </tr>
@@ -3975,6 +4032,13 @@ def create_app():
 </select></td>
 </tr>
 <tr>
+<td><strong>&nbsp;Public List:</strong></td>
+<td>&nbsp;<select name="public_list">
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
 <td style="width: 189.383px;"><strong>&nbsp;Notes:</strong></td>
 <td style="width: 392.617px;">&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
 </tr>
@@ -4081,6 +4145,13 @@ def create_app():
 <tr>
 <td><strong>&nbsp;Enable Unit Calls:</strong></td>
 <td>&nbsp;<select name="enable_unit">
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Public List:</strong></td>
+<td>&nbsp;<select name="public_list">
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
@@ -4284,6 +4355,14 @@ def create_app():
 <td><strong>&nbsp;Enable Unit Calls:</strong></td>
 <td>&nbsp;<select name="enable_unit">
 <option selected="selected" value="''' + str(m.enable_unit) + '''">Current - ''' + str(m.enable_unit) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Public List:</strong></td>
+<td>&nbsp;<select name="public_list">
+<option selected="selected" value="''' + str(m.public_list) + '''">Current - ''' + str(m.public_list) + '''</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
@@ -4803,20 +4882,24 @@ def create_app():
             if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
+                        print(active_tgs)
                         if isinstance(authorized_peer(hblink_req['login_id'])[1], int) == True:
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], gen_passphrase(hblink_req['login_id']), 'Attempt')
+##                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
                             response = jsonify(
                                     allow=True,
                                     mode='normal',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] == '':
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'Config Passphrase: ' + legacy_passphrase, 'Attempt')
+##                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
                             response = jsonify(
                                     allow=True,
                                     mode='legacy',
                                     )
                         elif authorized_peer(hblink_req['login_id'])[1] != '' or isinstance(authorized_peer(hblink_req['login_id'])[1], int) == False:
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], authorized_peer(hblink_req['login_id'])[1], 'Attempt')
+##                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
                             # print(authorized_peer(hblink_req['login_id']))
                             response = jsonify(
                                     allow=True,
@@ -4827,7 +4910,7 @@ def create_app():
                             active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
 ##                            print('Restart ' + hblink_req['login_server'] + ' please.')
                         except:
-                            active_tgs[hblink_req['login_server']] = {}
+##                            active_tgs[hblink_req['login_server']] = {}
                             pass
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
 ##                        print('log fail')
@@ -4929,16 +5012,21 @@ def create_app():
                                             else:
                                                 active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['tg'])
                               else:
+                                  try:
                                     print('---------on------------')
                                     print(hblink_req['data'])
-                                    print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'])
+                                    print(active_tgs[hblink_req['update_tg']])
                                     print(hblink_req['data'][2]['ts2'])
                                     print('-----------------------')
         ##                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
         ####                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
                                     if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1']:
                                         active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][1]['ts1'])
+                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
                                     if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2']:
+                                        print('---0---')
+                                        print(hblink_req['data'][0]['SYSTEM'])
+                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
                                         active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['ts2'])
 ##                                        print('append')
         ####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
@@ -4948,6 +5036,9 @@ def create_app():
     ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['2'])
     ##                            print(hblink_req['data'][1]['ts2'])
         ##                        print(active_tgs[hblink_req['update_tg']])
+                                  except:
+##                                      active_tgs[hblink_req['update_tg']] = {}
+                                      pass
                                 
 ##                        except:
 ##                            pass

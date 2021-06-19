@@ -595,17 +595,17 @@ class HBSYSTEM(DatagramProtocol):
                 if self._config['USE_USER_MAN'] == False:
                     _calc_hash = bhex(sha256(_salt_str+self._config['PASSPHRASE']).hexdigest())
                 # Uncomment below to only accept calculated passphrase
-#                if _sent_hash == _calc_hash:
+                if _sent_hash == _calc_hash:
                 # Condition below accepts either calculated passphrase or config passphrase
-                if _sent_hash == _calc_hash or _sent_hash == _ocalc_hash:
+##                if _sent_hash == _calc_hash or _sent_hash == _ocalc_hash:
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s has completed the login exchange successfully', self._system, _this_peer['RADIO_ID'])
-                    #self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
-                    if _sent_hash == _ocalc_hash:
-                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], True)
-                    else:
-                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
+                    self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
+##                    if _sent_hash == _ocalc_hash:
+##                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], True)
+##                    else:
+##                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
                 else:
                     logger.info('(%s) Peer %s has FAILED the login exchange successfully', self._system, _this_peer['RADIO_ID'])
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
