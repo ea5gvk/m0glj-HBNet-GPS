@@ -1,4 +1,25 @@
-# HBLink User Managment Server
+# HBNet Web Server
+###############################################################################
+#   HBNet Web Server - Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+###############################################################################
+
+'''
+Flask based application that is the web server for HBNet. Controls user authentication, DMR server config, etc.
+'''
 
 from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -124,17 +145,17 @@ def create_app():
 
         # User authentication information. The collation='NOCASE' is required
         # to search case insensitively when USER_IFIND_MODE is 'nocase_collation'.
-        username = db.Column(db.String(100, collation='NOCASE'), nullable=False, unique=True)
+        username = db.Column(db.String(100,), nullable=False, unique=True)
         password = db.Column(db.String(255), nullable=False, server_default='')
         email_confirmed_at = db.Column(db.DateTime())
-        email = db.Column(db.String(255, collation='NOCASE'), nullable=False, unique=True)
+        email = db.Column(db.String(255), nullable=False, unique=True)
         
         # User information
-        first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        dmr_ids = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        city = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        first_name = db.Column(db.String(100), nullable=False, server_default='')
+        last_name = db.Column(db.String(100), nullable=False, server_default='')
+        dmr_ids = db.Column(db.String(100), nullable=False, server_default='')
+        city = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(100), nullable=False, server_default='')
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
@@ -154,212 +175,214 @@ def create_app():
         role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
     class BurnList(db.Model):
         __tablename__ = 'burn_list'
+##        id = db.Column(db.Integer(), primary_key=True)
         dmr_id = db.Column(db.Integer(), unique=True, primary_key=True)
         version = db.Column(db.Integer(), primary_key=True)
     class AuthLog(db.Model):
         __tablename__ = 'auth_log'
-        login_dmr_id = db.Column(db.Integer(), primary_key=True)
-        login_time = db.Column(db.DateTime(), primary_key=True)
-        peer_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        server_name = db.Column(db.Integer(), primary_key=True)
-        login_auth_method = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        portal_username = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        login_type = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        id = db.Column(db.Integer(), primary_key=True)
+        login_dmr_id = db.Column(db.Integer())
+        login_time = db.Column(db.DateTime())
+        peer_ip = db.Column(db.String(100), nullable=False, server_default='')
+        server_name = db.Column(db.String(100))
+        login_auth_method = db.Column(db.String(100), nullable=False, server_default='')
+        portal_username = db.Column(db.String(100), nullable=False, server_default='')
+        login_type = db.Column(db.String(100), nullable=False, server_default='')
     class mmdvmPeer(db.Model):
         __tablename__ = 'MMDVM_peers'
         id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        name = db.Column(db.String(100), nullable=False, server_default='')
         enabled = db.Column(db.Boolean(), nullable=False, server_default='1')
         loose = db.Column(db.Boolean(), nullable=False, server_default='1')
-        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        ip = db.Column(db.String(100), nullable=False, server_default='127.0.0.1')
         port = db.Column(db.Integer(), primary_key=False)
-        master_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        master_ip = db.Column(db.String(100), nullable=False, server_default='')
         master_port = db.Column(db.Integer(), primary_key=False)
-        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        callsign = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        passphrase = db.Column(db.String(100), nullable=False, server_default='')
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
         radio_id = db.Column(db.Integer(), primary_key=False)
-        rx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tx_power = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        color_code = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        latitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        longitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        height = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        location = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        rx_freq = db.Column(db.String(100), nullable=False, server_default='')
+        tx_freq = db.Column(db.String(100), nullable=False, server_default='')
+        tx_power = db.Column(db.String(100), nullable=False, server_default='')
+        color_code = db.Column(db.String(100), nullable=False, server_default='')
+        latitude = db.Column(db.String(100), nullable=False, server_default='')
+        longitude = db.Column(db.String(100), nullable=False, server_default='')
+        height = db.Column(db.String(100), nullable=False, server_default='')
+        location = db.Column(db.String(100), nullable=False, server_default='')
+        description = db.Column(db.String(100), nullable=False, server_default='')
+        slots = db.Column(db.String(100), nullable=False, server_default='')
+        url = db.Column(db.String(100), nullable=False, server_default='')
+        group_hangtime = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
-        options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        options = db.Column(db.String(100), nullable=False, server_default='')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
-        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes =  db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        notes =  db.Column(db.String(100), nullable=False, server_default='')
 
     class xlxPeer(db.Model):
         __tablename__ = 'XLX_peers'
         id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        name = db.Column(db.String(100), nullable=False, server_default='')
         enabled = db.Column(db.Boolean(), nullable=False, server_default='1')
         loose = db.Column(db.Boolean(), nullable=False, server_default='1')
-        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        ip = db.Column(db.String(100), nullable=False, server_default='127.0.0.1')
         port = db.Column(db.Integer(), primary_key=False)
-        master_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        master_ip = db.Column(db.String(100), nullable=False, server_default='')
         master_port = db.Column(db.Integer(), primary_key=False)
-        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        callsign = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        passphrase = db.Column(db.String(100), nullable=False, server_default='')
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
         radio_id = db.Column(db.Integer(), primary_key=False)
-        rx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tx_freq = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tx_power = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        color_code = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        latitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        longitude = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        height = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        location = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        slots = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        group_hangtime = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        xlxmodule = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        options = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        rx_freq = db.Column(db.String(100), nullable=False, server_default='')
+        tx_freq = db.Column(db.String(100), nullable=False, server_default='')
+        tx_power = db.Column(db.String(100), nullable=False, server_default='')
+        color_code = db.Column(db.String(100), nullable=False, server_default='')
+        latitude = db.Column(db.String(100), nullable=False, server_default='')
+        longitude = db.Column(db.String(100), nullable=False, server_default='')
+        height = db.Column(db.String(100), nullable=False, server_default='')
+        location = db.Column(db.String(100), nullable=False, server_default='')
+        description = db.Column(db.String(100), nullable=False, server_default='')
+        slots = db.Column(db.String(100), nullable=False, server_default='')
+        url = db.Column(db.String(100), nullable=False, server_default='')
+        group_hangtime = db.Column(db.String(100), nullable=False, server_default='')
+        xlxmodule = db.Column(db.String(100), nullable=False, server_default='')
+        options = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='0')
-        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(100), nullable=False, server_default='')
     class ServerList(db.Model):
         __tablename__ = 'server_list'
-        name = db.Column(db.String(100, collation='NOCASE'), unique=True, primary_key=True)
+        name = db.Column(db.String(100), unique=True, primary_key=True)
         secret = db.Column(db.String(255), nullable=False, server_default='')
 ##        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
         id = db.Column(db.Integer(), primary_key=False)
-        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        ip = db.Column(db.String(100), nullable=False, server_default='')
         port = db.Column(db.Integer(), primary_key=False)
-        global_path = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./')
+        global_path = db.Column(db.String(100), nullable=False, server_default='./')
         global_ping_time = db.Column(db.Integer(), primary_key=False)
         global_max_missed = db.Column(db.Integer(), primary_key=False)
         global_use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
-        global_reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
-        global_sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='DENY:1')
-        global_tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
-        global_tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='PERMIT:ALL')
+        global_reg_acl = db.Column(db.String(100), nullable=False, server_default='PERMIT:ALL')
+        global_sub_acl = db.Column(db.String(100), nullable=False, server_default='DENY:1')
+        global_tg1_acl = db.Column(db.String(100), nullable=False, server_default='PERMIT:ALL')
+        global_tg2_acl = db.Column(db.String(100), nullable=False, server_default='PERMIT:ALL')
         ai_try_download = db.Column(db.Boolean(), nullable=False, server_default='1')
-        ai_path = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./')
-        ai_peer_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='peer_ids.json')
-        ai_subscriber_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='subscriber_ids.json')
-        ai_tgid_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='talkgroup_ids.json')
-        ai_peer_url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='https://www.radioid.net/static/rptrs.json')
-        ai_subs_url = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='https://www.radioid.net/static/users.json')
+        ai_path = db.Column(db.String(100), nullable=False, server_default='./')
+        ai_peer_file = db.Column(db.String(100), nullable=False, server_default='peer_ids.json')
+        ai_subscriber_file = db.Column(db.String(100), nullable=False, server_default='subscriber_ids.json')
+        ai_tgid_file = db.Column(db.String(100), nullable=False, server_default='talkgroup_ids.json')
+        ai_peer_url = db.Column(db.String(100), nullable=False, server_default='https://www.radioid.net/static/rptrs.json')
+        ai_subs_url = db.Column(db.String(100), nullable=False, server_default='https://www.radioid.net/static/users.json')
         ai_stale = db.Column(db.Integer(), primary_key=False, server_default='7')
         # Pull from config file for now
 ##        um_append_int = db.Column(db.Integer(), primary_key=False, server_default='2')
         um_shorten_passphrase = db.Column(db.Boolean(), nullable=False, server_default='0')
-        um_burn_file = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='./burned_ids.txt')
+        um_burn_file = db.Column(db.String(100), nullable=False, server_default='./burned_ids.txt')
         # Pull from config file for now
 ##        um_burn_int = db.Column(db.Integer(), primary_key=False, server_default='6')
         report_enable = db.Column(db.Boolean(), nullable=False, server_default='1')
         report_interval = db.Column(db.Integer(), primary_key=False, server_default='60')
         report_port = db.Column(db.Integer(), primary_key=False, server_default='4321')
-        report_clients =db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='127.0.0.1')
+        report_clients =db.Column(db.String(100), nullable=False, server_default='127.0.0.1')
         unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
-        notes =  db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        notes =  db.Column(db.String(100), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
         id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        name = db.Column(db.String(100), nullable=False, server_default='')
         static_positions = db.Column(db.Boolean(), nullable=False, server_default='0')
         repeat = db.Column(db.Boolean(), nullable=False, server_default='1')
         active = db.Column(db.Boolean(), nullable=False, server_default='1')
         max_peers = db.Column(db.Integer(), primary_key=False, server_default='10')
-        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        ip = db.Column(db.String(100), nullable=False, server_default='')
         port = db.Column(db.Integer(), primary_key=False)
         enable_um = db.Column(db.Boolean(), nullable=False, server_default='1')
-        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        passphrase = db.Column(db.String(100), nullable=False, server_default='')
         group_hang_time = db.Column(db.Integer(), primary_key=False, server_default='5')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
-        reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        reg_acl = db.Column(db.String(100), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(100), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
 
 
     class ProxyList(db.Model):
         __tablename__ = 'proxy_list'
         id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        name = db.Column(db.String(100), nullable=False, server_default='')
         active = db.Column(db.Boolean(), nullable=False, server_default='1')
         static_positions = db.Column(db.Boolean(), nullable=False, server_default='0')
         repeat = db.Column(db.Boolean(), nullable=False, server_default='1')
         enable_um = db.Column(db.Boolean(), nullable=False, server_default='1')
-        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        passphrase = db.Column(db.String(100), nullable=False, server_default='')
         external_proxy = db.Column(db.Boolean(), nullable=False, server_default='0')
         external_port = db.Column(db.Integer(), primary_key=False)
         group_hang_time = db.Column(db.Integer(), primary_key=False)
         internal_start_port = db.Column(db.Integer(), primary_key=False)
         internal_stop_port = db.Column(db.Integer(), primary_key=False)
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
-        reg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg1_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg2_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        reg_acl = db.Column(db.String(100), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(100), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
 
         
     class OBP(db.Model):
         __tablename__ = 'OpenBridge'
         id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        name = db.Column(db.String(100), nullable=False, server_default='')
         enabled = db.Column(db.Boolean(), nullable=False, server_default='1')
         network_id = db.Column(db.Integer(), primary_key=False)
-        ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        ip = db.Column(db.String(100), nullable=False, server_default='')
         port = db.Column(db.Integer(), primary_key=False)
-        passphrase = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        target_ip = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        passphrase = db.Column(db.String(100), nullable=False, server_default='')
+        target_ip = db.Column(db.String(100), nullable=False, server_default='')
         target_port = db.Column(db.Integer(), primary_key=False)
         both_slots = db.Column(db.Boolean(), nullable=False, server_default='1')
         use_acl = db.Column(db.Boolean(), nullable=False, server_default='1')
-        sub_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        tg_acl = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        sub_acl = db.Column(db.String(100), nullable=False, server_default='')
+        tg_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        notes = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(100), nullable=False, server_default='')
         
     class BridgeRules(db.Model):
         __tablename__ = 'bridge_rules'
         id = db.Column(db.Integer(), primary_key=True)
-        bridge_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        system_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        bridge_name = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
         ts = db.Column(db.Integer(), primary_key=False)
         tg = db.Column(db.Integer(), primary_key=False)
         active = db.Column(db.Boolean(), nullable=False, server_default='1')
         timeout = db.Column(db.Integer(), primary_key=False)
-        to_type = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        on = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        off = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        reset = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        server = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        to_type = db.Column(db.String(100), nullable=False, server_default='')
+        on = db.Column(db.String(100), nullable=False, server_default='')
+        off = db.Column(db.String(100), nullable=False, server_default='')
+        reset = db.Column(db.String(100), nullable=False, server_default='')
+        server = db.Column(db.String(100), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
         proxy = db.Column(db.Boolean(), nullable=False, server_default='0')
 
     class BridgeList(db.Model):
         __tablename__ = 'bridge_list'
         id = db.Column(db.Integer(), primary_key=True)
-        bridge_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-        description = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+        bridge_name = db.Column(db.String(100), nullable=False, server_default='')
+        description = db.Column(db.String(100), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
         tg = db.Column(db.Integer(), primary_key=False)
 
@@ -712,6 +735,7 @@ def create_app():
         elif request.method == 'POST': # and request.form.get('callsign') and request.form.get('subject') and request.form.get('message'):
             u = User.query.filter_by(username=request.args.get('callsign')).first()
             msg = Message(recipients=[u.email],
+                          sender=(title, MAIL_DEFAULT_SENDER),
                           subject=request.form.get('subject'),
                           body=request.form.get('message'))
             mail.send(msg)
@@ -880,8 +904,9 @@ def create_app():
             edit_user.initial_admin_approved = True
             db.session.commit()
             msg = Message(recipients=[edit_user.email],
-                          subject='Account Approval - ' + title,
-                          body='''You are receiving this message because an administrator has approved your account. You may now login and view your MMDVM passphrase(s).''')
+                          sender=(title, MAIL_DEFAULT_SENDER),
+                          subject='Account Approval',
+                          body='''You are receiving this message because an administrator has approved your account. You may now login and use ''' + title + '''.''')
             mail.send(msg)
             content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
             
@@ -1457,7 +1482,7 @@ def create_app():
             content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-    @app.route('/self_care')
+    @app.route('/user_tg')
     def tg_status():
         cu = current_user
         u = User.query.filter_by(username=cu.username).first()
@@ -4967,4 +4992,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug = True, port=ums_port, host=ums_host)
+    app.run(debug = True, port=hws_port, host=hws_host)

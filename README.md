@@ -1,8 +1,8 @@
 ![ ](https://raw.githubusercontent.com/kf7eel/hblink3/hbnet/HBNet.png  "Logo")
 
-HBNet is a fork of HBLink3 the extends the functionality of HBLink through several optional features, making it more of a usable application and less of a framework. HBNet aims to be complete and easy to use application that can be used to build, administrate, and run a DMR network.
+HBNet is a fork of [HBlink3](https://github.com/HBLink-org/hblink3) the extends the functionality of HBLink through several optional features, making it more of a usable application and less of a framework. HBNet aims to be complete and easy to use application that can be used to build, administrate, and run a DMR network.
 
-HBNet consists of 2 parts, web control panel, and the actual DMR server, based on HBLink.
+HBNet consists of 2 parts, HBNet Web Server and the actual DMR server, based on HBLink.
 
 
 ### User end features:
@@ -11,16 +11,29 @@ HBNet consists of 2 parts, web control panel, and the actual DMR server, based o
 
 * Individual passphrases for each user
 
+* Automatic retrieval of DMR IDs on registration
+
+* Monitor and change active talkgroups (WORK IN PROGRESS)
+
 
 ### Administrative features:
 
 * Administrate multiple DMR servers through the web panel
 
+* Optional manual approval of new users
+
 * Multiple Admin user logins
 
-* Entirely configure HBLink in web panel
+* Entirely configure DMR server (HBlink) in web server
+
+* Log all peer authentication
 
 
+### Other features
+
+* SQLite or MySQL backend
+
+* APRS and SMS features (WORK IN PROGRESS)
 
 ---
 ### FOR SUPPORT, DISCUSSION, GETTING INVOLVED ###

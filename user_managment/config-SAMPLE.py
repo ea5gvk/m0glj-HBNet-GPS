@@ -1,33 +1,65 @@
 
 '''
-Settings for user management portal.
+Settings for HBNet Web Server.
 '''
-# Database location
-db_location = 'sqlite:///./users.db'
+# Database options
+# Using SQLite is simple and easiest. Comment out this line and uncomment the MySQL
+# line to use a MySQL/MariaDB server.
+db_location = 'sqlite:///hbnet.sqlite'
+
+# Uncomment and change this line to use a MySQL DB. It is best to start with a fresh
+# DB without data in it.
+
+#db_location = 'mysql+pymysql://DB_USERNAME:DB_PASSWORD@DB_HOST:MySQL_PORT/DB_NAME'
+
+
+# Title of the HBNet Web Server
+title = 'HBNet DMR server'
+# Port to run server
+hws_port = 8080
+# IP to run server on
+hws_host = '127.0.0.1'
+# Publicly accessible URL of the web server. THIS IS REQUIRED AND MUST BE CORRECT.
+url = 'http://localhost:8080'
+# Replace below with some random string such as an SHA256
+secret_key = 'SUPER SECRET LONG KEY'
+
+# Default state for newly created user accounts. Setting to False will require
+# the approval of an admin user before the user can login.
+default_account_state = True
 
 # Legacy passphrase used in hblink.cfg
-legacy_passphrase = 'passw0rd'
+#legacy_passphrase = 'passw0rd'
 
-# Trim passphrases to 8 characters
-use_short_passphrase = False
 
-# Title of the Dashboard
-title = 'MMDVM User Portal'
-# Port to run server
-ums_port = 8080
-# IP to run server on
-ums_host = '127.0.0.1'
+# Passphrase calculation config. If REMOTE_CONFIG is not used in your DMR server config
+# (hblink.cfg), then the values in section [USER_MANAGER] MUST match the values below.
+# If REMOTE_CONFIG is enabled, the DMR server (hblink) will automatically use the values below.
+# These config options affect the generation of user passphrases.
 
-url = 'http://localhost:8080'
-
+# Set to a value between 1 - 99. This value is used in the normal calculation.
 append_int = 1
 
-shared_secrets = ['test']
-
-
+# Set to a value between 1 - 99. This value is used for compromised passphrases.
 burn_int = 5
 
-legacy_passphrase = 'passw0rd'
+# Set to a value between 1 - 99 This value is used in the normal calculation.
+extra_int_1 = 5
+
+# Set to a value between 1 - 99 This value is used in the normal calculation.
+extra_int_2 = 8
+
+# Set to a length of about 10 characters.
+extra_1 = 'TeSt'
+extra_2 = 'DmR4'
+
+# Shorten generated passphrases
+use_short_passphrase = True
+
+# Character length of shortened passphrase
+shorten_length = 6
+# How often to pick character from long passphrase when shortening.
+shorten_sample = 4
 
 # Email settings
 MAIL_SERVER = 'smtp.gmail.com'
@@ -38,12 +70,10 @@ MAIL_USERNAME = 'app@gmail.com'
 MAIL_PASSWORD = 'password'
 MAIL_DEFAULT_SENDER = '"' + title + '" <app@gmail.com>'
 
-# UMS settings
-secret_key = 'SUPER SECRET LONG KEY'
-
+# User settings settings
 USER_ENABLE_EMAIL = True
-USER_ENABLE_USERNAME = True    # Enable username authentication
-USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
+USER_ENABLE_USERNAME = True    
+USER_REQUIRE_RETYPE_PASSWORD = True 
 USER_ENABLE_CHANGE_USERNAME = False
 USER_ENABLE_MULTIPLE_EMAILS = True
 USER_ENABLE_CONFIRM_EMAIL = True
@@ -51,12 +81,7 @@ USER_ENABLE_REGISTER = True
 USER_AUTO_LOGIN_AFTER_CONFIRM = False
 USER_SHOW_USERNAME_DOES_NOT_EXIST = True
 
-# Gateway contact info displayed on about page.
-contact_name = 'your name'
-contact_call = 'N0CALL'
-contact_email = 'email@example.org'
-contact_website = 'https://hbl.ink'
 
-# Time format for display
+# Time format for display on some pages
 time_format = '%H:%M:%S - %m/%d/%y'
 
