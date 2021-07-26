@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ user_manager.USER_APP_NAME }}</title>
+
+    <!-- Bootstrap -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- In-lining styles to avoid needing a separate .css file -->
+    <style>
+        hr { border-color: #cccccc; margin: 0; }
+        .no-margins { margin: 0px; }
+        .with-margins { margin: 10px; }
+        .col-centered { float: none; margin: 0 auto; }
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.js"></script>
+    <![endif]-->
+
+    {# *** Allow sub-templates to insert extra html to the head section *** #}
+    {% block extra_css %}{% endblock %}
+  </head>
+
+
+<body>
+<h1 style="text-align: center;">{{ user_manager.USER_APP_NAME }}</h1>
+    <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
+<h1 style="text-align: center;">{{title}}</h1>
+<hr />
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<tbody>
+<tr>
+    
+<td style="text-align: center;"><a href={{url}}/>Home</a></td>
+        {% if not call_or_get(current_user.is_authenticated) %}
+<td style="text-align: center;"><a href={{ url_for('user.register') }}>Register</a></td>
+<td style="text-align: center;"><a href={{ url_for('user.login') }}>Sign in</a></td>
+    {% endif %}
+    {% if call_or_get(current_user.is_authenticated) %}
+            {% if call_or_get(current_user.has_roles('Admin')) %}
+    <td style="text-align: center;"><a href={{url}}/add_user><strong>Add a User</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/list_users><strong>Edit Users</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/approve_users><strong>Waiting Approval</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/auth_log><strong>Auth Log</strong></a></td>
+
+            {% endif %}
+<td style="text-align: center;"><a href={{url}}/help>Help</a></td>
+<td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>
+<td style="text-align: center;"><a href={{url}}/user_tg>Current TGs</a></td>
+<td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
+<td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>
+            {% endif %}
+</tr>
+</tbody>
+</table>
+
+{% if call_or_get(current_user.is_authenticated) %}
+            {% if call_or_get(current_user.has_roles('Admin')) %}
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<tbody>
+<tr>
+<td style="text-align: center;"><a href={{url}}/manage_servers>Manage Servers</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_peers>Manage Peers</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_masters>Manage Masters</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_rules>Manage Rules</a></td>
+</tr>
+</tbody>
+</table>
+        {% endif %}
+        {% endif %}
+
+<hr />
+    {% block body %}
+<!--
+    <div id="header-div" class="clearfix with-margins">
+        <div class="pull-left"><a href="/"><h1 class="no-margins">{{ user_manager.USER_APP_NAME }}</h1></a></div>
+        <div class="pull-right">
+            {% if call_or_get(current_user.is_authenticated) %}
+                <a href="{{ url_for('user.edit_user_profile') }}">{{ current_user.username or current_user.email }}</a>
+                &nbsp; | &nbsp;
+                <a href="{{ url_for('user.logout') }}">{%trans%}Sign out{%endtrans%}</a>
+            {% else %}
+                <a href="{{ url_for('user.login') }}">{%trans%}Sign in{%endtrans%}</a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% block menu %}
+    <div id="menu-div" class="with-margins">
+        <a href="/">{%trans%}Home page{%endtrans%}</a>
+    </div>
+    {% endblock %}
+-->
+    <hr class="no-margins"/>
+
+    <div id="main-div" class="with-margins">
+    {# One-time system messages called Flash messages #}
+    {% block flash_messages %}
+        {%- with messages = get_flashed_messages(with_categories=true) -%}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category=='error' %}
+                        {% set category='danger' %}
+                    {% endif %}
+                    <div class="alert alert-{{category}}">{{ message|safe }}</div>
+                {% endfor %}
+            {% endif %}
+        {%- endwith %}
+    {% endblock %}
+    {% block main %}
+        {% block content %}
+
+                {{markup_content}}
+
+
+    {% endblock %}
+    {% endblock %}
+    </div>
+
+    <br/>
+    <hr class="no-margins"/>
+    <div id="footer-div" class="clearfix with-margins">
+    <p style="text-align: center;"><strong>{{ user_manager.USER_APP_NAME }}<br /></strong><a href="https://hbnet.xyz">HBNet Project</a><br />Created by KF7EEL<br />Contributors:&nbsp; W7NCX</p>
+
+    </div>
+    {% endblock %}
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    {# *** Allow sub-templates to insert extra html to the bottom of the body *** #}
+    {% block extra_js %}{% endblock %}
+
+  </body>
+</html>

@@ -13,6 +13,5 @@ email_validator
 flask_babelex
 pymysql
 folium
-json
 requests
 libsrc
