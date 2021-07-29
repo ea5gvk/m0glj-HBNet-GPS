@@ -53,7 +53,7 @@
             {% endif %}
 <td style="text-align: center;"><a href={{url}}/help>Help</a></td>
 <td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>
-<td style="text-align: center;"><a href={{url}}/user_tg>Current TGs</a></td>
+<!-- <td style="text-align: center;"><a href={{url}}/user_tg>Current TGs</a></td> -->
 <td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
 <td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>
             {% endif %}
