@@ -1471,6 +1471,8 @@ if __name__ == '__main__':
             UNIT = rules_module.UNIT
 
     else:
+        spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
+        rules_module = importlib.util.module_from_spec(spec)
         try:
             spec.loader.exec_module(rules_module)
             logger.info('(ROUTER) Routing bridges file found and bridges imported: %s', cli_args.RULES_FILE)
