@@ -1479,7 +1479,8 @@ if __name__ == '__main__':
         except (ImportError, FileNotFoundError):
             sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
             spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
-        rules_module = importlib.util.module_from_spec(spec)
+        print('--------')
+        print(rules_module.BRIDGES)
         # Build the routing rules file
         BRIDGES = make_bridges(rules_module.BRIDGES)
         # Get rule parameter for private calls

@@ -2232,14 +2232,13 @@ def create_app():
         db.session.commit()
 
 
-    def server_edit(_name, _secret, _ip, _public_list, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
+    def server_edit(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
         s = ServerList.query.filter_by(name=_name).first()
         # print(_name)
         if _secret == '':
             s.secret = s.secret
         else:
             s.secret = hashlib.sha256(_secret.encode()).hexdigest()
-        s.public_list = _public_list
         s.ip = _ip
         s.port = _port
         s.global_path =_global_path
