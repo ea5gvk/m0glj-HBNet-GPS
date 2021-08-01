@@ -440,6 +440,18 @@ def create_app():
         subject = db.Column(db.String(100), nullable=False, server_default='')
         text = db.Column(db.String(100), nullable=False, server_default='')
         date = db.Column(db.String(100), nullable=False, server_default='')
+        
+    class Misc(db.Model):
+        __tablename__ = 'misc'
+        id = db.Column(db.Integer(), primary_key=True)
+        field_1 = db.Column(db.String(100), nullable=False, server_default='')
+        field_2 = db.Column(db.String(100), nullable=False, server_default='')
+        field_3 = db.Column(db.String(100), nullable=False, server_default='')
+        int_1 = db.Column(db.Integer(), primary_key=False)
+        int_2 = db.Column(db.Integer(), primary_key=False)
+        int_3 = db.Column(db.Integer(), primary_key=False)
+        time = db.Column(db.DateTime())
+
 
 
 
@@ -1551,6 +1563,12 @@ def create_app():
 '''
                
             content = content + '</tbody></table>'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/news') #, methods=['POST', 'GET'])
+##    @login_required
+    def view_news():
+        content = 'news'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/user_tg')
