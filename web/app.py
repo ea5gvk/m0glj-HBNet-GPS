@@ -39,6 +39,7 @@ import libscrc
 import random
 from flask_mail import Message, Mail
 from socket import gethostbyname
+import re
 
 
 try:
@@ -432,6 +433,13 @@ def create_app():
         system_name = db.Column(db.String(100), nullable=False, server_default='')
         snd_id = db.Column(db.Integer(), primary_key=False)
         rcv_id = db.Column(db.Integer(), primary_key=False)
+
+    class News(db.Model):
+        __tablename__ = 'news'
+        id = db.Column(db.Integer(), primary_key=True)
+        subject = db.Column(db.String(100), nullable=False, server_default='')
+        text = db.Column(db.String(100), nullable=False, server_default='')
+        date = db.Column(db.String(100), nullable=False, server_default='')
 
 
 
@@ -1652,7 +1660,7 @@ def create_app():
         print(cbl)
         content = '''
 <p>&nbsp;</p>
-<p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See Passphrases for complete list of talkgroup availability per server.</p>
+<p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
@@ -1663,9 +1671,9 @@ def create_app():
         for i in cbl:
             content = content + '''
 <tr>
-<td style="width: 146.1px;">&nbsp;''' + i.bridge_name + '''</td>
+<td>&nbsp;<a href="/tg/''' + i.bridge_name + '''">''' + i.bridge_name + '''</a></td>
 <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
-<td style="width: 339px;">&nbsp;''' + i.description + '''</td>
+<td style="width: 339px;">&nbsp;''' + re.sub('\..*', '', i.description) + '''</td>
 </tr>'''
         content = content + '''
 </tbody>
@@ -1699,7 +1707,7 @@ def create_app():
                 if m.name == b.system_name and m.server == b.server and bl.public_list == True:
 ##                    print(b.bridge_name)
                     tg_list = tg_list + '''<tr>
-<td>&nbsp;''' + b.bridge_name + '''</td>
+<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
 <td>&nbsp;''' + bl.description + '''</td>
 </tr> '''
@@ -1729,7 +1737,7 @@ def create_app():
                 if p.name == b.system_name and p.server == b.server and bl.public_list == True:
 ##                    print(b.bridge_name)
                     tg_list = tg_list + '''<tr>
-<td>&nbsp;''' + b.bridge_name + '''</td>
+<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
 <td>&nbsp;''' + bl.description + '''</td>
 </tr> '''
@@ -2022,6 +2030,21 @@ def create_app():
 ##        db.session.delete(p)
 ##        db.session.commit()
 
+    def news_delete(_subject):
+        del_n = News.query.filter_by(subject=_subject).all()
+        for i in flush_e:
+            db.session.delete(i)
+        db.session.commit()
+
+    def news_add(_subject, _time, _news):
+        add_news = NewsPost(
+            subject = _subject,
+            time = _time,
+            text = _news
+            )
+        db.session.add(add_news)
+        db.session.commit()
+
     def server_delete(_name):
         s = ServerList.query.filter_by(name=_name).first()
         m = MasterList.query.filter_by(server=_name).all()
@@ -2078,6 +2101,9 @@ def create_app():
         bl.description = _desc
         bl.public_list = _public
         bl.tg = _tg
+        br = BridgeRules.query.filter_by(bridge_name=_name).all()
+        for b in br:
+            b.bridge_name = _new_name
         db.session.commit()
 
     def bridge_delete(_name): #, _server):
