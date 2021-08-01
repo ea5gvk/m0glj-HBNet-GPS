@@ -34,11 +34,12 @@
     <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
 <h1 style="text-align: center;">{{title}}</h1>
 <hr />
-<table style="width: 700px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<table style="width: 800px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
     
 <td style="text-align: center;"><a href={{url}}/>Home</a></td>
+    <td style="text-align: center;"><a href={{url}}/talkgroups>Talkgroups</a></td>
         {% if not call_or_get(current_user.is_authenticated) %}
 <td style="text-align: center;"><a href={{ url_for('user.register') }}>Register</a></td>
 <td style="text-align: center;"><a href={{ url_for('user.login') }}>Sign in</a></td>
@@ -52,7 +53,7 @@
 
             {% endif %}
 <td style="text-align: center;"><a href={{url}}/help>Help</a></td>
-<td style="text-align: center;"><a href={{url}}/generate_passphrase>View Passphrase(s)</a></td>
+<td style="text-align: center;"><a href={{url}}/generate_passphrase>Passphrase(s)</a></td>
 <!-- <td style="text-align: center;"><a href={{url}}/user_tg>Current TGs</a></td> -->
 <td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
 <td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>
@@ -63,7 +64,7 @@
 
 {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-<table style="width: 700px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<table style="width: 800px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
 <td style="text-align: center;"><a href={{url}}/manage_servers>Manage Servers</a></td>

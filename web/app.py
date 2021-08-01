@@ -292,6 +292,7 @@ def create_app():
         report_clients =db.Column(db.String(100), nullable=False, server_default='127.0.0.1')
         unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
         notes =  db.Column(db.String(100), nullable=False, server_default='')
+        dash_url = db.Column(db.String(100), nullable=True, server_default='https://hbnet.xyz')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -375,7 +376,7 @@ def create_app():
         off = db.Column(db.String(100), nullable=False, server_default='')
         reset = db.Column(db.String(100), nullable=False, server_default='')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
+##        public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
         proxy = db.Column(db.Boolean(), nullable=False, server_default='0')
 
     class BridgeList(db.Model):
@@ -640,6 +641,27 @@ def create_app():
     @login_required
     def gen():
         #print(str(gen_passphrase(3153591))) #(int(i[0])))
+        sl = ServerList.query.all()
+        svr_content = ''
+        for i in sl:
+            svr_content = svr_content + '''
+<p>&nbsp;</p>
+<table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">
+<h4>Server: <strong>''' + i.name + '''</strong></h4>
+</td>
+</tr>
+<tr>
+<td style="text-align: center;"><a href="/talkgroups/''' + i.name + '''">Available Talkgroups</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><a href="''' + i.dash_url + '''">Dashboard</a></td>
+</tr>
+</tbody>
+</table>
+'''
         try:
             #content = Markup('<strong>The HTML String</strong>')
             #user_id = request.args.get('user_id')
@@ -651,6 +673,7 @@ def create_app():
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
             #print(id_dict)
+          
             content = '\n'
             for i in id_dict.items():
                 if isinstance(i[1], int) == True and i[1] != 0:
@@ -732,15 +755,9 @@ def create_app():
         
             
         #return str(content)
-        return render_template('view_passphrase.html', markup_content = Markup(content))
+        return render_template('view_passphrase.html', passphrase_content = Markup(content), server_content = Markup(svr_content))
 
-##    # The Members page is only accessible to authenticated users via the @login_required decorator
-##    @app.route('/members')
-##    @login_required    # User must be authenticated
-##    def member_page():
-##        content = 'Mem only'
-##        return render_template('flask_user_layout.html', markup_content = content)
-    
+  
     @app.route('/update_ids', methods=['POST', 'GET'])
     @login_required    # User must be authenticated
     def update_info():
@@ -1605,6 +1622,140 @@ def create_app():
 ##        content = 'hji'
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
+    @app.route('/tg/<name>') #, methods=['POST', 'GET'])
+##    @login_required
+    def tg_details(name):
+        tg_d = BridgeList.query.filter_by(bridge_name=name).first()
+        content = ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">
+<h2>''' + tg_d.bridge_name + '''</h2>
+</td>
+</tr>
+<tr>
+<td style="text-align: center;">TG #:<strong> ''' + str(tg_d.tg) + '''</strong></td>
+</tr>
+<tr>
+<td>&nbsp;''' + tg_d.description + '''</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/talkgroups')
+##    @login_required
+    def tg_list():
+        cbl = BridgeList.query.filter_by(public_list=True).all()
+        print(cbl)
+        content = '''
+<p>&nbsp;</p>
+<p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See Passphrases for complete list of talkgroup availability per server.</p>
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="width: 146.1px; text-align: center;"><strong>&nbsp;Name</strong></td>
+<td style="width: 89.9px; text-align: center;"><strong>&nbsp;TG</strong></td>
+<td style="width: 339px; text-align: center;"><strong>&nbsp;Description</strong></td>
+</tr> '''
+        for i in cbl:
+            content = content + '''
+<tr>
+<td style="width: 146.1px;">&nbsp;''' + i.bridge_name + '''</td>
+<td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
+<td style="width: 339px;">&nbsp;''' + i.description + '''</td>
+</tr>'''
+        content = content + '''
+</tbody>
+</table>
+'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
+    @login_required
+    def tg_list_server(server):
+        svr = ServerList.query.filter_by(name=server).first()
+        content = '''
+<p>&nbsp;</p>
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr style="height: 18px;">
+<td style="text-align: center; height: 18px;">&nbsp;<h4>Server: <strong>''' + svr.name + '''</strong>&nbsp; -&nbsp; IP/Host: <strong>''' + str(svr.ip) + '''</strong></h4></td>
+</tr> '''
+        m_list = MasterList.query.filter_by(server=server).filter_by(public_list=True).all()
+        p_list = ProxyList.query.filter_by(server=server).filter_by(public_list=True).all()
+        tg_list = ''
+        for m in m_list:
+            br = BridgeRules.query.filter_by(server=server).filter_by(system_name=m.name).all()
+            print(br)
+##            for t in br:
+##                print(t.tg)
+            for b in br:
+                print(b.bridge_name)
+                bl = BridgeList.query.filter_by(bridge_name=b.bridge_name).first()
+##                print(bl)
+                if m.name == b.system_name and m.server == b.server and bl.public_list == True:
+##                    print(b.bridge_name)
+                    tg_list = tg_list + '''<tr>
+<td>&nbsp;''' + b.bridge_name + '''</td>
+<td>&nbsp;''' + str(b.tg) + '''</td>
+<td>&nbsp;''' + bl.description + '''</td>
+</tr> '''
+            content = content + '''<tr style="height: 48.2px;">
+<td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(m.port) + '''</strong></td>
+</tr>
+<table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">&nbsp;<strong>Name</strong></td>
+<td style="text-align: center;">&nbsp;<strong>TG</strong></td>
+<td style="text-align: center;"><strong>&nbsp;Description</strong></td>
+</tr>
+''' + tg_list + '''
+</tbody>
+</table> ''' + '''</td>'''
+            tg_list = ''
+            
+        for p in p_list:
+            br = BridgeRules.query.filter_by(server=server).filter_by(system_name=p.name).all()
+            for b in br:
+                bl = BridgeList.query.filter_by(bridge_name=b.bridge_name).first()
+##                print(bl.bridge_name)
+                if p.name == b.system_name and p.server == b.server and bl.public_list == True:
+##                    print(b.bridge_name)
+                    tg_list = tg_list + '''<tr>
+<td>&nbsp;''' + b.bridge_name + '''</td>
+<td>&nbsp;''' + str(b.tg) + '''</td>
+<td>&nbsp;''' + bl.description + '''</td>
+</tr> '''
+            content = content + '''<tr style="height: 48.2px;">
+<td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(p.external_port) + '''</strong></td>
+</tr>
+<table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">&nbsp;<strong>Name</strong></td>
+<td style="text-align: center;">&nbsp;<strong>TG</strong></td>
+<td style="text-align: center;"><strong>&nbsp;Description</strong></td>
+</tr>
+''' + tg_list + '''
+</tbody>
+</table> ''' + '''</td>'''
+            tg_list = ''
+        content = content + ''' </tr>
+</tbody>
+</table>
+<p>&nbsp;</p> '''
+
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 
     @app.route('/test')
@@ -2011,7 +2162,7 @@ def create_app():
                         timeout = int(s.timeout)
                     if s.proxy == True:
                         p = ProxyList.query.filter_by(server=_name).filter_by(name=s.system_name).first()
-                        print(p.external_port)
+##                        print(p.external_port)
                         n_systems = p.internal_stop_port - p.internal_start_port
                         n_count = 0
                         while n_count < n_systems:
@@ -2162,7 +2313,7 @@ def create_app():
         # print(master_config_list)
         return master_config_list
 
-    def add_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server, _public_list):
+    def add_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server):
         proxy = ProxyList.query.filter_by(server=_server).filter_by(name=_system_name).first()
         is_proxy = False
         try:
@@ -2182,13 +2333,12 @@ def create_app():
             off = _off,
             reset = _reset,
             server = _server,
-            public_list = _public_list,
             proxy = is_proxy
             )
         db.session.add(add_system)
         db.session.commit()
 
-    def edit_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server, _public_list):
+    def edit_system_rule(_bridge_name, _system_name, _ts, _tg, _active, _timeout, _to_type, _on, _off, _reset, _server):
         proxy = ProxyList.query.filter_by(server=_server).filter_by(name=_system_name).first()
         is_proxy = False
         try:
@@ -2197,10 +2347,10 @@ def create_app():
         except:
             pass
         r = BridgeRules.query.filter_by(system_name=_system_name).filter_by(bridge_name=_bridge_name).first()
-        print('---')
-        print(_system_name)
-        print(_bridge_name)
-        print(r)
+##        print('---')
+##        print(_system_name)
+##        print(_bridge_name)
+##        print(r)
 ##        for i in r:
 ##            print(i.name)
 ##        add_system = BridgeRules(
@@ -2215,7 +2365,7 @@ def create_app():
         r.off = _off
         r.reset = _reset
         r.server = _server
-        r.public_list = _public_list
+        #r.public_list = _public_list
         r.proxy = is_proxy
 ##        db.session.add(add_system)
         db.session.commit()
@@ -2232,7 +2382,7 @@ def create_app():
         db.session.commit()
 
 
-    def server_edit(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
+    def server_edit(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url):
         s = ServerList.query.filter_by(name=_name).first()
         # print(_name)
         if _secret == '':
@@ -2269,6 +2419,7 @@ def create_app():
         s.report_clients = _report_clients
         s.unit_time = int(_unit_time)
         s.notes = _notes
+        s.dash_url = _dash_url
         db.session.commit()
         
     def master_delete(_mode, _server, _name):
@@ -2452,7 +2603,7 @@ def create_app():
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes):
+    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
@@ -2486,7 +2637,8 @@ def create_app():
         report_port = _report_port,
         report_clients = _report_clients,
         unit_time = int(_unit_time),
-        notes = _notes
+        notes = _notes,
+        dash_url = _dash_url
         )
         db.session.add(add_server)
         db.session.commit()
@@ -2679,13 +2831,13 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
                 else:
-                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'))
                     content = '''<h3 style="text-align: center;">Server saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -2714,6 +2866,10 @@ def create_app():
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Server Secret:</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_secret" type="text" value="" /></td>
+</tr>
+<tr>
+<td style="width: 16.0381%;"><strong>&nbsp;Dashboard URL:</strong></td>
+<td style="width: 78.7895%;">&nbsp;<input name="dash_url" type="text" value="''' + str(s.dash_url) + '''"/></td>
 </tr>
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, for listing on passphrase page):</strong></td>
@@ -2910,6 +3066,10 @@ def create_app():
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Server Secret:</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_secret" type="text" value="secret_passphrase" /></td>
+</tr>
+<tr>
+<td style="width: 30%;"><strong>&nbsp;Dashboard URL:</strong></td>
+<td style="width: 70%;">&nbsp;<input name="dash_url" type="text" /></td>
 </tr>
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS):</strong></td>
@@ -4583,12 +4743,12 @@ def create_app():
 
         #Rules
         elif request.args.get('save_rule'):
-            public_list = False
+##            public_list = False
             active = False
             if request.form.get('active_dropdown') == 'True':
                 active = True
             if request.args.get('save_rule') == 'new':
-                add_system_rule(request.form.get('bridge_dropdown'), request.form.get('system_text'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'), public_list)
+                add_system_rule(request.form.get('bridge_dropdown'), request.form.get('system_text'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'))
                 content = '''<h3 style="text-align: center;">Bridge (talkgroup) rule saved.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
@@ -4736,11 +4896,11 @@ def create_app():
             content = br_view
 
         elif request.args.get('edit_rule') == 'save' and request.args.get('bridge_edit'):
-            public_list = False
+##            public_list = False
             active = False
             if request.form.get('active_dropdown') == 'True':
                 active = True
-            edit_system_rule(request.args.get('bridge_edit'), request.args.get('system'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'), public_list)
+            edit_system_rule(request.args.get('bridge_edit'), request.args.get('system'), request.form.get('ts_dropdown'), request.form.get('tgid'), active, request.form.get('timer_time'), request.form.get('type_dropdown'), request.form.get('on'), request.form.get('off'), request.form.get('reset'), request.args.get('server'))
             content = '''<h3 style="text-align: center;">System rule changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_rules" /> '''
