@@ -1,4 +1,19 @@
 {% extends 'flask_user/_public_base.html' %}
 {% block content %}
+<p>&nbsp;</p>
+
 <p>Welcome to the <strong>{{ user_manager.USER_APP_NAME }}</strong>. This tool is used to manage your access.</p>
+
+<p>&nbsp;</p>
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">
+<h4>Latest News:</h4>
+{{news}}
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
 {% endblock %}

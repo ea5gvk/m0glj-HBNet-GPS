@@ -599,7 +599,22 @@ def create_app():
     @app.route('/')
     def home_page():
         #content = Markup('<strong>Index</strong>')
-        return render_template('index.html') #, markup_content = content)
+        l_news = News.query.order_by(News.time.desc()).first()
+        content = '''
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
+<tr>
+<td style="text-align: center;">
+<h3>''' + l_news.subject + '''</h3>
+</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>''' + l_news.date + '''</strong></td>
+</tr>
+<tr>
+<td><br />''' + l_news.text + '''<br /><br /></td>
+</tr>
+</tbody></table>'''
+        return render_template('index.html', news = Markup(content))
     
     @app.route('/help')
     def help_page():
