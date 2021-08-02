@@ -294,6 +294,7 @@ def create_app():
         unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
         notes =  db.Column(db.String(100), nullable=False, server_default='')
         dash_url = db.Column(db.String(100), nullable=True, server_default='https://hbnet.xyz')
+        public_notes =  db.Column(db.String(100), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -672,6 +673,10 @@ def create_app():
 <tr>
 <td style="text-align: center;">
 <h4>Server: <strong>''' + i.name + '''</strong></h4>
+</td>
+</tr>
+<td style="text-align: center;">
+&nbsp;''' + i.public_notes + '''
 </td>
 </tr>
 <tr>
@@ -1566,10 +1571,16 @@ def create_app():
             content = content + '</tbody></table>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    
+##    if news_enabled:
     @app.route('/news') #, methods=['POST', 'GET'])
 ##    @login_required
     def view_news():
+        
         view_news =  News.query.order_by(News.time.desc()).all()
+##        page = request.args.get('page', 1, type=int)
+##        view_news =  News.query.order_by(News.time.desc()).paginate(page=page, per_page=1)
+
         #content = '''<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1"><tbody>'''
         content = ''
         for article in view_news:
@@ -1609,7 +1620,7 @@ def create_app():
 <table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr style="height: 51.1667px;">
-<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Subject:</label><br /> <input id="subject" name="subject" type="text"  />
+<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Subject (MUST be unique):</label><br /> <input id="subject" name="subject" type="text"  />
 <p>&nbsp;</p>
 </td>
 </tr>
@@ -1873,6 +1884,9 @@ def create_app():
 <td style="text-align: center;"><strong>&nbsp;Description</strong></td>
 </tr>
 ''' + tg_list + '''
+<td>&nbsp;Disconnect</td>
+<td>&nbsp;4000</td>
+<td>&nbsp;Disconnect from all activated TGs.</td>
 </tbody>
 </table> ''' + '''</td>'''
             tg_list = ''
@@ -2527,7 +2541,7 @@ def create_app():
         db.session.commit()
 
 
-    def server_edit(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url):
+    def server_edit(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
         s = ServerList.query.filter_by(name=_name).first()
         # print(_name)
         if _secret == '':
@@ -2565,6 +2579,7 @@ def create_app():
         s.unit_time = int(_unit_time)
         s.notes = _notes
         s.dash_url = _dash_url
+        s.public_notes = _public_notes
         db.session.commit()
         
     def master_delete(_mode, _server, _name):
@@ -2748,7 +2763,7 @@ def create_app():
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url):
+    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
@@ -2783,7 +2798,8 @@ def create_app():
         report_clients = _report_clients,
         unit_time = int(_unit_time),
         notes = _notes,
-        dash_url = _dash_url
+        dash_url = _dash_url,
+        public_notes = _public_notes
         )
         db.session.add(add_server)
         db.session.commit()
@@ -2976,13 +2992,13 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
                 else:
-                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'))
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
                     content = '''<h3 style="text-align: center;">Server saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -3033,6 +3049,11 @@ def create_app():
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(s.notes) + '''</textarea></td>
 </tr>
+<tr>
+<td><strong>&nbsp;Public Notes:</strong></td>
+<td>&nbsp;<textarea id="public_notes" cols="50" name="public_notes" rows="4">''' + str(s.public_notes) + '''</textarea></td>
+</tr>
+
 </tbody>
 </table>
 <h3 style="text-align: center;"><strong>Global</strong></h3>
@@ -3232,6 +3253,10 @@ def create_app():
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
+</tr>
+<tr>
+<td><strong>&nbsp;Public Notes:</strong></td>
+<td>&nbsp;<textarea id="public_notes" cols="50" name="public_notes" rows="4"></textarea></td>
 </tr>
 </tbody>
 </table>
