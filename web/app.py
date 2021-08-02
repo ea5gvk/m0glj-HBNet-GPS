@@ -1582,10 +1582,13 @@ def create_app():
 ##        view_news =  News.query.order_by(News.time.desc()).paginate(page=page, per_page=1)
 
         #content = '''<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1"><tbody>'''
-        content = ''
+        content = ''' <p style="text-align: center;"><a href="news?all_news=true"><strong>View All News</strong></a></p>'''
+        art_count = 0
         for article in view_news:
-            print(article.time)
-            content = content + '''
+            if request.args.get('all_news'):
+                art_count = 1
+            if art_count < 16:
+                content = content + '''
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
 <tr>
 <td style="text-align: center;">
@@ -1599,6 +1602,7 @@ def create_app():
 <td>''' + article.text + '''</td>
 </tr>
 </tbody></table><p>&nbsp;</p>'''
+                art_count = art_count + 1
         #content = content + '''</tbody></table><p>&nbsp;</p>'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
@@ -1786,10 +1790,11 @@ def create_app():
 ##    @login_required
     def tg_list():
         cbl = BridgeList.query.filter_by(public_list=True).all()
-        print(cbl)
+##        print(cbl)
         content = '''
 <p>&nbsp;</p>
 <p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
+<p style="text-align: center;"><a href="talkgrousp_csv"><strong>Download talkgroup CSV</strong></a></p>
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
