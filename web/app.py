@@ -440,16 +440,17 @@ def create_app():
         subject = db.Column(db.String(100), nullable=False, server_default='')
         text = db.Column(db.String(100), nullable=False, server_default='')
         date = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
         
     class Misc(db.Model):
         __tablename__ = 'misc'
         id = db.Column(db.Integer(), primary_key=True)
-        field_1 = db.Column(db.String(100), nullable=False, server_default='')
-        field_2 = db.Column(db.String(100), nullable=False, server_default='')
-        field_3 = db.Column(db.String(100), nullable=False, server_default='')
-        int_1 = db.Column(db.Integer(), primary_key=False)
-        int_2 = db.Column(db.Integer(), primary_key=False)
-        int_3 = db.Column(db.Integer(), primary_key=False)
+        field_1 = db.Column(db.String(100), nullable=True, server_default='')
+        field_2 = db.Column(db.String(100), nullable=True, server_default='')
+        field_3 = db.Column(db.String(100), nullable=True, server_default='')
+        int_1 = db.Column(db.Integer(), primary_key=True)
+        int_2 = db.Column(db.Integer(), primary_key=True)
+        int_3 = db.Column(db.Integer(), primary_key=True)
         time = db.Column(db.DateTime())
 
 
@@ -1568,7 +1569,106 @@ def create_app():
     @app.route('/news') #, methods=['POST', 'GET'])
 ##    @login_required
     def view_news():
-        content = 'news'
+        view_news =  News.query.order_by(News.time.desc()).all()
+        #content = '''<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1"><tbody>'''
+        content = ''
+        for article in view_news:
+            print(article.time)
+            content = content + '''
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
+<tr>
+<td style="text-align: center;">
+<h3>''' + article.subject + '''</h3>
+</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>''' + article.date + '''</strong></td>
+</tr>
+<tr>
+<td>''' + article.text + '''</td>
+</tr>
+</tbody></table><p>&nbsp;</p>'''
+        #content = content + '''</tbody></table><p>&nbsp;</p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/add_news', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def edit_news():
+        if request.args.get('add') == 'new':
+            content = '''<h3 style="text-align: center;">Added news article.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_news" />'''
+            news_add(request.form.get('subject'), request.form.get('time'), request.form.get('news'))
+        else:
+            content = '''
+<p>&nbsp;</p>
+<h2 style="text-align: center;"><strong>Post News Article<br /></strong></h2>
+<p>&nbsp;</p>
+<form action="add_news?add=new" method="POST">
+<table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Subject:</label><br /> <input id="subject" name="subject" type="text"  />
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="tg">Date:</label><br /> <input id="time" name="time" type="text"  />
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;"><label for="description">News (HTML works):</label><br /> <textarea id="news" cols="80" name="news" rows="10"></textarea></td>
+</tr>
+
+<tr style="height: 27px;">
+<td style="text-align: center; height: 27px;">
+<p>&nbsp;</p>
+<p><input type="submit" value="Submit" /></p>
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/manage_news', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def manage_news():
+        view_news =  News.query.order_by(News.time.desc()).all()
+        if request.args.get('delete'):
+            content = '''<h3 style="text-align: center;">Deleted news article.</h3>
+    <p style="text-align: center;">Redirecting in 3 seconds.</p>
+    <meta http-equiv="refresh" content="3; URL=manage_news" />'''
+            news_delete(request.args.get('delete'))
+            
+        else:
+            content = '''
+<p>&nbsp;</p>
+<p style="text-align: center;"><a href="add_news"><strong>Add News Article</strong></a></p>
+<p>&nbsp;</p>
+
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Subject</strong></td>
+<td style="text-align: center;"><strong>Date</strong></td>
+</tr>'''
+            for a in view_news:
+                content = content + '''
+            
+<tr>
+<td>Delete: <a href="manage_news?delete=''' + a.subject + '''">''' + a.subject + '''</a></td>
+<td>''' + a.date + '''</td>
+</tr>'''
+            content = content + '''
+</tbody>
+</table>
+<p>&nbsp;</p>
+'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/user_tg')
@@ -2050,15 +2150,16 @@ def create_app():
 
     def news_delete(_subject):
         del_n = News.query.filter_by(subject=_subject).all()
-        for i in flush_e:
+        for i in del_n:
             db.session.delete(i)
         db.session.commit()
 
     def news_add(_subject, _time, _news):
-        add_news = NewsPost(
+        add_news = News(
             subject = _subject,
-            time = _time,
-            text = _news
+            date = _time,
+            text = _news,
+            time = datetime.datetime.utcnow()
             )
         db.session.add(add_news)
         db.session.commit()
