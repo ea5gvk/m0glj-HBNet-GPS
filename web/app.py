@@ -21,7 +21,7 @@
 Flask based application that is the web server for HBNet. Controls user authentication, DMR server config, etc.
 '''
 
-from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app
+from flask import Flask, render_template_string, request, make_response, jsonify, render_template, Markup, flash, redirect, url_for, current_app, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, user_registered, roles_required
 from werkzeug.security import check_password_hash
@@ -1801,6 +1801,16 @@ def create_app():
 <p>&nbsp;</p>'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    @app.route('/hbnet_tg.csv')
+##    @login_required
+    def tg_csv():
+        cbl = BridgeList.query.filter_by(public_list=True).all()
+        gen_csv = 'number, name\n'
+        for t in cbl:
+            gen_csv = gen_csv + str(t.tg) + ', ' + t.bridge_name + '\n'
+        response = Response(gen_csv, mimetype="text/csv")
+        return response
+
     @app.route('/talkgroups')
 ##    @login_required
     def tg_list():
@@ -1809,7 +1819,7 @@ def create_app():
         content = '''
 <p>&nbsp;</p>
 <p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
-<p style="text-align: center;"><a href="talkgrousp_csv"><strong>Download talkgroup CSV</strong></a></p>
+<p style="text-align: center;"><a href="hbnet_tg.csv"><strong>Download talkgroup CSV</strong></a></p>
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
