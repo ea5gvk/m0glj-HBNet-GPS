@@ -449,9 +449,11 @@ def create_app():
         field_1 = db.Column(db.String(100), nullable=True, server_default='')
         field_2 = db.Column(db.String(100), nullable=True, server_default='')
         field_3 = db.Column(db.String(100), nullable=True, server_default='')
-        int_1 = db.Column(db.Integer(), primary_key=True)
-        int_2 = db.Column(db.Integer(), primary_key=True)
-        int_3 = db.Column(db.Integer(), primary_key=True)
+        field_4 = db.Column(db.String(100), nullable=True, server_default='')
+        int_1 = db.Column(db.Integer(), nullable=True)
+        int_2 = db.Column(db.Integer(), nullable=True)
+        int_3 = db.Column(db.Integer(), nullable=True)
+        int_4 = db.Column(db.Integer(), nullable=True)
         time = db.Column(db.DateTime())
 
 
@@ -1639,7 +1641,7 @@ def create_app():
 <table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr style="height: 51.1667px;">
-<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Subject (MUST be unique):</label><br /> <input id="subject" name="subject" type="text"  />
+<td style="height: 51.1667px; text-align: center;"><label for="bridge_name">Subject:</label><br /> <input id="subject" name="subject" type="text"  />
 <p>&nbsp;</p>
 </td>
 </tr>
@@ -1649,7 +1651,7 @@ def create_app():
 </td>
 </tr>
 <tr style="height: 51.1667px;">
-<td style="height: 51.1667px; text-align: center;"><label for="description">News (HTML works):</label><br /> <textarea id="news" cols="80" name="news" rows="10"></textarea></td>
+<td style="height: 51.1667px; text-align: center;"><label for="description">News (HTML OK):</label><br /> <textarea id="news" cols="80" name="news" rows="10"></textarea></td>
 </tr>
 
 <tr style="height: 27px;">
@@ -1686,13 +1688,17 @@ def create_app():
 <tr>
 <td style="text-align: center;"><strong>Subject</strong></td>
 <td style="text-align: center;"><strong>Date</strong></td>
+<td style="text-align: center;"><strong>ID</strong></td>
+
 </tr>'''
             for a in view_news:
                 content = content + '''
             
 <tr>
-<td>Delete: <a href="manage_news?delete=''' + a.subject + '''">''' + a.subject + '''</a></td>
+<td>Delete: <a href="manage_news?delete=''' + str(a.id )+ '''">''' + a.subject + '''</a></td>
 <td>''' + a.date + '''</td>
+<td>''' + str(a.id) + '''</td>
+
 </tr>'''
             content = content + '''
 </tbody>
@@ -1805,9 +1811,21 @@ def create_app():
 ##    @login_required
     def tg_csv():
         cbl = BridgeList.query.filter_by(public_list=True).all()
-        gen_csv = 'number, name\n'
+        gen_csv = 'TG, Name\n'
         for t in cbl:
             gen_csv = gen_csv + str(t.tg) + ', ' + t.bridge_name + '\n'
+        response = Response(gen_csv, mimetype="text/csv")
+        return response
+
+    @app.route('/hbnet_tg_anytone.csv')
+##    @login_required
+    def anytone_tg_csv():
+        cbl = BridgeList.query.filter_by(public_list=True).all()
+        gen_csv = 'No., Radio ID, Name, Call Type, Call Alert\n'
+        num = 1
+        for t in cbl:
+            gen_csv = gen_csv + str(num) + ', ' + str(t.tg) + ', ' + t.bridge_name + ', Group Call, None' + '\n'
+            num = num + 1
         response = Response(gen_csv, mimetype="text/csv")
         return response
 
@@ -1819,7 +1837,7 @@ def create_app():
         content = '''
 <p>&nbsp;</p>
 <p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
-<p style="text-align: center;"><a href="hbnet_tg.csv"><strong>Download talkgroup CSV</strong></a></p>
+<p style="text-align: center;"><a href="hbnet_tg.csv"><strong>Download talkgroup CSV</strong></a> | <a href="hbnet_tg_anytone.csv"><strong>Download talkgroup CSV (Anytone format)</strong></a></p>
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
@@ -1868,7 +1886,10 @@ def create_app():
                     tg_list = tg_list + '''<tr>
 <td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
-<td>&nbsp;''' + bl.description + '''</td>
+<td>&nbsp;''' + str(b.ts) + '''</td>
+<td>&nbsp;''' + b.to_type + '''</td>
+<td>&nbsp;''' + str(b.timeout) + '''</td>
+
 </tr> '''
             content = content + '''<tr style="height: 48.2px;">
 <td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
@@ -1879,9 +1900,11 @@ def create_app():
 <table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;">&nbsp;<strong>Name</strong></td>
-<td style="text-align: center;">&nbsp;<strong>TG</strong></td>
-<td style="text-align: center;"><strong>&nbsp;Description</strong></td>
+<td style="text-align: center; width: 267.767px;">&nbsp;<strong>Name</strong></td>
+<td style="text-align: center; width: 74.2333px;">&nbsp;<strong>TG</strong></td>
+<td style="text-align: center; width: 87px;"><strong><strong>&nbsp;TS</strong></td>
+<td style="text-align: center; width: 128px;"><strong>Timer Type</strong></td>
+<td style="text-align: center; width: 77px;"><strong>Time (Min)</strong></td>
 </tr>
 ''' + tg_list + '''
 </tbody>
@@ -1898,7 +1921,9 @@ def create_app():
                     tg_list = tg_list + '''<tr>
 <td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
-<td>&nbsp;''' + bl.description + '''</td>
+<td>&nbsp;''' + str(b.ts) + '''</td>
+<td>&nbsp;''' + b.to_type + '''</td>
+<td>&nbsp;''' + str(b.timeout) + '''</td>
 </tr> '''
             content = content + '''<tr style="height: 48.2px;">
 <td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
@@ -1909,14 +1934,16 @@ def create_app():
 <table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;">&nbsp;<strong>Name</strong></td>
-<td style="text-align: center;">&nbsp;<strong>TG</strong></td>
-<td style="text-align: center;"><strong>&nbsp;Description</strong></td>
+<td style="text-align: center; width: 267.767px;">&nbsp;<strong>Name</strong></td>
+<td style="text-align: center; width: 74.2333px;">&nbsp;<strong>TG</strong></td>
+<td style="text-align: center; width: 87px;"><strong><strong>&nbsp;TS</strong></td>
+<td style="text-align: center; width: 128px;"><strong>Timer Type</strong></td>
+<td style="text-align: center; width: 77px;"><strong>Time (Min)</strong></td>
 </tr>
 ''' + tg_list + '''
-<td>&nbsp;Disconnect</td>
-<td>&nbsp;4000</td>
 <td>&nbsp;Disconnect from all activated TGs.</td>
+<td>&nbsp;4000</td>
+<td>&nbsp;</td>
 </tbody>
 </table> ''' + '''</td>'''
             tg_list = ''
@@ -2192,8 +2219,8 @@ def create_app():
 ##        db.session.delete(p)
 ##        db.session.commit()
 
-    def news_delete(_subject):
-        del_n = News.query.filter_by(subject=_subject).all()
+    def news_delete(_id):
+        del_n = News.query.filter_by(id=_id).all()
         for i in del_n:
             db.session.delete(i)
         db.session.commit()
@@ -3281,11 +3308,11 @@ def create_app():
 </tr>
 
 <tr>
-<td><strong>&nbsp;Notes:</strong></td>
+<td><strong>&nbsp;Notes (HTML OK):</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
 </tr>
 <tr>
-<td><strong>&nbsp;Public Notes:</strong></td>
+<td><strong>&nbsp;Public Notes (HTML OK):</strong></td>
 <td>&nbsp;<textarea id="public_notes" cols="50" name="public_notes" rows="4"></textarea></td>
 </tr>
 </tbody>
@@ -3533,6 +3560,9 @@ def create_app():
             content = '''
 <p>&nbsp;</p>
 <h2 style="text-align: center;"><strong>Add an ''' + mode + ''' peer</strong></h2>
+
+<p style="text-align: center;"><strong>Notice:</strong> Before connecting this server to another network, such as Brandmeister, <strong>be sure you have permission</strong>. <br />Connecting servers together via PEER connection can cause problems such as audio looping. <br />OpenBridge connections are designed for server to server connections.</p>
+<p>&nbsp;</p>
 
 <form action="''' + submit_link + '''" method="post">
 <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
@@ -5128,7 +5158,7 @@ def create_app():
 </tr>
 
 <tr style="height: 51.1667px;">
-<td style="height: 51.1667px; text-align: center;"><label for="description">Description:</label><br /> <textarea id="notes" cols="30" name="description" rows="4"></textarea></td>
+<td style="height: 51.1667px; text-align: center;"><label for="description">Description (HTML OK):</label><br /> <textarea id="notes" cols="30" name="description" rows="4"></textarea></td>
 </tr>
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;"><label for="public_list">Public List:</label><br /><select name="public_list">
@@ -5175,7 +5205,7 @@ def create_app():
 </tr>
 
 <tr style="height: 51.1667px;">
-<td style="height: 51.1667px; text-align: center;"><label for="description">Description:</label><br /> <textarea id="notes" cols="30" name="description" rows="4">''' + str(b.description) + '''</textarea></td>
+<td style="height: 51.1667px; text-align: center;"><label for="description">Description (HTML OK):</label><br /> <textarea id="notes" cols="30" name="description" rows="4">''' + str(b.description) + '''</textarea></td>
 </tr>
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;"><label for="public_list">Public List:</label><br /><select name="public_list">
