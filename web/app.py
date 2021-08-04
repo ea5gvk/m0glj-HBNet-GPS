@@ -3045,7 +3045,7 @@ def create_app():
     def edit_server_db():
         # Edit server
         if request.args.get('save_mode'):# == 'new' and request.form.get('server_name'):
-            _port = int(request.form.get('server_port'))
+##            _port = int(request.form.get('server_port'))
             _global_ping_time = int(request.form.get('ping_time'))
             _global_max_missed = int(request.form.get('max_missed'))
             _ai_stale = int(request.form.get('stale_days'))
