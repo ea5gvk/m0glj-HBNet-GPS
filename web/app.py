@@ -221,7 +221,7 @@ def create_app():
         tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        notes =  db.Column(db.String(100), nullable=False, server_default='')
+        notes =  db.Column(db.String(500), nullable=False, server_default='')
 
     class xlxPeer(db.Model):
         __tablename__ = 'XLX_peers'
@@ -256,7 +256,7 @@ def create_app():
         tg1_acl = db.Column(db.String(100), nullable=False, server_default='')
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        notes = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(500), nullable=False, server_default='')
     class ServerList(db.Model):
         __tablename__ = 'server_list'
         name = db.Column(db.String(100), unique=True, primary_key=True)
@@ -293,8 +293,8 @@ def create_app():
         report_clients =db.Column(db.String(100), nullable=False, server_default='127.0.0.1')
         unit_time = db.Column(db.Integer(), primary_key=False, server_default='10080')
         notes =  db.Column(db.String(100), nullable=False, server_default='')
-        dash_url = db.Column(db.String(100), nullable=True, server_default='https://hbnet.xyz')
-        public_notes =  db.Column(db.String(100), nullable=False, server_default='')
+        dash_url = db.Column(db.String(1000), nullable=True, server_default='https://hbnet.xyz')
+        public_notes =  db.Column(db.String(1000), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -316,7 +316,7 @@ def create_app():
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        notes = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(500), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
 
 
@@ -341,7 +341,7 @@ def create_app():
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        notes = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(500), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
 
         
@@ -362,7 +362,7 @@ def create_app():
         tg_acl = db.Column(db.String(100), nullable=False, server_default='')
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100), nullable=False, server_default='')
-        notes = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(500), nullable=False, server_default='')
         
     class BridgeRules(db.Model):
         __tablename__ = 'bridge_rules'
@@ -385,7 +385,7 @@ def create_app():
         __tablename__ = 'bridge_list'
         id = db.Column(db.Integer(), primary_key=True)
         bridge_name = db.Column(db.String(100), nullable=False, server_default='')
-        description = db.Column(db.String(100), nullable=False, server_default='')
+        description = db.Column(db.String(5000), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='0')
         tg = db.Column(db.Integer(), primary_key=False)
         
@@ -393,7 +393,7 @@ def create_app():
         __tablename__ = 'gps_locations'
         id = db.Column(db.Integer(), primary_key=True)
         callsign = db.Column(db.String(100), nullable=False, server_default='')
-        comment = db.Column(db.String(100), nullable=False, server_default='')
+        comment = db.Column(db.String(150), nullable=False, server_default='')
         lat = db.Column(db.String(100), nullable=False, server_default='')
         lon = db.Column(db.String(100), nullable=False, server_default='')
         time = db.Column(db.DateTime())
@@ -405,7 +405,7 @@ def create_app():
         __tablename__ = 'sms_bb'
         id = db.Column(db.Integer(), primary_key=True)
         callsign = db.Column(db.String(100), nullable=False, server_default='')
-        bulletin = db.Column(db.String(100), nullable=False, server_default='')
+        bulletin = db.Column(db.String(150), nullable=False, server_default='')
         time = db.Column(db.DateTime())
         server = db.Column(db.String(100), nullable=False, server_default='')
         system_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -428,7 +428,7 @@ def create_app():
         id = db.Column(db.Integer(), primary_key=True)
         snd_callsign = db.Column(db.String(100), nullable=False, server_default='')
         rcv_callsign = db.Column(db.String(100), nullable=False, server_default='')
-        message = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(150), nullable=False, server_default='')
         time = db.Column(db.DateTime())
         server = db.Column(db.String(100), nullable=False, server_default='')
         system_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -439,7 +439,7 @@ def create_app():
         __tablename__ = 'news'
         id = db.Column(db.Integer(), primary_key=True)
         subject = db.Column(db.String(100), nullable=False, server_default='')
-        text = db.Column(db.String(100), nullable=False, server_default='')
+        text = db.Column(db.String(5000), nullable=False, server_default='')
         date = db.Column(db.String(100), nullable=False, server_default='')
         time = db.Column(db.DateTime())
 
@@ -470,16 +470,16 @@ def create_app():
         __tablename__ = 'social'
         id = db.Column(db.Integer(), primary_key=True)
         callsign = db.Column(db.String(100), nullable=False, server_default='')
-        message = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(150), nullable=False, server_default='')
         time = db.Column(db.DateTime())
         
     class Misc(db.Model):
         __tablename__ = 'misc'
         id = db.Column(db.Integer(), primary_key=True)
-        field_1 = db.Column(db.String(100), nullable=True, server_default='')
-        field_2 = db.Column(db.String(100), nullable=True, server_default='')
-        field_3 = db.Column(db.String(100), nullable=True, server_default='')
-        field_4 = db.Column(db.String(100), nullable=True, server_default='')
+        field_1 = db.Column(db.String(500), nullable=True, server_default='')
+        field_2 = db.Column(db.String(500), nullable=True, server_default='')
+        field_3 = db.Column(db.String(500), nullable=True, server_default='')
+        field_4 = db.Column(db.String(500), nullable=True, server_default='')
         int_1 = db.Column(db.Integer(), nullable=True)
         int_2 = db.Column(db.Integer(), nullable=True)
         int_3 = db.Column(db.Integer(), nullable=True)

@@ -13,8 +13,8 @@ db_location = 'sqlite:///hbnet.sqlite'
 #db_location = 'mysql+pymysql://DB_USERNAME:DB_PASSWORD@DB_HOST:MySQL_PORT/DB_NAME'
 
 
-# Title of the HBNet Web Server
-title = 'HBNet DMR server'
+# Title of the HBNet Web Service/DMR network
+title = 'HBNet Web Service'
 # Port to run server
 hws_port = 8080
 # IP to run server on

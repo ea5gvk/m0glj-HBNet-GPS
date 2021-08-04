@@ -214,7 +214,7 @@ def download_config(L_CONFIG_FILE, cli_file):
                 corrected_config['SYSTEMS'][i]['DESCRIPTION'] = bytes((iterate_config[i]['DESCRIPTION']).ljust(19)[:19], 'utf-8')
                 corrected_config['SYSTEMS'][i]['SLOTS'] = bytes((iterate_config[i]['SLOTS']), 'utf-8')
                 corrected_config['SYSTEMS'][i]['URL'] = bytes((iterate_config[i]['URL']).ljust(124)[:124], 'utf-8')
-                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('HBNet DMR').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('HBNet V1.0').ljust(40)[:40], 'utf-8')
                 corrected_config['SYSTEMS'][i]['PACKAGE_ID'] = bytes(('Dev').ljust(40)[:40], 'utf-8')
                 corrected_config['SYSTEMS'][i]['OPTIONS'] = b''.join([b'Type=HBlink;', bytes(iterate_config[i]['OPTIONS'], 'utf-8')])
 

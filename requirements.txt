@@ -14,5 +14,6 @@ flask_babelex
 pymysql
 folium
 requests
-libsrc
+libscrc
 resettabletimer
+pymysql
