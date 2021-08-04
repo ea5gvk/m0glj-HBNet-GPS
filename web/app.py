@@ -149,7 +149,7 @@ def create_app():
         username = db.Column(db.String(100,), nullable=False, unique=True)
         password = db.Column(db.String(255), nullable=False, server_default='')
         email_confirmed_at = db.Column(db.DateTime())
-        email = db.Column(db.String(255), nullable=False, unique=True)
+        email = db.Column(db.String(255), nullable=True, unique=True)
         
         # User information
         first_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -442,6 +442,36 @@ def create_app():
         text = db.Column(db.String(100), nullable=False, server_default='')
         date = db.Column(db.String(100), nullable=False, server_default='')
         time = db.Column(db.DateTime())
+
+    class PeerLoc(db.Model):
+        __tablename__ = 'peer_locations'
+        id = db.Column(db.Integer(), primary_key=True)
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
+        comment = db.Column(db.String(100), nullable=False, server_default='')
+        lat = db.Column(db.String(100), nullable=False, server_default='')
+        lon = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        user = db.Column(db.Boolean(), nullable=False, server_default='1')
+        dmr_id = db.Column(db.Integer(), primary_key=False)
+
+    class CustomID(db.Model):
+        __tablename__ = 'custom_dmr_id'
+        id = db.Column(db.Integer(), primary_key=True)
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
+        f_name = db.Column(db.String(100), nullable=False, server_default='')
+        l_name = db.Column(db.String(100), nullable=False, server_default='')
+        city = db.Column(db.String(100), nullable=False, server_default='')
+        country = db.Column(db.String(100), nullable=False, server_default='')
+        dmr_id = db.Column(db.Integer(), primary_key=False)
+
+    class Social(db.Model):
+        __tablename__ = 'social'
+        id = db.Column(db.Integer(), primary_key=True)
+        callsign = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
         
     class Misc(db.Model):
         __tablename__ = 'misc'
@@ -454,6 +484,8 @@ def create_app():
         int_2 = db.Column(db.Integer(), nullable=True)
         int_3 = db.Column(db.Integer(), nullable=True)
         int_4 = db.Column(db.Integer(), nullable=True)
+        boo_1 = db.Column(db.Boolean(), nullable=True, server_default='1')
+        boo_2 = db.Column(db.Boolean(), nullable=True, server_default='1')
         time = db.Column(db.DateTime())
 
 
@@ -498,8 +530,9 @@ def create_app():
                     # Find user by email (with form.email)
                     user, user_email = self.db_manager.get_user_and_user_email_by_email(login_form.email.data)
                 #Add aditional message
+                flash_text = Misc.query.filter_by(field_3='approval_flash').first()
                 if not user.initial_admin_approved:
-                        flash('<strong>You account is waiting for approval from an administrator. See <a href="/help">the Help page</a> for more information. You will receive an email when your account is approved.</strong>', 'success')
+                        flash(flash_text, 'success')
 
                 if user:
                     # Log user in
@@ -535,6 +568,19 @@ def create_app():
         user.roles.append(Role(name='Admin'))
         user.roles.append(Role(name='User'))
         db.session.add(user)
+        # Add approval messages to DB for editing
+        email_entry_add = Misc(
+            field_1 = 'approval_email',
+            field_2 = 'You are receiving this message because an administrator has approved your account. You may now login and use ' + title + '.',
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(email_entry_add)
+        flash_entry_add = Misc(
+            field_1 = 'approval_flash',
+            field_2 = '<strong>You account is waiting for approval from an administrator. See <a href="/help">the Help page</a> for more information. You will receive an email when your account is approved.</strong>',
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(flash_entry_add)
         db.session.commit()
 
     # Query radioid.net for list of DMR IDs, then add to DB
@@ -601,21 +647,24 @@ def create_app():
     @app.route('/')
     def home_page():
         #content = Markup('<strong>Index</strong>')
-        l_news = News.query.order_by(News.time.desc()).first()
-        content = '''
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
-<tr>
-<td style="text-align: center;">
-<h3>''' + l_news.subject + '''</h3>
-</td>
-</tr>
-<tr>
-<td style="text-align: center;"><strong>''' + l_news.date + '''</strong></td>
-</tr>
-<tr>
-<td><br />''' + l_news.text + '''<br /><br /></td>
-</tr>
-</tbody></table>'''
+        try:
+            l_news = News.query.order_by(News.time.desc()).first()
+            content = '''
+    <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
+    <tr>
+    <td style="text-align: center;">
+    <h3>''' + l_news.subject + '''</h3>
+    </td>
+    </tr>
+    <tr>
+    <td style="text-align: center;"><strong>''' + l_news.date + '''</strong></td>
+    </tr>
+    <tr>
+    <td><br />''' + l_news.text + '''<br /><br /></td>
+    </tr>
+    </tbody></table>'''
+        except:
+            content = ''
         return render_template('index.html', news = Markup(content))
     
     @app.route('/help')
@@ -1009,10 +1058,11 @@ def create_app():
             edit_user.active = True
             edit_user.initial_admin_approved = True
             db.session.commit()
+            email_text = Misc.query.filter_by(field_1='approval_email').first()
             msg = Message(recipients=[edit_user.email],
                           sender=(title, MAIL_DEFAULT_SENDER),
                           subject='Account Approval',
-                          body='''You are receiving this message because an administrator has approved your account. You may now login and use ''' + title + '''.''')
+                          body = email_text)
             mail.send(msg)
             content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
             
@@ -1707,6 +1757,61 @@ def create_app():
 '''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    @app.route('/misc_settings', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def misc_sett():
+        if request.args.get('approve_email') == 'save':
+            misc_edit_field_1('approval_email', request.form.get('email_text'), None, None, None, None, None, None, None, None)
+            content = '''<h3 style="text-align: center;">Saved email text.</h3>
+            <p style="text-align: center;">Redirecting in 3 seconds.</p>
+            <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
+        elif request.args.get('approve_flash') == 'save':
+            misc_edit_field_1('approval_flash', request.form.get('flash_text'), None, None, None, None, None, None, None, None)
+            content = '''<h3 style="text-align: center;">Saved flash text.</h3>
+            <p style="text-align: center;">Redirecting in 3 seconds.</p>
+            <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
+        else:
+                
+            email_text = Misc.query.filter_by(field_1='approval_email').first()
+            flash_text = Misc.query.filter_by(field_1='approval_flash').first()
+            content = '''
+    <p>&nbsp;</p>
+    <form action="misc_settings?approve_email=save" method="POST">
+    <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="email_text">Account Approval email text (HTML OK):</label><br /> <textarea id="email_text" cols="65" name="email_text" rows="4">''' + email_text.field_2 + '''</textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+    <p>&nbsp;</p>
+
+    <form action="misc_settings?approve_flash=save" method="POST">
+    <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="flash_text">Account Approval flash text (HTML OK):</label><br /> <textarea id="flash_text" cols="65" name="flash_text" rows="4">''' + flash_text.field_2 + '''</textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+    '''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
     @app.route('/user_tg')
     def tg_status():
         cu = current_user
@@ -1850,7 +1955,7 @@ def create_app():
 <tr>
 <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''">''' + i.bridge_name + '''</a></td>
 <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
-<td style="width: 339px;">&nbsp;''' + re.sub('\..*', '', i.description) + '''</td>
+<td style="width: 339px;">&nbsp;''' + i.description[:60] + '''</td>
 </tr>'''
         content = content + '''
 </tbody>
@@ -1954,121 +2059,7 @@ def create_app():
 
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-
-    @app.route('/test')
-    def test_peer():
-        #user = User(
-       #     username='admin3',
-       #     email_confirmed_at=datetime.datetime.utcnow(),
-       #     password=user_manager.hash_password('admin'),
-       # )
-        #user.roles.append(Role(name='Admin'))
-        #user.roles.append(Role(name='User'))
-        #user.add_roles('Admin')
-        #db.session.add(user)
-        #db.session.commit()
-        u = User.query.filter_by(username='admin').first()
-        #u = Role.query.all()
-##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
-        #u = User.query.all()
-##        #tu = User.query().all()
-####        print((tu.dmr_ids))
-####        #print(tu.dmr_ids)
-####        return str(tu.dmr_ids) #str(get_ids('kf7eel'))
-##        login_passphrase = ast.literal_eval(u.dmr_ids)
-##        print('|' + login_passphrase[3153591] + '|')
-##        #print(u.dmr_ids)
-##        #tu.dmr_ids = 'jkgfldj'
-##        #db.session.commit()
-##        return str(u.dmr_ids)
-##        u = User.query.filter(User.dmr_ids.contains('3153591')).first()
-##        #tu = User.query.all()
-##        #tu = User.query().all()
-####        print((tu.dmr_ids))
-####        #print(tu.dmr_ids)
-####        return str(tu.dmr_ids) #str(get_ids('kf7eel'))
-##        print(u)
-##        login_passphrase = ast.literal_eval(u.dmr_ids)
-##        
-##        #tu.dmr_ids = 'jkgfldj'
-##        #db.session.commit()
-##        return str([u.is_active, login_passphrase[3153591]])
-        #edit_user = User.query.filter(User.username == 'bob').first()
-        #edit_user.active = False
-        
-        #db.session.commit()
-        #print((current_user.has_roles('Admin')))
-        #u.roles.append(Role(name='Admin'))
-        #print((current_user.has_roles('Admin')))
-        #db.session.commit()
-        #db.session.add(u)
-        #db.session.commit()
-##        admin_role = UserRoles(
-##            user_id=3,
-##            role_id=1,
-##            )
-##        user_role = UserRoles(
-##            user_id=3,
-##            role_id=2,
-##            )
-##        db.session.add(user_role)
-##        db.session.add(admin_role)
-##        db.session.commit()
-        #print(role)
-##        for i in u:
-##            print(i.username)
-        #u = User.query.filter_by(username='kf7eel').first()
-        #print(u.id)
-        #u_role = UserRoles.query.filter_by(user_id=u.id).first()
-        #if u_role.role_id == 2:
-        #    print('userhasjkdhfdsejksfdahjkdhjklhjkhjkl')
-##        print(u.has_roles('Admin'))
-        #u_role.role_id = 1
-        #print(u)
-       # for i in u:
-            ##print(i.initial_admin_approved)
-            #if not i.initial_admin_approved:
-                #print(i.username)
-        #    print(i)
-        #u_role = UserRoles.query.filter_by(id=2).first().role_id
-        #u_role = 1
-       # db.session.commit()
-        #u_role = UserRoles.query.filter_by(id=u.id).first().role_id
-        #print(u_role)
-        #return str(u)
-##        if not u.active:
-##            flash('We come in peace', 'success')
-##        content = 'hello'
-       #add
-##        burn_list = BurnList(
-##            dmr_id=3153595,
-##            version=1,
-##            )
-##        db.session.add(burn_list)
-##        db.session.commit()
-##
-       #generate dict
-##        b = BurnList.query.all()
-##        print(b)
-##        burn_dict = {}
-##        for i in b:
-##            print(i.dmr_id)
-##            burn_dict[i.dmr_id] = i.version
-##        content = burn_dict
-##        # delete
-####        delete_b = BurnList.query.filter_by(dmr_id=3153591).first()
-####        db.session.delete(delete_b)
-####        db.session.commit()
-##        a = AuthLog.query.all()
-##        print(a)
-##        authlog_flush()
-##        peer_delete('mmdvm', 1)
-        user_ids = ast.literal_eval(u.dmr_ids)
-        for i in user_ids.items():# active_tgs:
-            print(active_tgs['test'][i[0]])
-            content = active_tgs['test'][i[0]][1]['2']
-##        content = user_ids
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+###### DB functions #############################
     
     def get_peer_configs(_server_name):
         mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).filter_by(enabled=True).all()
@@ -2184,6 +2175,42 @@ def create_app():
             login_type=_login_type
             )
         db.session.add(auth_log_add)
+        db.session.commit()
+
+    def misc_add(_field_1, _field_2, _field_3, _field_4, int_1, _int_2, _int_3, _int_4, _boo_1, _boo_2):
+        misc_entry_add = Misc(
+            field_1 = _field_1,
+            field_2 = _field_2,
+            field_3 = _field_3,
+            field_4 = _field_4,
+            int_1 = _int_1,
+            int_2 = _int_2,
+            int_3 = _int_3,
+            int_4 = _int_4,
+            boo_1 = _boo_1,
+            boo_2 = _boo_2,
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(misc_entry_add)
+        db.session.commit()
+
+    def misc_edit_field_1(_field_1, _field_2, _field_3, _field_4, _int_1, _int_2, _int_3, _int_4, _boo_1, _boo_2):
+        m = Misc.query.filter_by(field_1=_field_1).first()
+        m.field_1 = _field_1
+        m.field_2 = _field_2
+        m.field_3 = _field_3
+        m.field_4 = _field_4
+        m.int_1 = _int_1
+        m.int_2 = _int_2
+        m.int_3 = _int_3
+        m.int_4 = _int_4
+        m.boo_1 = _boo_1
+        m.boo_2 = _boo_2
+        db.session.commit()
+        
+    def delete_misc_field_1(_field_1):
+        delete_f1 = Misc.query.filter_by(field_1=_field_1).first()
+        db.session.delete(delete_f1)
         db.session.commit()
         
     def authlog_flush():
@@ -5243,13 +5270,13 @@ def create_app():
 </table>
 <p>&nbsp;</p>
 
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong>Name</strong></td>
-<td style="text-align: center;"><strong>Public</strong></td>
-<td style="text-align: center;"><strong>Description</strong></td>
-<td style="text-align: center;"><strong>TGID</strong></td>
+<td style="text-align: center; width: 187px;"><strong>Name</strong></td>
+<td style="text-align: center; width: 61.55px;"><strong>Public</strong></td>
+<td style="text-align: center; width: 227.45px;"><strong>Description</strong></td>
+<td style="text-align: center; width: 88px;"><strong>TGID</strong></td>
 
 </tr>
 '''
