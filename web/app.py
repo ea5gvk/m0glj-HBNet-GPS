@@ -530,9 +530,9 @@ def create_app():
                     # Find user by email (with form.email)
                     user, user_email = self.db_manager.get_user_and_user_email_by_email(login_form.email.data)
                 #Add aditional message
-                flash_text = Misc.query.filter_by(field_3='approval_flash').first()
+                flash_text = Misc.query.filter_by(field_1='approval_flash').first()
                 if not user.initial_admin_approved:
-                        flash(flash_text, 'success')
+                        flash(flash_text.field_2, 'success')
 
                 if user:
                     # Log user in
@@ -1062,7 +1062,7 @@ def create_app():
             msg = Message(recipients=[edit_user.email],
                           sender=(title, MAIL_DEFAULT_SENDER),
                           subject='Account Approval',
-                          body = email_text)
+                          body = str(email_text.field_2))
             mail.send(msg)
             content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
             
