@@ -264,7 +264,6 @@ def create_app():
 ##        public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
         id = db.Column(db.Integer(), primary_key=False)
         ip = db.Column(db.String(100), nullable=False, server_default='')
-        port = db.Column(db.Integer(), primary_key=False)
         global_path = db.Column(db.String(100), nullable=False, server_default='./')
         global_ping_time = db.Column(db.Integer(), primary_key=False)
         global_max_missed = db.Column(db.Integer(), primary_key=False)
@@ -2847,13 +2846,12 @@ def create_app():
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _port, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
+    def server_add(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
 ##        public_list = _public_list,
         ip = _ip,
-        port = _port,
         global_path =_global_path,
         global_ping_time = _global_ping_time,
         global_max_missed = _global_max_missed,
@@ -3076,13 +3074,13 @@ def create_app():
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
                 else:
-                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
                     content = '''<h3 style="text-align: center;">Server saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'),  _port, request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -3120,10 +3118,7 @@ def create_app():
 <td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, for listing on passphrase page):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" value="''' + str(s.ip) + '''"/></td>
 </tr>
-<tr>
-<td style="width: 16.0381%;"><strong>&nbsp;Port (for listing on passphrase page):</strong></td>
-<td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="''' + str(s.port) + '''"/></td>
-</tr>
+
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="''' + str(s.unit_time) + '''"/></td>
@@ -3325,10 +3320,7 @@ def create_app():
 <td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" /></td>
 </tr>
-<tr>
-<td style="width: 16.0381%;"><strong>&nbsp;Port:</strong></td>
-<td style="width: 78.7895%;">&nbsp;<input name="server_port" type="text" value="62032"/></td>
-</tr>
+
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="10080"/></td>
