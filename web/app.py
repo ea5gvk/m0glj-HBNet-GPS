@@ -860,7 +860,7 @@ def create_app():
         else:
             content = '''
 <p>Use this page to sync changes from <a href="https://www.radioid.net/">RadioID.net</a> with this system (such as a new DMR ID, name change, etc.).</p>
-<p>Updating your information from <a href="https://www.radioid.net/">RadioID.net</a> will <strong>overwrite any custom authentication passphrases</strong>, your city, and name in the database. Are you sure you want to continue?</p>
+<p>Update your information from <a href="https://www.radioid.net/">RadioID.net</a> to change your city, name, or add any additional DMR IDs.</p>
 <p>&nbsp;</p>
 <h2 style="text-align: center;"><a href="update_ids?callsign=''' + current_user.username + '''">Yes, update my information.</a></h2>
 
@@ -2020,7 +2020,7 @@ def create_app():
 <tr>
 <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''">''' + i.bridge_name + '''</a></td>
 <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
-<td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+\s\s', '', i.description))[:50] + '''...</td>
+<td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+', ' ', i.description))[:50] + '''...</td>
 </tr>'''
         content = content + '''
 </tbody>
@@ -5350,7 +5350,7 @@ def create_app():
 <tr>
 <td style="text-align: center;"><a href="manage_rules?edit_bridge=''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</a>
 <td style="text-align: center;">''' + str(i.public_list) + '''</td>
-<td style="text-align: center;">''' + str(re.sub('<[^>]*>|\s\s+\s\s', '', i.description))[:50] + '''...</td>
+<td style="text-align: center;">''' + str(re.sub('<[^>]*>|\s\s+', ' ', i.description))[:50] + '''...</td>
 <td style="text-align: center;">''' + str(i.tg) + '''</td>
 
 </tr>
