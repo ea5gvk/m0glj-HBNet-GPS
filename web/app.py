@@ -1345,9 +1345,21 @@ def create_app():
 
             content = '''
     <p>&nbsp;</p>
+
     <p style="text-align: center;"><strong>Log for: ''' + g_arg + '''</strong></p>
 
     ''' + f_link + '''
+
+    <table style="margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td>&nbsp;<span style="color: #000000; background-color: #ff2400;">&nbsp;<strong>Failed</strong></span>&nbsp;= Not authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>Attempt</strong></span>&nbsp;= Checking if authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>Confirmed</strong></span>&nbsp;= Authorized, connection comfirmed.&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
