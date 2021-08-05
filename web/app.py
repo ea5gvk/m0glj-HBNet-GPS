@@ -935,7 +935,13 @@ def create_app():
     @roles_required('Admin')    # Use of @roles_required decorator
     def approve_list():
         u = User.query.all()
-        wait_list = '''<h2 style="text-align: center;"><strong>Users waiting for approval:</strong></h2><p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
+        wait_list = '''<h2 style="text-align: center;"><strong>Users waiting for approval:</strong></h2>
+<p>&nbsp;</p>
+
+<p style="text-align: center;">Click on the callsign to approve user. An email may be sent to inform the user that they can login.</p>
+
+<p>&nbsp;</p>
+<table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
 <td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>

@@ -34,31 +34,31 @@
     <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
 <h1 style="text-align: center;">{{title}}</h1>
 <hr />
-<table style="width: 800px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<table style="width: 900px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
     
-<td style="text-align: center;"><a href={{url}}/>Home</a></td>
-<td style="text-align: center;"><a href={{url}}/news>News</a></td>
-<td style="text-align: center;"><a href={{url}}/talkgroups>Talkgroups</a></td>
+<td style="text-align: center;"><a href={{url}}/>&nbsp; Home &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/news>&nbsp; News &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/talkgroups>&nbsp; Talkgroups &nbsp;</a></td>
 
         {% if not call_or_get(current_user.is_authenticated) %}
-<td style="text-align: center;"><a href={{ url_for('user.register') }}>Register</a></td>
-<td style="text-align: center;"><a href={{ url_for('user.login') }}>Sign in</a></td>
+<td style="text-align: center;"><a href={{ url_for('user.register') }}>&nbsp; Register &nbsp;</a></td>
+<td style="text-align: center;"><a href={{ url_for('user.login') }}>&nbsp; Sign in &nbsp;</a></td>
     {% endif %}
     {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-    <td style="text-align: center;"><a href={{url}}/add_user><strong>Add a User</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/list_users><strong>Edit Users</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/approve_users><strong>Waiting Approval</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/auth_log><strong>Auth Log</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/add_user><strong>&nbsp; Add a User &nbsp;</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/list_users><strong>&nbsp; Edit Users &nbsp;</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/approve_users><strong>&nbsp; Waiting Approval &nbsp;</strong></a></td>
+    <td style="text-align: center;"><a href={{url}}/auth_log><strong>&nbsp; Auth Log &nbsp;</strong></a></td>
 
             {% endif %}
 <td style="text-align: center;"><a href={{url}}/help>Help</a></td>
-<td style="text-align: center;"><a href={{url}}/generate_passphrase>Passphrase(s)</a></td>
-<!-- <td style="text-align: center;"><a href={{url}}/user_tg>Current TGs</a></td> -->
-<td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">Edit {{ current_user.username or current_user.email }}</a></td>
-<td style="text-align: center;"><a href={{ url_for('user.logout') }}>Sign out</a></td>
+<td style="text-align: center;"><a href={{url}}/generate_passphrase>&nbsp; Passphrase(s) &nbsp;</a></td>
+<!-- <td style="text-align: center;"><a href={{url}}/user_tg>&nbsp; Current TGs &nbsp;</a></td> -->
+<td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">&nbsp; Edit {{ current_user.username or current_user.email }} &nbsp;</a></td>
+<td style="text-align: center;"><a href={{ url_for('user.logout') }}>&nbsp; Sign out &nbsp;</a></td>
             {% endif %}
 </tr>
 </tbody>
@@ -66,15 +66,15 @@
 
 {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-<table style="width: 800px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
+<table style="width: 900px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
 <tbody>
 <tr>
-<td style="text-align: center;"><a href={{url}}/manage_servers>Manage Servers</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_peers>Manage Peers</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_masters>Manage Masters</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_rules>Manage Rules</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_news>Manage News</a></td>
-<td style="text-align: center;"><a href={{url}}/misc_settings>Misc Options</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_servers>&nbsp; Manage Servers &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_peers>&nbsp; Manage Peers &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_masters>&nbsp; Manage Masters &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_rules>&nbsp; Manage Rules &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/manage_news>&nbsp; Manage News &nbsp;</a></td>
+<td style="text-align: center;"><a href={{url}}/misc_settings>&nbsp; Misc Options &nbsp;</a></td>
 
 
 </tr>
