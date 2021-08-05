@@ -154,7 +154,7 @@ def create_app():
         # User information
         first_name = db.Column(db.String(100), nullable=False, server_default='')
         last_name = db.Column(db.String(100), nullable=False, server_default='')
-        dmr_ids = db.Column(db.String(100), nullable=False, server_default='')
+        dmr_ids = db.Column(db.String(1000), nullable=False, server_default='')
         city = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(100), nullable=False, server_default='')
         #Used for initial approval
@@ -1638,7 +1638,6 @@ def create_app():
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     
-##    if news_enabled:
     @app.route('/news') #, methods=['POST', 'GET'])
 ##    @login_required
     def view_news():
@@ -1662,7 +1661,7 @@ def create_app():
 </td>
 </tr>
 <tr>
-<td style="text-align: center;"><strong>''' + article.date + '''</strong></td>
+<td style="text-align: center;"><strong>''' + article.date + '''</strong> - <a href="news/''' + str(article.id) + '''">Link</a></td>
 </tr>
 <tr>
 <td>''' + article.text + '''</td>
@@ -1671,6 +1670,29 @@ def create_app():
                 art_count = art_count + 1
         #content = content + '''</tbody></table><p>&nbsp;</p>'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/news/<article>') #, methods=['POST', 'GET'])
+    def view_arts(article):
+        
+        view_arti =  News.query.filter_by(id=article).first()
+
+        content = '''
+<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
+<tr>
+<td style="text-align: center;">
+<h3>''' + view_arti.subject + '''</h3>
+</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>''' + view_arti.date + '''</strong></td>
+</tr>
+<tr>
+<td>''' + view_arti.text + '''</td>
+</tr>
+</tbody></table><p>&nbsp;</p>'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    
 
     @app.route('/add_news', methods=['POST', 'GET'])
     @login_required
@@ -1744,7 +1766,7 @@ def create_app():
                 content = content + '''
             
 <tr>
-<td>Delete: <a href="manage_news?delete=''' + str(a.id )+ '''">''' + a.subject + '''</a></td>
+<td><a href="news/''' + str(a.id) + '''">''' + a.subject + '''</a> | <a href="manage_news?delete=''' + str(a.id )+ '''">Delete</a></td>
 <td>''' + a.date + '''</td>
 <td>''' + str(a.id) + '''</td>
 
