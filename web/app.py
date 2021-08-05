@@ -156,7 +156,7 @@ def create_app():
         last_name = db.Column(db.String(100), nullable=False, server_default='')
         dmr_ids = db.Column(db.String(1000), nullable=False, server_default='')
         city = db.Column(db.String(100), nullable=False, server_default='')
-        notes = db.Column(db.String(100), nullable=False, server_default='')
+        notes = db.Column(db.String(2000), nullable=False, server_default='')
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
@@ -2003,7 +2003,6 @@ def create_app():
 ##    @login_required
     def tg_list():
         cbl = BridgeList.query.filter_by(public_list=True).all()
-##        print(cbl)
         content = '''
 <p>&nbsp;</p>
 <p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
@@ -2016,11 +2015,12 @@ def create_app():
 <td style="width: 339px; text-align: center;"><strong>&nbsp;Description</strong></td>
 </tr> '''
         for i in cbl:
+            print(str(re.sub('<[^>]*>', '', i.description))[:50])
             content = content + '''
 <tr>
 <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''">''' + i.bridge_name + '''</a></td>
 <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
-<td style="width: 339px;">&nbsp;''' + i.description[:60] + '''</td>
+<td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+\s\s', '', i.description))[:50] + '''...</td>
 </tr>'''
         content = content + '''
 </tbody>
@@ -5350,7 +5350,7 @@ def create_app():
 <tr>
 <td style="text-align: center;"><a href="manage_rules?edit_bridge=''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</a>
 <td style="text-align: center;">''' + str(i.public_list) + '''</td>
-<td style="text-align: center;">''' + str(i.description[:50]) + '''</td>
+<td style="text-align: center;">''' + str(re.sub('<[^>]*>|\s\s+\s\s', '', i.description))[:50] + '''...</td>
 <td style="text-align: center;">''' + str(i.tg) + '''</td>
 
 </tr>
