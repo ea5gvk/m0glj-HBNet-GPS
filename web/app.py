@@ -1811,6 +1811,50 @@ def create_app():
     '''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    @app.route('/import_rules/<server>', methods=['POST', 'GET'])
+    @login_required
+    @roles_required('Admin')
+    def import_rules(server):
+        if request.args.get('import') == 'true':
+            try:
+                imp_dict = ast.literal_eval(request.form.get('rules'))
+                for e in imp_dict.items():
+                    b_db = BridgeList.query.filter_by(bridge_name=e[0]).first()
+                    if b_db == None:
+                        bridge_add(e[0], 'Add a description', True, 0)
+                    for i in e[1]: #.items():
+                        add_system_rule(e[0], i['SYSTEM'], i['TS'], i['TGID'], i['ACTIVE'], i['TIMEOUT'], i['TO_TYPE'], re.sub('\[|\]', '', str(i['ON'])), re.sub('\[|\]', '', str(i['OFF'])), re.sub('\[|\]', '', str(i['RESET'])), server)
+                content = '''<h3 style="text-align: center;">Sucessfully imported rules (or something else).</h3>
+                <p style="text-align: center;">Redirecting in 3 seconds.</p>
+                <meta http-equiv="refresh" content="3; URL=manage_servers" /> '''
+            except:
+                content = '''<h3 style="text-align: center;">Rules import failed.</h3>
+                <p style="text-align: center;">Redirecting in 3 seconds.</p>
+                <meta http-equiv="refresh" content="3; URL=manage_servers" /> '''
+        else:
+            content = '''
+<h3 style="text-align: center;">Before importing:</h3>
+<p style="text-align: center;">1. You must have master, proxy, and peer connections set up prior to importing rules. The names of each master, proxy, or peer must match <strong>'SYSTEM'</strong> in your rules.py.</p>
+<p style="text-align: center;">2. In rules.py, locate <strong>BRIDGES = {...................}</strong>. Copy and paste the brackets, { and }, and everything in between into the box below.</p>
+
+    <form action="''' + server + '''?import=true" method="POST">
+    <table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="rules">Paste from rules.py:</label><br /> <textarea id="rules" cols="200" name="rules" rows="20"></textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+'''
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
     @app.route('/user_tg')
     def tg_status():
         cu = current_user
@@ -3096,6 +3140,8 @@ def create_app():
 <p style="text-align: center;">&nbsp;</p>
 
 <p style="text-align: center;"><strong><a href="manage_servers?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
+
+<p style="text-align: center;"><strong><a href="/import_rules/''' + str(s.name) + '''">Import Rules</a></strong></p>
 
 <form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
 <p style="text-align: center;">&nbsp;</p>
