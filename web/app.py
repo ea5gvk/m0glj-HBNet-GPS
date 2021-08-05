@@ -1420,6 +1420,16 @@ def create_app():
     <p style="text-align: center;"><strong><a href="auth_log?flush_db_mmdvm=true&mmdvm_server=''' + request.args.get('mmdvm_server') + '''">Flush authentication log for server: ''' + request.args.get('mmdvm_server') + '''</a></strong></p>
     <p style="text-align: center;"><strong>Log for MMDVM server: ''' + request.args.get('mmdvm_server') + '''</strong></p>
 
+    <table style="margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td>&nbsp;<span style="color: #000000; background-color: #ff2400;">&nbsp;<strong>Failed</strong></span>&nbsp;= Not authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>Attempt</strong></span>&nbsp;= Checking if authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>Confirmed</strong></span>&nbsp;= Authorized, connection comfirmed.&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
@@ -1492,6 +1502,16 @@ def create_app():
     <p style="text-align: center;"><strong><a href="auth_log?flush_db_ip=true&peer_ip=''' + request.args.get('peer_ip') + '''">Flush authentication log for IP: ''' + request.args.get('peer_ip') + '''</a></strong></p>
     <p style="text-align: center;"><strong>Log for IP address: ''' + request.args.get('peer_ip') + '''</strong></p>
 
+    <table style="margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td>&nbsp;<span style="color: #000000; background-color: #ff2400;">&nbsp;<strong>Failed</strong></span>&nbsp;= Not authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>Attempt</strong></span>&nbsp;= Checking if authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>Confirmed</strong></span>&nbsp;= Authorized, connection comfirmed.&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
     
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
@@ -1569,6 +1589,17 @@ def create_app():
     <p style="text-align: center;"><strong><a href="auth_log?portal_username=Not Registered">Un-registered authentication attempts</a></strong></p>
     <p style="text-align: center;"><strong>Authentication log by DMR ID</strong></p>
 
+    <table style="margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr>
+    <td>&nbsp;<span style="color: #000000; background-color: #ff2400;">&nbsp;<strong>Failed</strong></span>&nbsp;= Not authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #ffff00;"><strong>Attempt</strong></span>&nbsp;= Checking if authorized.&nbsp;</td>
+    <td>&nbsp;<span style="color: #000000; background-color: #00ff00;"><strong>Confirmed</strong></span>&nbsp;= Authorized, connection comfirmed.&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>&nbsp;</p>
+    
     <table style="width: 1000px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
     <tr>
@@ -5141,7 +5172,7 @@ def create_app():
 </select></td>
 </tr>
 <tr>
-<td><strong>Timer Time (minutes): </strong> &nbsp;<input name="timer_time" type="text" /></td>
+<td><strong>Timer Time (minutes): </strong> &nbsp;<input name="timer_time" type="text" value="0"/></td>
 <td><strong>Timer Type: &nbsp;</strong><select name="type_dropdown">
 <option selected="selected" value="NONE">None</option>
 <option selected="selected" value="ON">On</option>
