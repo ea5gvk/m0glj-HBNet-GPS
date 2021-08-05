@@ -3095,6 +3095,10 @@ def create_app():
             _ai_stale = int(request.form.get('stale_days'))
             _report_interval = int(request.form.get('report_interval'))
             _report_port = int(request.form.get('report_port'))
+            _global_use_acl = False
+            _ai_try_download = False
+            _um_shorten_passphrase = False
+            _report_enabled = False
             if request.form.get('use_acl') == 'True':
                 _global_use_acl = True
             if request.form.get('aliases_enabled') == 'True':
@@ -3105,11 +3109,11 @@ def create_app():
                 _report_enabled = True
 ##            if  request.form.get('public_list') == 'True':
 ##                public_list = True
-            else:
-                _global_use_acl = False
-                _ai_try_download = False
-                _um_shorten_passphrase = False
-                _report_enabled = False
+##            else:
+##                _global_use_acl = False
+##                _ai_try_download = False
+##                _um_shorten_passphrase = False
+##                _report_enabled = False
 ##                public_list = False
 
             if request.args.get('save_mode') == 'new':
@@ -3123,8 +3127,8 @@ def create_app():
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
+                print(_ai_try_download)
 ##                print(request.args.get('server'))
-                print(request.form.get('public_notes'))
                 server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
