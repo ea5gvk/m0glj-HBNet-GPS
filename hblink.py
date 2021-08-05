@@ -44,6 +44,7 @@ from twisted.internet import reactor, task
 # Other files we pull from -- this is mostly for readability and segmentation
 import log
 import config
+from config import acl_build
 from const import *
 from dmr_utils3.utils import int_id, bytes_4, try_download, mk_id_dict
 
@@ -534,7 +535,8 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = False
                 if self._config['USE_USER_MAN'] == False:
                    # print('False')
-                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
+                    b_acl = acl_build(self._config['REG_ACL'], 4294967295)
+                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):
                         user_auth = True
                 if user_auth == True:
                 # Build the configuration data strcuture for the peer
