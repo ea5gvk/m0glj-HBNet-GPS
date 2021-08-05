@@ -5328,7 +5328,7 @@ def create_app():
 <tr>
 <td style="text-align: center;"><a href="manage_rules?edit_bridge=''' + str(i.bridge_name) + '''">''' + str(i.bridge_name) + '''</a>
 <td style="text-align: center;">''' + str(i.public_list) + '''</td>
-<td style="text-align: center;">''' + str(i.description) + '''</td>
+<td style="text-align: center;">''' + str(i.description[:50]) + '''</td>
 <td style="text-align: center;">''' + str(i.tg) + '''</td>
 
 </tr>
