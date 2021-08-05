@@ -925,17 +925,17 @@ class routerHBP(HBSYSTEM):
         if _rf_src not in user_rules:
             user_rules[_rf_src] = self.name
         if _rf_src in user_rules:
-            print('in')
+##            print('in')
             if user_rules[_rf_src] != self.name:
                 user_rules[_rf_src] = self.name
-                print('updated')
-        print(user_rules)
+##                print('updated')
+##        print(user_rules)
         for _bridge in BRIDGES:
 ##            print(BRIDGES)
-            print(_bridge)
+##            print(_bridge)
             # Match bridge name here
             for _system in BRIDGES[_bridge]:
-                print(_system)
+##                print(_system)
                 # Modify rule here for indiv system
                 if (_system['SYSTEM'] == self._system and _system['TGID'] == _dst_id and _system['TS'] == _slot and _system['ACTIVE'] == True):
 
