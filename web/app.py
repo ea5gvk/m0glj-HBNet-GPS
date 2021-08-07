@@ -5649,8 +5649,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             elif 'login_id' in hblink_req and 'login_confirmed' in hblink_req:
                 if hblink_req['old_auth'] == True:
                     authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'CONFIG, NO UMS', 'Confirmed')
-                #else:
-                   # authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
+                else:
+                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
                 response = jsonify(
                                 logged=True
                                     )
