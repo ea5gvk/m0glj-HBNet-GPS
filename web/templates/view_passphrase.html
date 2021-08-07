@@ -1,19 +1,10 @@
 {% extends 'flask_user/_public_base.html' %}
 {% block content %}
 <p>&nbsp;</p><h4 style="text-align: center;"><a href="/generate_passphrase/pi-star">Click here</a> for automated Pi-Star script.</h4><p>&nbsp;</p>
-<table style="width: 900px; margin-left: auto; margin-right: auto;">
-<tbody>
-<tr>
-<td>
 
-{{server_content}}
-
-</td>
-<td>{{passphrase_content}}
-</td>
-
-</tr>
-</tbody>
-</table>
+ <div class="row">
+  <div class="col-xs-4">{{server_content}}</div>
+  <div class="col-xs-8">{{passphrase_content}}</div>
+</div> 
 <p>&nbsp;</p>
 {% endblock %}
