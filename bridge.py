@@ -105,6 +105,27 @@ def update_tg(CONFIG, mode, dmr_id, data):
 ##        return config.build_config(cli_file)
 
 
+def ping(CONFIG):
+    user_man_url = CONFIG['USER_MANAGER']['URL']
+    shared_secret = str(sha256(CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    ping_data = {
+    'ping': CONFIG['USER_MANAGER']['THIS_SERVER_NAME'],
+    'secret':shared_secret
+
+    }
+##    print(rules_check)
+    json_object = json.dumps(ping_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+##        return config.build_config(cli_file)
+
+
 # Function to download rules
 def download_rules(L_CONFIG_FILE, cli_file):
     user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
@@ -414,6 +435,7 @@ def rule_timer_loop():
 
 # run this every 10 seconds to trim orphaned stream ids
 def stream_trimmer_loop():
+    ping(CONFIG)
     logger.debug('(ROUTER) Trimming inactive stream IDs from system lists')
     _now = time()
 

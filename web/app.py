@@ -52,6 +52,7 @@ import os, ast
 
 script_links = {}
 active_tgs = {}
+ping_list = {}
 
 # Query radioid.net for list of IDs
 def get_ids(callsign):
@@ -760,10 +761,36 @@ def create_app():
         sl = ServerList.query.all()
         svr_content = ''
         for i in sl:
+            try:
+                if time.time() - ping_list[i.name] < 30:
+                    svr_status = '''<div class="alert alert-success">
+      <strong>Online</strong>
+       </div> '''
+                elif time.time() - ping_list[i.name] <= 300:
+                    svr_status = '''<div class="alert alert-warning">
+      <strong>No pings. ( < 5 min.)</strong>
+       </div> '''
+                elif time.time() - ping_list[i.name] > 300:
+                    svr_status = '''<div class="alert alert-danger">
+      <strong>Offline</strong>
+       </div> '''
+                else:
+                    svr_status = '''<div class="alert alert-warning">
+      <strong>Unknown Condition</strong>
+       </div> '''
+                    print(ping_list)
+                    print(time.time())
+            except:
+                svr_status = '''<div class="alert alert-warning">
+      <strong>Unknown</strong>
+       </div> '''
+               
             svr_content = svr_content + '''
 <div class="panel panel-default">
   <div class="panel-heading" style="text-align: center;"><h3>''' + i.name + '''</h3></div>
   <div class="panel-body container-fluid center;">
+  <hr />
+  ''' + svr_status + '''
     <div style="max-width:200px; word-wrap:break-word; text-align: center;">''' + i.public_notes + '''</div>
     <p>&nbsp;</p>
     <a href="/talkgroups/''' + i.name + '''"><button type="button" class="btn btn-primary btn-block" >Available Talkgroups</button></a>
@@ -772,7 +799,6 @@ def create_app():
 
   </div>
 </div>
-
 
 '''
         try:
@@ -3683,14 +3709,35 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
-<td style="text-align: center;"><h5><strong>Name</strong><h5></td>
+<td style="text-align: center; width: 150px;"><h5><strong>Name</strong><h5></td>
 <td style="text-align: center;"><h5><strong>Notes</strong><h5></td>
 
 '''
             for s in all_s:
+                try:
+                    if time.time() - ping_list[s.name] < 30:
+                        svr_status = '''<div class="alert alert-success">
+          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
+           </div>'''
+                    elif time.time() - ping_list[s.name] <= 300:
+                        svr_status = '''<div class="alert alert-warning">
+          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
+           </div>'''
+                    elif time.time() - ping_list[s.name] > 300:
+                        svr_status = '''<div class="alert alert-danger">
+          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
+           </div>'''
+                    else:
+                        svr_status = '''<div class="alert alert-warning">
+          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
+           </div>'''
+                except:
+                    svr_status = '''<div class="alert alert-warning">
+          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
+           </div>'''
                 p_list = p_list + '''
 <tr>
-<td style="text-align: center;"><a href="manage_servers?edit_server=''' + str(s.name) + '''"><strong>''' + str(s.name) + '''</strong></a></td>
+<td style="text-align: center;">''' + svr_status + '''</td>
 <td>''' + s.notes + '''</td>
 </tr>\n
 '''
@@ -5503,8 +5550,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     @app.route('/svr', methods=['POST'])
     def auth():
         hblink_req = request.json
-        # print((hblink_req))
+        print((hblink_req))
         if hblink_req['secret'] in shared_secrets():
+            try:
+                if hblink_req['ping']:
+                    ping_list[hblink_req['ping']] = time.time()
+                    response = ''
+            except:
+                pass
             if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
@@ -5580,7 +5633,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 
                     active_tgs[hblink_req['get_config']] = {}
-                    print(active_tgs)
+                    ping_list[hblink_req['get_config']] = time.time()
+##                    print(active_tgs)
     ##                try:
 ##                    print(get_peer_configs(hblink_req['get_config']))
                     response = jsonify(
