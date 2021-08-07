@@ -658,19 +658,21 @@ def create_app():
         try:
             l_news = News.query.order_by(News.time.desc()).first()
             content = '''
-    <table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
-    <tr>
-    <td style="text-align: center;">
-    <h3>''' + l_news.subject + '''</h3>
-    </td>
-    </tr>
-    <tr>
-    <td style="text-align: center;"><strong>''' + l_news.date + '''</strong></td>
-    </tr>
-    <tr>
-    <td><br />''' + l_news.text + '''<br /><br /></td>
-    </tr>
-    </tbody></table>'''
+
+<div class="well well-sm" style="text-align: center;"><h3>''' + l_news.subject + '''</h3>
+<hr />
+<p>&nbsp;</p>
+<strong>''' + l_news.date + '''</strong> - <a href="/news/''' + str(l_news.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
+<p>&nbsp;</p>
+
+<hr />
+<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
+''' + l_news.text + '''
+</div>
+</div>
+  
+  </div>
+    '''
         except:
             content = ''
         return render_template('index.html', news = Markup(content))
@@ -1679,29 +1681,29 @@ def create_app():
 ##        view_news =  News.query.order_by(News.time.desc()).paginate(page=page, per_page=1)
 
         #content = '''<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1"><tbody>'''
-        content = ''' <p style="text-align: center;"><a href="news?all_news=true"><strong>View All News</strong></a></p>'''
+        news_content = ''
         art_count = 0
         for article in view_news:
             if request.args.get('all_news'):
                 art_count = 1
             if art_count < 16:
-                content = content + '''
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
-<tr>
-<td style="text-align: center;">
-<h3>''' + article.subject + '''</h3>
-</td>
-</tr>
-<tr>
-<td style="text-align: center;"><strong>''' + article.date + '''</strong> - <a href="news/''' + str(article.id) + '''">Link</a></td>
-</tr>
-<tr>
-<td>''' + article.text + '''</td>
-</tr>
-</tbody></table><p>&nbsp;</p>'''
+                news_content = news_content + '''
+<div class="well well-sm" style="text-align: center;"><h3>''' + article.subject + '''</h3>
+<hr />
+<p style="text-align: center;">&nbsp;</p>
+<strong>''' + article.date + '''</strong> - <a href="news/''' + str(article.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
+<p style="text-align: center;">&nbsp;</p>
+<hr />
+<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
+''' + article.text + '''
+</div>
+</div>
+  
+
+'''
                 art_count = art_count + 1
         #content = content + '''</tbody></table><p>&nbsp;</p>'''
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        return render_template('news.html', markup_content = Markup(news_content))
 
     @app.route('/news/<article>') #, methods=['POST', 'GET'])
     def view_arts(article):
@@ -1709,20 +1711,20 @@ def create_app():
         view_arti =  News.query.filter_by(id=article).first()
 
         content = '''
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1" cellpadding="5">
-<tr>
-<td style="text-align: center;">
-<h3>''' + view_arti.subject + '''</h3>
-</td>
-</tr>
-<tr>
-<td style="text-align: center;"><strong>''' + view_arti.date + '''</strong></td>
-</tr>
-<tr>
-<td>''' + view_arti.text + '''</td>
-</tr>
-</tbody></table><p>&nbsp;</p>'''
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+<div class="well well-sm" style="text-align: center;"><h3>''' + view_arti.subject + '''</h3>
+<hr />
+<p>&nbsp;</p>
+<strong>''' + view_arti.date + '''</strong>
+<p>&nbsp;</p>
+<hr />
+<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
+''' + view_arti.text + '''
+</div>
+</div>
+  
+
+'''
+        return render_template('news.html', markup_content = Markup(content))
 
     
 
@@ -1783,7 +1785,7 @@ def create_app():
         else:
             content = '''
 <p>&nbsp;</p>
-<p style="text-align: center;"><a href="add_news"><strong>Add News Article</strong></a></p>
+<p style="text-align: center;"><a href="add_news"><strong><button type="button" class="btn btn-success">Add News Article</button></strong></a></p>
 <p>&nbsp;</p>
 
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
@@ -1798,7 +1800,7 @@ def create_app():
                 content = content + '''
             
 <tr>
-<td><a href="news/''' + str(a.id) + '''">''' + a.subject + '''</a> | <a href="manage_news?delete=''' + str(a.id )+ '''">Delete</a></td>
+<td><a href="news/''' + str(a.id) + '''">''' + a.subject + '''</a>    |    <a href="manage_news?delete=''' + str(a.id )+ '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
 <td>''' + a.date + '''</td>
 <td>''' + str(a.id) + '''</td>
 
@@ -1991,23 +1993,21 @@ def create_app():
 ##    @login_required
     def tg_details(name):
         tg_d = BridgeList.query.filter_by(bridge_name=name).first()
-        content = ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;">
-<h2>''' + tg_d.bridge_name + '''</h2>
-</td>
-</tr>
-<tr>
-<td style="text-align: center;">TG #:<strong> ''' + str(tg_d.tg) + '''</strong></td>
-</tr>
-<tr>
-<td>&nbsp;''' + tg_d.description + '''</td>
-</tr>
-</tbody>
-</table>
-<p>&nbsp;</p>'''
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        content = ''' 
+
+<div class="row">
+    <div class="well well-sm" style="text-align: center;"><h2>''' + tg_d.bridge_name + '''</h2>
+<hr />
+TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
+<hr />
+<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
+''' + tg_d.description + '''
+</div>
+</div>
+  
+  </div>
+'''
+        return render_template('tg.html', markup_content = Markup(content))
 
     @app.route('/hbnet_tg.csv')
 ##    @login_required
@@ -2039,24 +2039,28 @@ def create_app():
 <p>&nbsp;</p>
 <p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
 <p style="text-align: center;"><a href="hbnet_tg.csv"><strong>Download talkgroup CSV</strong></a> | <a href="hbnet_tg_anytone.csv"><strong>Download talkgroup CSV (Anytone format)</strong></a></p>
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="width: 146.1px; text-align: center;"><strong>&nbsp;Name</strong></td>
-<td style="width: 89.9px; text-align: center;"><strong>&nbsp;TG</strong></td>
-<td style="width: 339px; text-align: center;"><strong>&nbsp;Description</strong></td>
-</tr> '''
+<div class="container">          
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th style="width: 146.1px; text-align: center;">Name</th>
+        <th style="width: 89.9px; text-align: center;">TG</th>
+        <th style="width: 339px; text-align: center;">Description</th>
+      </tr>
+    </thead>
+    <tbody> '''
         for i in cbl:
             print(str(re.sub('<[^>]*>', '', i.description))[:50])
             content = content + '''
 <tr>
-<td>&nbsp;<a href="/tg/''' + i.bridge_name + '''">''' + i.bridge_name + '''</a></td>
-<td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
-<td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+', ' ', i.description))[:50] + '''...</td>
-</tr>'''
+      <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''"><button type="button" class="btn btn-info">''' + i.bridge_name + '''</button></a></td>
+      <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
+      <td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+', ' ', i.description))[:50] + '''...</td>
+      </tr>'''
         content = content + '''
 </tbody>
-</table>
+  </table>
+</div>
 '''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 

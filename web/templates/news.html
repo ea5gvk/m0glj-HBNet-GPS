@@ -1,0 +1,9 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+ <p style="text-align: center;"><a href="/news?all_news=true"><strong><button type="button" class="btn btn-primary">View All News</button></strong></a></p>
+<div class="row">
+  <div class="col-lg-12">{{markup_content}}</div>
+</div>
+
+<p>&nbsp;</p>
+{% endblock %}
