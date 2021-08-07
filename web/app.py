@@ -40,7 +40,7 @@ import random
 from flask_mail import Message, Mail
 from socket import gethostbyname
 import re
-
+import folium
 
 try:
     from gen_script_template import gen_script
@@ -53,6 +53,7 @@ import os, ast
 script_links = {}
 active_tgs = {}
 ping_list = {}
+peer_locations = {}
 
 # Query radioid.net for list of IDs
 def get_ids(callsign):
@@ -696,6 +697,32 @@ def create_app():
         tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
         content = tos_text.field_2
         
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @app.route('/map')
+    @login_required
+    def map_page():
+        f_map = folium.Map(location=[45.372, -121.6972], zoom_start=7)
+##        folium.Marker([45.372, -121.6972], popup="hello", icon=folium.Icon(color="red", icon="record"), tooltip='hi').add_to(f_map)
+        for l in peer_locations.items():
+            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+<div class="panel panel-default">
+  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
+  <div class="panel-body">
+  ''' + l[1][5] + '''
+  <hr />
+  ''' + l[1][1] + ''', ''' + l[1][2] + '''
+  <hr />
+  ''' + l[1][3] + '''
+  <hr />
+  ''' + l[1][4] + '''
+  <hr />
+  ''' + l[1][6] + '''
+    </div>
+</div>
+         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
+        content = f_map._repr_html_()
+       
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     @app.route('/help')
@@ -5555,13 +5582,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             try:
                 if hblink_req['ping']:
                     ping_list[hblink_req['ping']] = time.time()
+                    print(peer_locations)
                     response = ''
             except:
                 pass
             if 'login_id' in hblink_req and 'login_confirmed' not in hblink_req:
                 if type(hblink_req['login_id']) == int:
                     if authorized_peer(hblink_req['login_id'])[0]:
-                        print(active_tgs)
+##                        print(active_tgs)
                         if isinstance(authorized_peer(hblink_req['login_id'])[1], int) == True:
                             authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], gen_passphrase(hblink_req['login_id']), 'Attempt')
 ##                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
@@ -5617,11 +5645,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                             msg = jsonify(auth=False,
                                               reason='Incorrect password')
                             response = make_response(msg, 401)
+                            
             elif 'login_id' in hblink_req and 'login_confirmed' in hblink_req:
                 if hblink_req['old_auth'] == True:
                     authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'CONFIG, NO UMS', 'Confirmed')
-                else:
-                    authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
+                #else:
+                   # authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], authorized_peer(hblink_req['login_id'])[2], 'USER MANAGER', 'Confirmed')
                 response = jsonify(
                                 logged=True
                                     )
@@ -5629,6 +5658,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 response = jsonify(
                                 burn_list=get_burnlist()
                                     )
+            elif 'loc_callsign' in hblink_req:
+                peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
+                response = ''
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 

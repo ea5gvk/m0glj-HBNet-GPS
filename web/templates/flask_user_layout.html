@@ -48,6 +48,7 @@
       <li><a href="{{ url_for('user.register') }}"><span class="glyphicon glyphicon-user"></span> Register</a></li>
   {% endif %}
   {% if call_or_get(current_user.is_authenticated) %}
+    <li><a href="{{url}}/map"><span class="glyphicon glyphicon-map-marker"></span> Map</a></li>
     <li><a href="{{url}}/generate_passphrase"><span class="glyphicon glyphicon-lock"></span> Passphrase(s)</a></li>
     <li><a href="{{ url_for('user.edit_user_profile') }}"><span class="glyphicon glyphicon-user"></span> Edit {{ current_user.username or current_user.email }}</a></li>
     <li><a href="{{ url_for('user.logout') }}"><span class="glyphicon glyphicon-remove"></span> Sign Out</a></li>
@@ -77,7 +78,6 @@
           <li><a href="{{url}}/add_user">Add User</a></li>
           <li><a href="{{url}}/list_users">Manage Users</a></li>
           <li><a href="{{url}}/approve_users">Waiting Approval</a></li>
-          <li><a href="{{url}}/auth_log">Authorization Log</a></li>
         </ul>
     </li>
     <li class="dropdown">
@@ -86,6 +86,7 @@
         <ul class="dropdown-menu">
         <li><a href="{{url}}/manage_news">Manage News</a></li>
         <li><a href="{{url}}/misc_settings">Misc Options</a></li>
+        <li><a href="{{url}}/auth_log">Authorization Log</a></li>
         </ul>
 
       </li>

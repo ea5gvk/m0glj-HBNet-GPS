@@ -61,6 +61,7 @@ import os, ast
 import requests, json
 import base64
 import libscrc
+import re
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
@@ -289,7 +290,32 @@ class HBSYSTEM(DatagramProtocol):
         'login_confirmed': True,
         'old_auth': old_auth
         }
+##        print(auth_conf)
         json_object = json.dumps(auth_conf, indent = 4)
+        try:
+            req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        #    resp = json.loads(req.text)
+        #return resp
+        except Exception as e:
+            logger.info(e)
+            
+    def send_peer_loc(self, _id, call, lat, lon, url, description, loc, soft):
+        #Change this to a config value
+        user_man_url = self._CONFIG['USER_MANAGER']['URL']
+        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+        peer_loc_conf = {
+        'secret':shared_secret,
+        'loc_callsign':re.sub("b'|'|\s\s+", '', str(call)),
+        'dmr_id' : int(str(int_id(_id))),
+        'lat': re.sub("b'|'|\s\s\s+", '', str(lat)),
+        'lon': re.sub("b'|'|\s\s\s+", '', str(lon)),
+        'url': re.sub("b'|'|\s\s\s+", '', str(url)),
+        'description': re.sub("b'|'|\s\s+", '', str(description)),
+        'loc' : re.sub("b'|'|\s\s+", '', str(loc)),
+        'software': re.sub("b'|'|\s\s+", '', str(soft))
+        }
+        json_object = json.dumps(peer_loc_conf, indent = 4)
+        print(json_object)
         try:
             req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         #    resp = json.loads(req.text)
@@ -340,7 +366,7 @@ class HBSYSTEM(DatagramProtocol):
             if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
                 pass
             _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
-        print(calc_passphrase)
+##        print(calc_passphrase)
         #    print(_calc_hash)
         return _calc_hash
 
@@ -652,6 +678,7 @@ class HBSYSTEM(DatagramProtocol):
 
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s (%s) has sent repeater configuration', self._system, _this_peer['CALLSIGN'], _this_peer['RADIO_ID'])
+                    self.send_peer_loc(_peer_id, _this_peer['CALLSIGN'], _this_peer['LATITUDE'], _this_peer['LONGITUDE'], _this_peer['URL'], _this_peer['DESCRIPTION'], _this_peer['LOCATION'], _this_peer['SOFTWARE_ID'])
                 else:
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
                     logger.warning('(%s) Peer info from Radio ID that has not logged in: %s', self._system, int_id(_peer_id))
