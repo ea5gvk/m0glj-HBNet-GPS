@@ -498,7 +498,7 @@ def create_app():
             """Prepare and process the login form."""
 
             # Authenticate username/email and login authenticated users.
-
+            
             safe_next_url = self._get_safe_next_url('next', self.USER_AFTER_LOGIN_ENDPOINT)
             safe_reg_next = self._get_safe_next_url('reg_next', self.USER_AFTER_REGISTER_ENDPOINT)
 
@@ -539,11 +539,14 @@ def create_app():
                     return self._do_login_user(user, safe_next_url, login_form.remember_me.data)
 
             # Render form
+            tos_db = Misc.query.filter_by(field_1='terms_of_service').first()
+            print(Misc.query.filter_by(field_1='terms_of_service').first())
             self.prepare_domain_translations()
             template_filename = self.USER_LOGIN_AUTH0_TEMPLATE if self.USER_ENABLE_AUTH0 else self.USER_LOGIN_TEMPLATE
             return render_template(template_filename,
                           form=login_form,
                           login_form=login_form,
+                          tos='hello there!',
                           register_form=register_form)
    
     #user_manager = UserManager(app, db, User)
@@ -580,6 +583,12 @@ def create_app():
             time = datetime.datetime.utcnow()
             )
         db.session.add(flash_entry_add)
+        tos_entry_add = Misc(
+            field_1 = 'terms_of_service',
+            field_2 = '<strong>TOS</strong>',
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(tos_entry_add)
         db.session.commit()
 
     # Query radioid.net for list of DMR IDs, then add to DB
@@ -732,26 +741,19 @@ def create_app():
         svr_content = ''
         for i in sl:
             svr_content = svr_content + '''
-<p>&nbsp;</p>
-<table style="width: 200px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;">
-<h4>Server: <strong>''' + i.name + '''</strong></h4>
-</td>
-</tr>
-<td style="text-align: center;">
-&nbsp;''' + i.public_notes + '''
-</td>
-</tr>
-<tr>
-<td style="text-align: center;"><a href="/talkgroups/''' + i.name + '''"><button type="button" class="btn btn-primary btn-block" >Available Talkgroups</button></a></td>
-</tr>
-<tr>
-<td style="text-align: center;"><a href="''' + i.dash_url + '''"><button  type="button" class="btn btn-success btn-block" >Dashboard</button></a></td>
-</tr>
-</tbody>
-</table>
+<div class="panel panel-default">
+  <div class="panel-heading" style="text-align: center;"><h3>''' + i.name + '''</h3></div>
+  <div class="panel-body container-fluid center;">
+    <div style="max-width:200px; word-wrap:break-word; text-align: center;">''' + i.public_notes + '''</div>
+    <p>&nbsp;</p>
+    <a href="/talkgroups/''' + i.name + '''"><button type="button" class="btn btn-primary btn-block" >Available Talkgroups</button></a>
+    <hr />
+    <a href="''' + i.dash_url + '''"><button  type="button" class="btn btn-success btn-block" >Dashboard</button></a>
+
+  </div>
+</div>
+
+
 '''
         try:
             #content = Markup('<strong>The HTML String</strong>')
@@ -772,73 +774,54 @@ def create_app():
                     script_links[i[0]] = link_num
                     #print(script_links)
                     content = content + '''\n
-    <table style="width: 300px;" border="1">
-    <tbody>
-    <tr>
-    <td>
-            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
-    <hr />
-
-            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
-
-    </td>
-    </tr>
-    </tbody>
-    </table>
-            <p>&nbsp;</p>
+            <div class="panel panel-default" style="text-align: center;">
+  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+  <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
+  <hr />
+  <br />
+  <p class="bg-warning"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></p>
+  </div>
+</div>
         '''
                 elif i[1] == 0:
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
                     #print(script_links)
                     content = content + '''\n
-    <table style="width: 300px;" border="1">
-    <tbody>
-    <tr>
-    <td>
-            <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-            <p style="text-align: center;">Copy and paste: <strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></p>
-    <hr />
-
-            <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></span></p>
-
-    </td>
-    </tr>
-    </tbody>
-    </table>
-            <p>&nbsp;</p>
+<div class="panel panel-default" style="text-align: center;">
+  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+  <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
+  <hr />
+  <br />
+  <p class="bg-warning"><em>''' + convert_nato(str(gen_passphrase(int(i[0])))) + '''</em></p>
+  </div>
+</div>
         '''
                 elif i[1] == '':
                     content = content + '''
-    <table style="width: 300px;" border="1">
-    <tbody>
-    <tr>
-    <td>
-    <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-    <p style="text-align: center;">Copy and paste: <strong>''' + legacy_passphrase + '''</strong></p>
-    <hr />
-    <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(legacy_passphrase) + '''</em></span></p>
-    </td>
-    </tr>
-    </tbody>
-    </table>
-            <p>&nbsp;</p>'''
+<div class="panel panel-default" style="text-align: center;">
+  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+  <pre><strong>''' + legacy_passphrase + '''</strong></pre>
+  <hr />
+  <br />
+  <p class="bg-warning"><em>''' + convert_nato(legacy_passphrase) + '''</em></p>
+  </div>
+</div>
+            '''
                 else:
                     content = content + '''
-    <table style="width: 300px;" border="1">
-    <tbody>
-    <tr>
-    <td>
-    <p style="text-align: center;">Your passphrase for <strong>''' + str(i[0]) + '''</strong>:</p>
-    <p style="text-align: center;">Copy and paste: <strong>''' + str(i[1]) + '''</strong></p>
-    <hr />
-    <p style="text-align: center;">Phonetically spelled: <span style="text-decoration: underline;"><em>''' + convert_nato(str(i[1])) + '''</em></span></p>
-    </td>
-    </tr>
-    </tbody>
-    </table>
-            <p>&nbsp;</p>
+  <div class="panel panel-default" style="text-align: center;">
+  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+  <pre><strong>''' + str(i[1]) + '''</strong></pre>
+  <hr />
+  <br />
+  <p class="bg-warning"><em>''' + convert_nato(str(i[1])) + '''</em></p>
+  </div>
+</div>   
     '''
             #content = content + '\n\n' + str(script_links[i[0]])
         except:
