@@ -745,10 +745,10 @@ def create_app():
 </td>
 </tr>
 <tr>
-<td style="text-align: center;"><a href="/talkgroups/''' + i.name + '''">Available Talkgroups</a></td>
+<td style="text-align: center;"><a href="/talkgroups/''' + i.name + '''"><button type="button" class="btn btn-primary btn-block" >Available Talkgroups</button></a></td>
 </tr>
 <tr>
-<td style="text-align: center;"><a href="''' + i.dash_url + '''">Dashboard</a></td>
+<td style="text-align: center;"><a href="''' + i.dash_url + '''"><button  type="button" class="btn btn-success btn-block" >Dashboard</button></a></td>
 </tr>
 </tbody>
 </table>
