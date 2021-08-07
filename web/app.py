@@ -585,10 +585,22 @@ def create_app():
         db.session.add(flash_entry_add)
         tos_entry_add = Misc(
             field_1 = 'terms_of_service',
-            field_2 = '<strong>TOS</strong>',
+            field_2 = '''<div class="panel panel-default">
+  <div class="panel-heading" style="text-align: center;"><h4>Terms of Use</h4></div>
+  <div class="panel-body">
+  <p>By using <strong>''' + title + '''</strong>, you agree not to do anything malicious. You agree to use the system with respect and courtesy to others. Please operate with the laws of your country.</p>
+  
+  </div>
+</div>''',
             time = datetime.datetime.utcnow()
             )
         db.session.add(tos_entry_add)
+        home_entry_add = Misc(
+            field_1 = 'home_page',
+            field_2 = '<p>Welcome to <strong>' + title + '</strong></p>.',
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(home_entry_add)
         db.session.commit()
 
     # Query radioid.net for list of DMR IDs, then add to DB
@@ -654,6 +666,7 @@ def create_app():
     # The Home page is accessible to anyone
     @app.route('/')
     def home_page():
+        home_text = Misc.query.filter_by(field_1='home_page').first()
         #content = Markup('<strong>Index</strong>')
         try:
             l_news = News.query.order_by(News.time.desc()).first()
@@ -675,12 +688,17 @@ def create_app():
     '''
         except:
             content = ''
-        return render_template('index.html', news = Markup(content))
+        return render_template('index.html', news = Markup(content), content_block = Markup(home_text.field_2))
+
+    @app.route('/tos')
+    def tos_page():
+        tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
+        content = tos_text.field_2
+        
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     @app.route('/help')
     def help_page():
-        #content = Markup('<strong>Index</strong>')
-
         return render_template('help.html')
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
@@ -1688,7 +1706,7 @@ def create_app():
                 art_count = 1
             if art_count < 16:
                 news_content = news_content + '''
-<div class="well well-sm" style="text-align: center;"><h3>''' + article.subject + '''</h3>
+<div class="well well-sm" s style="text-align: center;"><h3>''' + article.subject + '''</h3>
 <hr />
 <p style="text-align: center;">&nbsp;</p>
 <strong>''' + article.date + '''</strong> - <a href="news/''' + str(article.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
@@ -1826,10 +1844,17 @@ def create_app():
             content = '''<h3 style="text-align: center;">Saved flash text.</h3>
             <p style="text-align: center;">Redirecting in 3 seconds.</p>
             <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
+        elif request.args.get('home') == 'save':
+            misc_edit_field_1('home_page', request.form.get('home_text'), None, None, None, None, None, None, None, None)
+            content = '''<h3 style="text-align: center;">Saved home page.</h3>
+            <p style="text-align: center;">Redirecting in 3 seconds.</p>
+            <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
         else:
                 
             email_text = Misc.query.filter_by(field_1='approval_email').first()
             flash_text = Misc.query.filter_by(field_1='approval_flash').first()
+            home_text = Misc.query.filter_by(field_1='home_page').first()
+            print(home_text)
             content = '''
     <p>&nbsp;</p>
     <form action="misc_settings?approve_email=save" method="POST">
@@ -1864,6 +1889,25 @@ def create_app():
     </tbody>
     </table>
     </form>
+    
+    <p>&nbsp;</p>
+
+    <form action="misc_settings?home=save" method="POST">
+    <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="home_text">Homepage (HTML OK, 5000 characters max):</label><br /> <textarea id="home_text" cols="65" name="home_text" rows="4">''' + home_text.field_2 + '''</textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+    <p>&nbsp;</p>
     '''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
