@@ -1849,12 +1849,17 @@ def create_app():
             content = '''<h3 style="text-align: center;">Saved home page.</h3>
             <p style="text-align: center;">Redirecting in 3 seconds.</p>
             <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
+        elif request.args.get('tos') == 'save':
+            misc_edit_field_1('terms_of_service', request.form.get('tos_text'), None, None, None, None, None, None, None, None)
+            content = '''<h3 style="text-align: center;">Saved terms of service.</h3>
+            <p style="text-align: center;">Redirecting in 3 seconds.</p>
+            <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
         else:
                 
             email_text = Misc.query.filter_by(field_1='approval_email').first()
             flash_text = Misc.query.filter_by(field_1='approval_flash').first()
             home_text = Misc.query.filter_by(field_1='home_page').first()
-            print(home_text)
+            tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
             content = '''
     <p>&nbsp;</p>
     <form action="misc_settings?approve_email=save" method="POST">
@@ -1897,6 +1902,25 @@ def create_app():
     <tbody>
     <tr style="height: 51.1667px;">
     <td style="height: 51.1667px; text-align: center;"><label for="home_text">Homepage (HTML OK, 5000 characters max):</label><br /> <textarea id="home_text" cols="65" name="home_text" rows="4">''' + home_text.field_2 + '''</textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+    <p>&nbsp;</p>
+
+        <p>&nbsp;</p>
+
+    <form action="misc_settings?tos=save" method="POST">
+    <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="tos_text">Terms of Service (HTML OK, 5000 characters max):</label><br /> <textarea id="tos_text" cols="65" name="tos_text" rows="4">''' + tos_text.field_2 + '''</textarea></td>
     </tr>
     <tr style="height: 27px;">
     <td style="text-align: center; height: 27px;">
