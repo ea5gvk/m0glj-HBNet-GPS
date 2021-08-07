@@ -30,81 +30,77 @@
 
 
 <body>
-<h1 style="text-align: center;">{{ user_manager.USER_APP_NAME }}</h1>
-    <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
-<h1 style="text-align: center;">{{title}}</h1>
-<hr />
-<table style="width: 900px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
-<tbody>
-<tr>
-    
-<td style="text-align: center;"><a href={{url}}/>&nbsp; Home &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/news>&nbsp; News &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/talkgroups>&nbsp; Talkgroups &nbsp;</a></td>
+ 
+ <nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand">{{ user_manager.USER_APP_NAME }}</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="{{url}}/talkgroups">Talkgroups</a></li>
+      <li><a href="{{url}}/news">News</a></li>
+      <li><a href="{{url}}/help">Help</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+  {% if not call_or_get(current_user.is_authenticated) %}
+      <li><a href="{{ url_for('user.login') }}"><span class="glyphicon glyphicon-log-in"></span> Sign In</a></li>
+      <li><a href="{{ url_for('user.register') }}"><span class="glyphicon glyphicon-user"></span> Register</a></li>
+  {% endif %}
+  {% if call_or_get(current_user.is_authenticated) %}
+    <li><a href="{{url}}/generate_passphrase"><span class="glyphicon glyphicon-lock"></span> Passphrase(s)</a></li>
+    <li><a href="{{ url_for('user.edit_user_profile') }}"><span class="glyphicon glyphicon-user"></span> Edit {{ current_user.username or current_user.email }}</a></li>
+    <li><a href="{{ url_for('user.logout') }}"><span class="glyphicon glyphicon-remove"></span> Sign Out</a></li>
 
-        {% if not call_or_get(current_user.is_authenticated) %}
-<td style="text-align: center;"><a href={{ url_for('user.register') }}>&nbsp; Register &nbsp;</a></td>
-<td style="text-align: center;"><a href={{ url_for('user.login') }}>&nbsp; Sign in &nbsp;</a></td>
-    {% endif %}
+    </ul>
+    {% endif%}
+    
+<!--Admin Menu -->
     {% if call_or_get(current_user.is_authenticated) %}
             {% if call_or_get(current_user.has_roles('Admin')) %}
-    <td style="text-align: center;"><a href={{url}}/add_user><strong>&nbsp; Add a User &nbsp;</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/list_users><strong>&nbsp; Edit Users &nbsp;</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/approve_users><strong>&nbsp; Waiting Approval &nbsp;</strong></a></td>
-    <td style="text-align: center;"><a href={{url}}/auth_log><strong>&nbsp; Auth Log &nbsp;</strong></a></td>
+        <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">MMDVM Admin
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href="{{url}}/manage_servers">Manage Servers</a></li>
+          <li><a href="{{url}}/manage_peers">Manage Peers</a></li>
+          <li><a href="{{url}}/manage_masters">Manage Masters</a></li>
+          <li><a href="{{url}}/manage_rules">Manage Rules</a></li>
+        </ul>
+      </li>
 
-            {% endif %}
-<td style="text-align: center;"><a href={{url}}/help>Help</a></td>
-<td style="text-align: center;"><a href={{url}}/generate_passphrase>&nbsp; Passphrase(s) &nbsp;</a></td>
-<!-- <td style="text-align: center;"><a href={{url}}/user_tg>&nbsp; Current TGs &nbsp;</a></td> -->
-<td style="text-align: center;"><a href="{{ url_for('user.edit_user_profile') }}">&nbsp; Edit {{ current_user.username or current_user.email }} &nbsp;</a></td>
-<td style="text-align: center;"><a href={{ url_for('user.logout') }}>&nbsp; Sign out &nbsp;</a></td>
-            {% endif %}
-</tr>
-</tbody>
-</table>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">User Admin
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href="{{url}}/add_user">Add User</a></li>
+          <li><a href="{{url}}/list_users">Manage Users</a></li>
+          <li><a href="{{url}}/approve_users">Waiting Approval</a></li>
+          <li><a href="{{url}}/auth_log">Authorization Log</a></li>
+        </ul>
+    </li>
+    <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Other
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+        <li><a href="{{url}}/manage_news">Manage News</a></li>
+        <li><a href="{{url}}/misc_settings">Misc Options</a></li>
+        </ul>
 
-{% if call_or_get(current_user.is_authenticated) %}
-            {% if call_or_get(current_user.has_roles('Admin')) %}
-<table style="width: 900px; margin-left: auto; margin-right: auto;" border="black" cellspacing="3" cellpadding="3">
-<tbody>
-<tr>
-<td style="text-align: center;"><a href={{url}}/manage_servers>&nbsp; Manage Servers &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_peers>&nbsp; Manage Peers &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_masters>&nbsp; Manage Masters &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_rules>&nbsp; Manage Rules &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/manage_news>&nbsp; Manage News &nbsp;</a></td>
-<td style="text-align: center;"><a href={{url}}/misc_settings>&nbsp; Misc Options &nbsp;</a></td>
-
-
-</tr>
-</tbody>
-</table>
-        {% endif %}
-        {% endif %}
-
+      </li>
+        
+    </ul>
+    {% endif %}
+    {% endif %}
+  </div>
+</nav>
+    <p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
 <hr />
-    {% block body %}
-<!--
-    <div id="header-div" class="clearfix with-margins">
-        <div class="pull-left"><a href="/"><h1 class="no-margins">{{ user_manager.USER_APP_NAME }}</h1></a></div>
-        <div class="pull-right">
-            {% if call_or_get(current_user.is_authenticated) %}
-                <a href="{{ url_for('user.edit_user_profile') }}">{{ current_user.username or current_user.email }}</a>
-                &nbsp; | &nbsp;
-                <a href="{{ url_for('user.logout') }}">{%trans%}Sign out{%endtrans%}</a>
-            {% else %}
-                <a href="{{ url_for('user.login') }}">{%trans%}Sign in{%endtrans%}</a>
-            {% endif %}
-        </div>
 
-    </div>
-    {% block menu %}
-    <div id="menu-div" class="with-margins">
-        <a href="/">{%trans%}Home page{%endtrans%}</a>
-    </div>
-    {% endblock %}
--->
+    
+    {% block body %}
+
     <hr class="no-margins"/>
 
     <div id="main-div" class="with-margins">
@@ -134,7 +130,7 @@
     <br/>
     <hr class="no-margins"/>
     <div id="footer-div" class="clearfix with-margins">
-    <p style="text-align: center;"><strong>{{ user_manager.USER_APP_NAME }}<br /></strong><a href="https://hbnet.xyz">HBNet Project</a> Web Service - Dev<br />Created by KF7EEL<br />Contributors:&nbsp; W7NCX</p>
+    <p style="text-align: center;"><strong>{{ user_manager.USER_APP_NAME }}<br /></strong><a href="https://hbnet.xyz">HBNet Project</a><br />Created by KF7EEL<br />Contributors:&nbsp; W7NCX</p>
 
     </div>
     {% endblock %}
