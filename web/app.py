@@ -42,10 +42,7 @@ from socket import gethostbyname
 import re
 import folium
 
-try:
-    from gen_script_template import gen_script
-except:
-    pass
+from gen_script_template import gen_script
 
 import os, ast
 ##import hb_config
@@ -702,7 +699,7 @@ def create_app():
     @app.route('/map')
     @login_required
     def map_page():
-        f_map = folium.Map(location=[45.372, -121.6972], zoom_start=7)
+        f_map = folium.Map(location=center_map, zoom_start=map_zoom)
 ##        folium.Marker([45.372, -121.6972], popup="hello", icon=folium.Icon(color="red", icon="record"), tooltip='hi').add_to(f_map)
         for l in peer_locations.items():
             folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
@@ -723,7 +720,7 @@ def create_app():
          ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
         content = f_map._repr_html_()
        
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        return render_template('map.html', markup_content = Markup(content))
     
     @app.route('/help')
     def help_page():
@@ -734,50 +731,30 @@ def create_app():
     def gen_pi_star():
         try:
             u = current_user
-    ##        print(u.username)
             id_dict = ast.literal_eval(u.dmr_ids)
             #u = User.query.filter_by(username=user).first()
-    ##        print(user_id)
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
-            content = '''
-<table style="width: 800px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td>
-<h2 style="text-align: center;"><strong>Pi-Star Instructions</strong></h2>
-<p>&nbsp;</p>
-<p><strong>1</strong>: Log into your Pi-Star device. <br /><strong>2</strong>: Change to Read-Write mode of the device by issuing the command:<u></u></p>
-<pre><u><strong>rpi-rw</strong></u></pre>
-<p><strong><br />3a: Change to the root user by issuing the command:<u></u></strong></p>
-<pre>sudo su -</pre>
-<p><strong><u></u> <br />3b: Now type <u>pwd</u> and verify you get a return indicating you are in the /root directory. If you are in the wrong directory, it is because you're not following the instructions and syntax above! This is a show stopper, and your attempt to load the files correctly, will fail !<br /><br />4: Issue one of the commands below for the chosen DMR ID:</strong></p>
-<p>Note: Link can be used only once. To run the script again, simply reload the page and paste a new command into the command line.</p>
-
-'''
+            content = ''
             for i in id_dict.items():
                 #if i[1] == '':
                 link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                 script_links[i[0]] = link_num
-                content = content + '''\n
-        <p style="text-align: center;">DMR ID: <strong>''' + str(i[0]) + '''</strong>:</p>
-        <p style="text-align: center;"><strong><pre>bash <(curl -s "<a href="''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''">''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''</a>")</pre></strong></p>
-        <p>&nbsp;</p>
+                content = content + '''
+        <div class="panel panel-default">
+  <div class="panel-heading" style="text-align: center;"><h4>ID: ''' + str(i[0]) + '''</h4></div>
+  <div class="panel-body"><pre>rpi-rw; wget -O /root/auto_pistar.py "<a href="''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''">''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''</a>"; chmod +x /root/auto_pistar.py; python3 /root/auto_pistar.py; pistar-update</pre></div>
+</div>
     '''
                 #else:
                 #    content = content + '''\n<p style="text-align: center;">Error</p>'''
-            content = content + '''\n<p><strong> <br />5: When asked for server ports, use the information above to populate the correct fields. <br />6: Reboot your Pi-Star device</strong></p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>&nbsp;</p>'''
+            
         except:
             content = Markup('<strong>No DMR IDs found or other error.</strong>')
         
             
         #return str(content)
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        return render_template('pi-star_gen.html', markup_content = Markup(content))
         
 
     
@@ -829,16 +806,11 @@ def create_app():
 
 '''
         try:
-            #content = Markup('<strong>The HTML String</strong>')
             #user_id = request.args.get('user_id')
             u = current_user
-    ##        print(u.username)
             id_dict = ast.literal_eval(u.dmr_ids)
             #u = User.query.filter_by(username=user).first()
-    ##        print(user_id)
-    ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
-            #print(id_dict)
           
             content = '\n'
             for i in id_dict.items():
@@ -1342,6 +1314,11 @@ def create_app():
         number = float(request.args.get('number'))
         #print(type(script_links[dmr_id]))
         u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
+
+        pub_list = []
+        
+
+        
         #print(u.dmr_ids)
 
         if authorized_peer(dmr_id)[1] == 0:
@@ -1350,13 +1327,29 @@ def create_app():
             passphrase = gen_passphrase(dmr_id)
         elif authorized_peer(dmr_id)[1] == '':
             passphrase = legacy_passphrase
-            print(passphrase)
         elif authorized_peer(dmr_id)[1] != '' or authorized_peer(dmr_id)[1] != 0:
             passphrase = authorized_peer(dmr_id)[1]
         #try:
         if dmr_id in script_links and number == float(script_links[dmr_id]):
             script_links.pop(dmr_id)
-            return str(gen_script(dmr_id, passphrase))
+            
+            ml = MasterList.query.filter_by(public_list=True).filter_by(active=True).all()
+            pl = ProxyList.query.filter_by(public_list=True).filter_by(active=True).all()
+##            print(ml)
+            for m in ml:
+##                print(m.name)
+##                print(m.server)
+##                print(m.port)
+##                print(m.enable_um)
+##                print(m.passphrase)
+                sl = ServerList.query.filter_by(name=m.server).first()
+##                print(sl.ip)
+                if m.enable_um == True:
+                    passp = passphrase
+                pub_list.append([m.server + '_' + m.name, sl.ip, passphrase, m.port])
+
+            
+            return str(gen_script(dmr_id, pub_list))
         #except:
             #else:
             #content = '<strong>Link used or other error.</strong>'
@@ -2196,8 +2189,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <tr style="height: 18px;">
 <td style="text-align: center; height: 18px;">&nbsp;<h4>Server: <strong>''' + svr.name + '''</strong>&nbsp; -&nbsp; IP/Host: <strong>''' + str(svr.ip) + '''</strong></h4></td>
 </tr> '''
-        m_list = MasterList.query.filter_by(server=server).filter_by(public_list=True).all()
-        p_list = ProxyList.query.filter_by(server=server).filter_by(public_list=True).all()
+        m_list = MasterList.query.filter_by(server=server).filter_by(active=True).filter_by(public_list=True).all()
+        p_list = ProxyList.query.filter_by(server=server).filter_by(active=True).filter_by(public_list=True).all()
         tg_list = ''
         for m in m_list:
             br = BridgeRules.query.filter_by(server=server).filter_by(system_name=m.name).all()
@@ -5691,98 +5684,100 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     ##                except:
     ##                    message = jsonify(message='Config error')
     ##                    response = make_response(message, 401)
-            elif 'update_tg' in hblink_req:
-                if hblink_req['update_tg']:
-                    print(hblink_req)
-##                    print(hblink_req['data'][0]['SYSTEM'])
-                    if 'on' == hblink_req['mode']:
-##                        try:
-                              if hblink_req['dmr_id'] == 0:
-                                print('id 0')
-##                                print(active_tgs)
-                                for system in active_tgs[hblink_req['update_tg']].items():
-    ##                                print(system)
-    ##                                print('sys')
-                                    if system[0] == hblink_req['data'][0]['SYSTEM']:
-                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'])
-##                                        print(hblink_req['data'][2]['tg'])
-                                        print('---------')
-                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'])
-        ##                                print(hblink_req['data'][1]['ts'])
-                                        if hblink_req['data'][1]['ts'] == 1:
-        ####                                  print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
 
-                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'] == hblink_req['data'][2]['tg']:
-                                                pass
-                                            else:
-                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][2]['tg'])
-        ####                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
-                                        if hblink_req['data'][1]['ts'] == 2:
-                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'] == hblink_req['data'][2]['tg']:
-                                                pass
-        ####                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
-                                            else:
-                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['tg'])
-                              else:
-                                  try:
-                                    print('---------on------------')
-                                    print(hblink_req['data'])
-                                    print(active_tgs[hblink_req['update_tg']])
-                                    print(hblink_req['data'][2]['ts2'])
-                                    print('-----------------------')
-        ##                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
-        ####                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
-                                    if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1']:
-                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][1]['ts1'])
-                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
-                                    if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2']:
-                                        print('---0---')
-                                        print(hblink_req['data'][0]['SYSTEM'])
-                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
-                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['ts2'])
-##                                        print('append')
-        ####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
-        ##                        print(hblink_req['data'][0]['SYSTEM'])
-
-    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']])
-    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['2'])
-    ##                            print(hblink_req['data'][1]['ts2'])
-        ##                        print(active_tgs[hblink_req['update_tg']])
-                                  except:
-##                                      active_tgs[hblink_req['update_tg']] = {}
-                                      pass
-                                
-##                        except:
-##                            pass
-
-                            
-                    elif 'off' == hblink_req['mode']:
-                        print('off')
-                        for system in active_tgs[hblink_req['update_tg']].items():
-                            print(system)
-                            if system[0] == hblink_req['data'][0]['SYSTEM']:
-                                print('yes it is')
-####                                print(system[0])
-####                                print(active_tgs[hblink_req['update_tg']][system[0]])
-                                if hblink_req['data'][1]['ts'] == 1:
-####                                    print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
-                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].remove(hblink_req['data'][2]['tg'])
-####                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
-                                if hblink_req['data'][1]['ts'] == 2:
-####                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
-                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].remove(hblink_req['data'][2]['tg'])
-####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
-
-                                    
-    
-##                            print()
-##                            print(system)
-##                            print(system[1][2]['SYSTEM'])
+#################### Work in progress ###########################33
+##            elif 'update_tg' in hblink_req:
+##                if hblink_req['update_tg']:
+##                    print(hblink_req)
+####                    print(hblink_req['data'][0]['SYSTEM'])
+##                    if 'on' == hblink_req['mode']:
+####                        try:
+##                              if hblink_req['dmr_id'] == 0:
+##                                print('id 0')
+####                                print(active_tgs)
+##                                for system in active_tgs[hblink_req['update_tg']].items():
+##    ##                                print(system)
+##    ##                                print('sys')
+##                                    if system[0] == hblink_req['data'][0]['SYSTEM']:
+##                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'])
+####                                        print(hblink_req['data'][2]['tg'])
+##                                        print('---------')
+##                                        print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'])
+##        ##                                print(hblink_req['data'][1]['ts'])
+##                                        if hblink_req['data'][1]['ts'] == 1:
+##        ####                                  print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
+##
+##                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'] == hblink_req['data'][2]['tg']:
+##                                                pass
+##                                            else:
+##                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][2]['tg'])
+##        ####                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
+##                                        if hblink_req['data'][1]['ts'] == 2:
+##                                            if active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'] == hblink_req['data'][2]['tg']:
+##                                                pass
+##        ####                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
+##                                            else:
+##                                                active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['tg'])
+##                              else:
+##                                  try:
+##                                    print('---------on------------')
+##                                    print(hblink_req['data'])
+##                                    print(active_tgs[hblink_req['update_tg']])
+##                                    print(hblink_req['data'][2]['ts2'])
+##                                    print('-----------------------')
+##        ##                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
+##        ####                        active_tgs[hblink_req['update_tg']][hblink_req['dmr_id']].update({hblink_req['data'][0]['SYSTEM']: [{1:[hblink_req['data'][1]['ts1']]}, {2:[hblink_req['data'][2]['ts2']]}]}) #.update({[hblink_req['dmr_id']]:hblink_req['data']})
+##                                    if hblink_req['data'][1]['ts1'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1']:
+##                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].append(hblink_req['data'][1]['ts1'])
+##                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
+##                                    if hblink_req['data'][2]['ts2'] not in active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2']:
+##                                        print('---0---')
+##                                        print(hblink_req['data'][0]['SYSTEM'])
+##                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['SYSTEM'] = hblink_req['data'][0]['SYSTEM']
+##                                        active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].append(hblink_req['data'][2]['ts2'])
+####                                        print('append')
+##        ####                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+##        ##                        print(hblink_req['data'][0]['SYSTEM'])
+##
+##    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']])
+##    ##                            print(active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][2]['2'])
+##    ##                            print(hblink_req['data'][1]['ts2'])
+##        ##                        print(active_tgs[hblink_req['update_tg']])
+##                                  except:
+####                                      active_tgs[hblink_req['update_tg']] = {}
+##                                      pass
+##                                
+####                        except:
+####                            pass
+##
+##                            
+##                    elif 'off' == hblink_req['mode']:
 ##                        print('off')
-##                        print(hblink_req['data'][1]['ts'])
-##                        print(hblink_req['data'][2]['tg'])
-                print(active_tgs)
-                response = 'got it'
+##                        for system in active_tgs[hblink_req['update_tg']].items():
+##                            print(system)
+##                            if system[0] == hblink_req['data'][0]['SYSTEM']:
+##                                print('yes it is')
+######                                print(system[0])
+######                                print(active_tgs[hblink_req['update_tg']][system[0]])
+##                                if hblink_req['data'][1]['ts'] == 1:
+######                                    print(active_tgs[hblink_req['update_tg']][system[0]][0]['1'])
+##                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][0]['1'].remove(hblink_req['data'][2]['tg'])
+######                                    active_tgs[hblink_req['update_tg']][system[0]][0]['1'].append(0)
+##                                if hblink_req['data'][1]['ts'] == 2:
+######                                    print(active_tgs[hblink_req['update_tg']][system[0]][1]['2'])
+##                                    active_tgs[hblink_req['update_tg']][hblink_req['data'][0]['SYSTEM']][1]['2'].remove(hblink_req['data'][2]['tg'])
+######                                    active_tgs[hblink_req['update_tg']][system[0]][1]['2'].append(0)
+##
+##                                    
+##    
+####                            print()
+####                            print(system)
+####                            print(system[1][2]['SYSTEM'])
+####                        print('off')
+####                        print(hblink_req['data'][1]['ts'])
+####                        print(hblink_req['data'][2]['tg'])
+##                print(active_tgs)
+##                response = 'got it'
         else:
             message = jsonify(message='Authentication error')
             response = make_response(message, 401)

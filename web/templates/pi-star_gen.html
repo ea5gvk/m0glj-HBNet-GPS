@@ -1,0 +1,34 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+
+<div class="panel panel-default" >
+  <div class="panel-heading" style="text-align: center;"><h4>Pi-Star Instructions</h4></div>
+  <div class="panel-body">
+<p>&nbsp;</p>
+A script to enable the use of this network on a Pi-Star device is available. This script will automatically add information, including your generated passphrase and each Master/Proxy instance
+on this network, to your device's DMR_Hosts.txt. This will allow you to connect to this network in the Pi-Star configuration page.
+<p>&nbsp;</p>
+
+A script(s) is generated for each of your DMR IDs when you load this page. Each link/command is valid for only one use. If you need execute a command again,
+simply reload the page to get a fresh link.
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+
+<p><strong>1</strong>: Log into your Pi-Star device via SSH. <br />
+<strong>2</strong>: Become <strong>root</strong> user. DMR_Hosts.txt is stored in /root, thus you need to be root to modify it.
+<pre>sudo su</pre><br />
+<strong>3</strong>: Decide which DMR ID you want Pi-Star to login with. Copy and past one of the commands below to update DMR_Hosts.txt. Each command is specific to a DMR ID.<br />
+
+<p>&nbsp;</p>
+
+{{markup_content}}
+<p>&nbsp;</p>
+
+If you were sucessful, you can now go into the Pi-Star configuration and select this network from the dropdown list.
+  </div>
+</div>
+<p>&nbsp;</p>
+
+{% endblock %}

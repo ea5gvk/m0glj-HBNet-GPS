@@ -29,8 +29,12 @@ secret_key = 'SUPER SECRET LONG KEY'
 default_account_state = True
 
 # Legacy passphrase used in hblink.cfg
-#legacy_passphrase = 'passw0rd'
+legacy_passphrase = 'passw0rd'
 
+# Coordinates to center map over
+center_map = [45.372, -121.6972]
+# Default map zoom level
+map_zoom = 5
 
 # Passphrase calculation config. If REMOTE_CONFIG is not used in your DMR server config
 # (hblink.cfg), then the values in section [USER_MANAGER] MUST match the values below.
