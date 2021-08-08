@@ -1,12 +1,53 @@
 {% extends 'flask_user/_public_base.html' %}
 {% block content %}
 <p>&nbsp;</p>
-<div class="well"><h4 style="text-align: center;"><a href="/generate_passphrase/pi-star"><button type="button" class="btn btn-warning">Click here</button></a> for automated Pi-Star script.</h4></div>
+<div class="well"><h4 style="text-align: center;"><a href="/generate_passphrase/pi-star"><button type="button" class="btn btn-warning">Automatic Pi-Star Setup Script</button></a> </h4><br />
+<h4 style="text-align: center;"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#mmdvm_options">Available MMDVM Options</button></h4></div>
 
 <div class="row">
   <div class="col-xs-6">{{server_content}}</div>
   <div class="col-xs-6">{{passphrase_content}}</div>
 </div>
 
+
+<!-- Options Modal -->
+<div id="mmdvm_options" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">MMDVM Options</h4>
+      </div>
+      <div class="modal-body">
+
+<div class="container-fluid">          
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>NO_MAP</td>
+        <td>This option will prevent your hotspot/repeater from plotting on the map.</td>
+      </tr>
+     
+    </tbody>
+  </table>
+</div>
+
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <p>&nbsp;</p>
 {% endblock %}
