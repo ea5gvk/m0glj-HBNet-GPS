@@ -702,6 +702,9 @@ class HBSYSTEM(DatagramProtocol):
                         and self._peers[_peer_id]['CONNECTION'] == 'YES' \
                         and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
                 logger.info('(%s) Peer %s (%s) has send options: %s', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id), _data[8:])
+                # Send remove from map command
+                if 'NO_MAP' in str(_data[8:]):
+                    self.send_peer_loc(_peer_id, self._peers[_peer_id]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
                 self.transport.write(b''.join([RPTACK, _peer_id]), _sockaddr)
 
         elif _command == DMRA:

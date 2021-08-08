@@ -12,5 +12,26 @@
 <p>&nbsp;</p>
 <h3 style="text-align: center;">Talkgroups</h3>
 <p>You may view a list of all talkgroups by going to the <a href="talkgroups">Talkgroups</a> page. Click on the talkgroup name for more information. A CSV file is available for download and may be used in the CPS of some radios. Talkgroups listed there may not be available on all servers if there are multiple. You may find a list of talkgroups available on each server by going to the <a href="/generate_passphrase">Passphrase(s)</a> page.</p>
-
+<p>&nbsp;</p>
+<h3 style="text-align: center;">"Options"</h3>
+<p>Options are like a type of command that your hotspot/repeater sends to the server for various functions. The following options are supported:</p>
+<div class="container-fluid">          
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>NO_MAP</td>
+        <td>This option will prevent your hotspot/repeater from plotting on the map.</td>
+      </tr>
+     
+    </tbody>
+  </table>
+</div>
+<p>You can add multiple options by separating them using a semicolon (<strong>;</strong>). <br />
+Example: <pre>OPTION_1;OPTION_2</pre>
 {% endblock %}

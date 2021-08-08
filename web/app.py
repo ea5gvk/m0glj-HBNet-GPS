@@ -5690,7 +5690,10 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                                 burn_list=get_burnlist()
                                     )
             elif 'loc_callsign' in hblink_req:
-                peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
+                if hblink_req['lat'] == '*' and hblink_req['lon'] == '*':
+                    del peer_locations[hblink_req['dmr_id']]
+                else:
+                    peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
                 response = ''
 
             elif 'get_config' in hblink_req:
