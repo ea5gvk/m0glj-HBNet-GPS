@@ -1523,7 +1523,7 @@ def create_app():
             a = AuthLog.query.filter_by(server_name=request.args.get('mmdvm_server')).order_by(AuthLog.login_time.desc()).all()
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong><a href="auth_log?flush_db_mmdvm=true&mmdvm_server=''' + request.args.get('mmdvm_server') + '''">Flush authentication log for server: ''' + request.args.get('mmdvm_server') + '''</a></strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db_mmdvm=true&mmdvm_server=''' + request.args.get('mmdvm_server') + '''"><button type="button" class="btn btn-danger">Flush authentication log for server: ''' + request.args.get('mmdvm_server') + '''</button></a></strong></p>
     <p style="text-align: center;"><strong>Log for MMDVM server: ''' + request.args.get('mmdvm_server') + '''</strong></p>
 
     <table style="margin-left: auto; margin-right: auto;" border="1">
@@ -1605,7 +1605,7 @@ def create_app():
             a = AuthLog.query.filter_by(peer_ip=request.args.get('peer_ip')).order_by(AuthLog.login_time.desc()).all()
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong><a href="auth_log?flush_db_ip=true&peer_ip=''' + request.args.get('peer_ip') + '''">Flush authentication log for IP: ''' + request.args.get('peer_ip') + '''</a></strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db_ip=true&peer_ip=''' + request.args.get('peer_ip') + '''"><button type="button" class="btn btn-danger">Flush authentication log for IP: ''' + request.args.get('peer_ip') + '''</button></a></strong></p>
     <p style="text-align: center;"><strong>Log for IP address: ''' + request.args.get('peer_ip') + '''</strong></p>
 
     <table style="margin-left: auto; margin-right: auto;" border="1">
@@ -1691,7 +1691,7 @@ def create_app():
 ##            r = AuthLog.query.order_by(AuthLog.login_dmr_id.desc()).all()
             content = '''
     <p>&nbsp;</p>
-    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true">Flush entire authentication log</a></strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?flush_db=true"><button type="button" class="btn btn-danger">Flush entire authentication log</button></a></strong></p>
     <p style="text-align: center;"><strong><a href="auth_log?portal_username=Not Registered">Un-registered authentication attempts</a></strong></p>
     <p style="text-align: center;"><strong>Authentication log by DMR ID</strong></p>
 
