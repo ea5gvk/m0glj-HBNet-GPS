@@ -1497,7 +1497,7 @@ def create_app():
                     content = content + '''
     <tr >
     <td style="text-align: center;">&nbsp;<strong><a href="auth_log?dmr_id=''' + str(i.login_dmr_id) + '''">''' + str(i.login_dmr_id) + '''</a></strong>&nbsp;</td>
-    <td style="text-align: center;">&nbsp;<a href=auth_log?portal_username="''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
+    <td style="text-align: center;">&nbsp;<a href=auth_log?portal_username=''' + i.portal_username + '''">''' + i.portal_username + '''</a>&nbsp;</td>
     <td style="text-align: center;">&nbsp;&nbsp;<strong><a href="auth_log?peer_ip=''' + str(i.peer_ip) + '''">''' + str(i.peer_ip) + '''</a></strong>&nbsp;</td>
     <td style="text-align: center;">&nbsp;''' + i.login_auth_method + '''&nbsp;</td>
     <td style="text-align: center;">&nbsp;<a href="auth_log?mmdvm_server=''' + str(i.server_name) + '''">''' + str(i.server_name) + '''</a>&nbsp;</td>
