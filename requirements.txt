@@ -6,14 +6,7 @@ configparser>=3.0.0
 aprslib>=0.6.42
 pynmea2
 maidenhead
-flask
-flask_user
-flask_sqlalchemy
-email_validator
-flask_babelex
-pymysql
-folium
 requests
 libscrc
 resettabletimer
-pymysql
+

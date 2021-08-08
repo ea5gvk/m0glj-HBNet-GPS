@@ -1,0 +1,10 @@
+configparser>=3.0.0
+flask
+flask_user
+flask_sqlalchemy
+email_validator
+flask_babelex
+pymysql
+folium
+requests
+libscrc
