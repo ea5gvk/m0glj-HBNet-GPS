@@ -1692,7 +1692,7 @@ def create_app():
             content = '''
     <p>&nbsp;</p>
     <p style="text-align: center;"><strong><a href="auth_log?flush_db=true"><button type="button" class="btn btn-danger">Flush entire authentication log</button></a></strong></p>
-    <p style="text-align: center;"><strong><a href="auth_log?portal_username=Not Registered">Un-registered authentication attempts</a></strong></p>
+    <p style="text-align: center;"><strong><a href="auth_log?portal_username=Not Registered"><button type="button" class="btn btn-primary">Un-registered authentication attempts</button></a></strong></p>
     <p style="text-align: center;"><strong>Authentication log by DMR ID</strong></p>
 
     <table style="margin-left: auto; margin-right: auto;" border="1">
