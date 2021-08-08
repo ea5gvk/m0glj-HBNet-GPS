@@ -1426,14 +1426,14 @@ def create_app():
         elif request.args.get('portal_username') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db') or request.args.get('dmr_id') and not request.args.get('flush_user_db') and not request.args.get('flush_dmr_id_db'):
             if request.args.get('portal_username'):
 ##                s_filter = portal_username=request.args.get('portal_username')
-                a = AuthLog.query.filter_by(portal_username=request.args.get('portal_username')).order_by(AuthLog.login_time.desc()).all()
-                g_arg = request.args.get('portal_username')
-                f_link = '''    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''">Flush auth log for: ''' + request.args.get('portal_username') + '''</a></strong></p>'''
+                a = AuthLog.query.filter_by(portal_username=str(request.args.get('portal_username')).strip('"')).order_by(AuthLog.login_time.desc()).all()
+                g_arg = str(request.args.get('portal_username')).strip('"')
+                f_link = '''    <p style="text-align: center;"><strong><a href="auth_log?flush_user_db=true&portal_username=''' + request.args.get('portal_username') + '''"><button type="button" class="btn btn-danger">Flush auth log for: ''' + request.args.get('portal_username') + '''</button></a></strong></p>'''
             elif request.args.get('dmr_id'):
 ##                s_filter = login_dmr_id=request.args.get('dmr_id')
                 a = AuthLog.query.filter_by(login_dmr_id=request.args.get('dmr_id')).order_by(AuthLog.login_time.desc()).all()
                 g_arg = request.args.get('dmr_id')
-                f_link = '''<p style="text-align: center;"><strong><a href="auth_log?flush_dmr_id_db=true&dmr_id=''' + request.args.get('dmr_id') + '''">Flush auth log for: ''' + request.args.get('dmr_id') + '''</a></strong></p>'''
+                f_link = '''<p style="text-align: center;"><strong><a href="auth_log?flush_dmr_id_db=true&dmr_id=''' + request.args.get('dmr_id') + '''"><button type="button" class="btn btn-danger">Flush auth log for: ''' + request.args.get('dmr_id') + '''</button></a></strong></p>'''
 ##            print(s_filter)
 ##            a = AuthLog.query.filter_by(s_filter).order_by(AuthLog.login_dmr_id.desc()).all()
 
