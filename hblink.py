@@ -678,7 +678,7 @@ class HBSYSTEM(DatagramProtocol):
 
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s (%s) has sent repeater configuration', self._system, _this_peer['CALLSIGN'], _this_peer['RADIO_ID'])
-                    self.send_peer_loc(_peer_id, _this_peer['CALLSIGN'], _this_peer['LATITUDE'], _this_peer['LONGITUDE'], _this_peer['URL'], _this_peer['DESCRIPTION'], _this_peer['LOCATION'], _this_peer['SOFTWARE_ID'])
+                    self.send_peer_loc(_peer_id, _this_peer['CALLSIGN'], _this_peer['LATITUDE'], _this_peer['LONGITUDE'], _this_peer['URL'], _this_peer['DESCRIPTION'], _this_peer['LOCATION'], str(_this_peer['PACKAGE_ID']) + ' - ' + str(_this_peer['SOFTWARE_ID']))
                 else:
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
                     logger.warning('(%s) Peer info from Radio ID that has not logged in: %s', self._system, int_id(_peer_id))

@@ -699,24 +699,63 @@ def create_app():
     @app.route('/map')
     @login_required
     def map_page():
+        print(peer_locations)
         f_map = folium.Map(location=center_map, zoom_start=map_zoom)
-##        folium.Marker([45.372, -121.6972], popup="hello", icon=folium.Icon(color="red", icon="record"), tooltip='hi').add_to(f_map)
         for l in peer_locations.items():
+##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+##<div class="panel panel-default">
+##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
+##  <div class="panel-body">
+##  ''' + l[1][5] + '''
+##  <hr />
+##  ''' + l[1][1] + ''', ''' + l[1][2] + '''
+##  <hr />
+##  ''' + l[1][3] + '''
+##  <hr />
+##  ''' + l[1][4] + '''
+##  <hr />
+##  ''' + l[1][6] + '''
+##    </div>
+##</div>
+##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
+
             folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
-<div class="panel panel-default">
-  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
-  <div class="panel-body">
-  ''' + l[1][5] + '''
-  <hr />
-  ''' + l[1][1] + ''', ''' + l[1][2] + '''
-  <hr />
-  ''' + l[1][3] + '''
-  <hr />
-  ''' + l[1][4] + '''
-  <hr />
-  ''' + l[1][6] + '''
-    </div>
-</div>
+<table border="1">
+<tbody>
+<tr>
+<td>&nbsp;<strong><h4>''' + l[1][0] + '''</strong></h4>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<table border="1">
+<tbody>
+<tr>
+<td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
+<td>&nbsp;''' + str(l[0]) + '''&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 64.4667px;"><strong>Location:</strong></td>
+<td>&nbsp;''' + l[1][5] + '''&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
+<td>&nbsp;''' + l[1][1] + ''', ''' + l[1][2] + '''&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 64.4667px;"><strong>Description:</strong></td>
+<td>&nbsp;''' + l[1][4] + '''&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 64.4667px;"><p><strong>URL:</strong></p>
+</td>
+<td><a href="''' + l[1][3] + '''">&nbsp;''' + l[1][3] + '''&nbsp;</a></td>
+</tr>
+<tr>
+<td style="width: 64.4667px;"><strong>Device:</strong></td>
+<td>&nbsp;''' + l[1][6] + '''&nbsp;</td>
+</tr>
+</tbody>
+</table>
          ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
         content = f_map._repr_html_()
        
@@ -766,13 +805,13 @@ def create_app():
         svr_content = ''
         for i in sl:
             try:
-                if time.time() - ping_list[i.name] < 30:
+                if time.time() - ping_list[i.name] < 20:
                     svr_status = '''<div class="alert alert-success">
       <strong>Online</strong>
        </div> '''
                 elif time.time() - ping_list[i.name] <= 300:
                     svr_status = '''<div class="alert alert-warning">
-      <strong>No pings. ( < 5 min.)</strong>
+      <strong>Unknown <br /> (No pings, less than 5 min.)</strong>
        </div> '''
                 elif time.time() - ping_list[i.name] > 300:
                     svr_status = '''<div class="alert alert-danger">
@@ -5575,7 +5614,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             try:
                 if hblink_req['ping']:
                     ping_list[hblink_req['ping']] = time.time()
-                    print(peer_locations)
                     response = ''
             except:
                 pass
