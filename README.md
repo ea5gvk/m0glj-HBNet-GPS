@@ -1,8 +1,10 @@
 ![ ](https://raw.githubusercontent.com/kf7eel/hblink3/hbnet/HBNet.png  "Logo")
 
-HBNet is a fork of [HBlink3](https://github.com/HBLink-org/hblink3) the extends the functionality of HBLink through several optional features, making it more of a usable application and less of a framework. HBNet aims to be complete and easy to use application that can be used to build, administrate, and run a DMR network.
+HBNet is a fork of [HBlink3](https://github.com/HBLink-org/hblink3) that extends the functionality of HBLink through several features, making it more of a usable application and less of a framework. HBNet aims to be complete and ready to use application that can be used to build and run a DMR network.
 
-HBNet consists of 2 parts, HBNet Web Server and the actual DMR server, based on HBLink.
+HBNet consists of 2 parts, HBNet Web Service and the actual DMR server, based on HBLink. The HBNet Web Service handles user administration, server configuration, and is a content management system for your DMR network.
+
+This project originally started as a not so simple set of scripts to decode GPS locations and generate APRS positions. Through other modifications and additions, it has grown into a fully featured fork.
 
 
 ### User end features:
@@ -13,20 +15,23 @@ HBNet consists of 2 parts, HBNet Web Server and the actual DMR server, based on 
 
 * Automatic retrieval of DMR IDs on registration
 
-* Monitor and change active talkgroups (WORK IN PROGRESS)
+* Automatically generate talkgroup pages
+
+* Automatically generates a script for Pi-Star setup (WORK IN PROGRESS)
+
+* Map of currently connected peers
 
 
 ### Administrative features:
 
-* Administrate multiple DMR servers through the web panel
+* Administrate multiple DMR servers through the web service
 
 * Optional manual approval of new users
 
 * Multiple Admin user logins
 
-* Entirely configure DMR server (HBlink) in web server
+* Entirely configure DMR server (HBlink) in web service
 
-* Log all peer authentication
 
 
 ### Other features
@@ -42,7 +47,7 @@ Please join the DVSwitch group at groups.io for online forum support, discussion
 
 DVSwitch@groups.io 
 
-A voluntary registrty for HBlink systems with public access has been created at http://hblink-register.com.es Please consider listing your system if you allow open access.
+A voluntary registry for HBlink systems with public access has been created at http://hblink-register.com.es Please consider listing your system if you allow open access.
 
 ---
 

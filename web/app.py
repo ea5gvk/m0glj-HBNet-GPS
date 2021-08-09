@@ -2188,34 +2188,17 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##    @login_required
     def tg_list():
         cbl = BridgeList.query.filter_by(public_list=True).all()
-        content = '''
-<p>&nbsp;</p>
-<p style="text-align: center;"><strong>Note:</strong> Talkgroups listed here may not be available on all servers. See <a href="/generate_passphrase">Passphrase(s)</a> for complete list of talkgroup availability per server.</p>
-<p style="text-align: center;"><a href="hbnet_tg.csv"><strong>Download talkgroup CSV</strong></a> | <a href="hbnet_tg_anytone.csv"><strong>Download talkgroup CSV (Anytone format)</strong></a></p>
-<div class="container">          
-  <table class="table table-striped table-bordered">
-    <thead>
-      <tr>
-        <th style="width: 146.1px; text-align: center;">Name</th>
-        <th style="width: 89.9px; text-align: center;">TG</th>
-        <th style="width: 339px; text-align: center;">Description</th>
-      </tr>
-    </thead>
-    <tbody> '''
+        content = ''
         for i in cbl:
             print(str(re.sub('<[^>]*>', '', i.description))[:50])
             content = content + '''
 <tr>
-      <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''"><button type="button" class="btn btn-info">''' + i.bridge_name + '''</button></a></td>
+      <td>&nbsp;<a href="/tg/''' + i.bridge_name + '''"><button type="button" class="btn btn-primary">''' + i.bridge_name + '''</button></a></td>
       <td style="width: 89.9px;">&nbsp;''' + str(i.tg) + '''</td>
       <td style="width: 339px;">&nbsp;''' + str(re.sub('<[^>]*>|\s\s+', ' ', i.description))[:50] + '''...</td>
       </tr>'''
-        content = content + '''
-</tbody>
-  </table>
-</div>
-'''
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        
+        return render_template('tg_all.html', markup_content = Markup(content))
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
     @login_required
