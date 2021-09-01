@@ -1381,9 +1381,10 @@ def create_app():
             
             ml = MasterList.query.filter_by(public_list=True).filter_by(active=True).all()
             pl = ProxyList.query.filter_by(public_list=True).filter_by(active=True).all()
-##            print(ml)
+            print(ml)
+            print(pl)
             for m in ml:
-##                print(m.name)
+                print(m.name)
 ##                print(m.server)
 ##                print(m.port)
 ##                print(m.enable_um)
@@ -1393,6 +1394,12 @@ def create_app():
                 if m.enable_um == True:
                     passp = passphrase
                 pub_list.append([m.server + '_' + m.name, sl.ip, passphrase, m.port])
+            for p in pl:
+                sl = ServerList.query.filter_by(name=m.server).first()
+                if p.enable_um == True:
+                    passp = passphrase
+                pub_list.append([p.server + '_' + p.name, sl.ip, passphrase, p.external_port])
+
 
             
             return str(gen_script(dmr_id, pub_list))
