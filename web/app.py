@@ -1150,7 +1150,7 @@ def create_app():
             if request.form.get('callsign'):
                 callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
-            if u.notes = None:
+            if u.notes == None:
                 user_notes = ''
             confirm_link = ''
             if u.email_confirmed_at == None:
