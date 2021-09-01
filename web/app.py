@@ -3487,7 +3487,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <tr>
 <td><strong>&nbsp;Download:</strong></td>
 <td>&nbsp;<select name="aliases_enabled">
-<option selected="selected" value="''' + str(s.report_enable) + '''">Current: ''' + str(s.report_enable) + '''</option>
+<option selected="selected" value="''' + str(s.ai_try_download) + '''">Current: ''' + str(s.ai_try_download) + '''</option>
 <option value="False">False</option>
 <option value="True">True</option>
 
