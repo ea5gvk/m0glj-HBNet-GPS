@@ -47,58 +47,61 @@ from gen_script_template import gen_script
 import os, ast
 ##import hb_config
 
+from hws.misc_functions import *
+from hws.views import *
+
 script_links = {}
 active_tgs = {}
 ping_list = {}
 peer_locations = {}
 
-# Query radioid.net for list of IDs
-def get_ids(callsign):
-    try:
-        url = "https://www.radioid.net"
-        response = requests.get(url+"/api/dmr/user/?callsign=" + callsign)
-        result = response.json()
-##        print(result)
-    #        id_list = []
-        id_list = {}
-        f_name = result['results'][0]['fname']
-        l_name = result['results'][0]['surname']
-        try:
-            city = str(result['results'][0]['city'] + ', ' + result['results'][0]['state'] + ', ' + result['results'][0]['country'])
-        except:
-            city = result['results'][0]['country']
-        for i in result['results']:
-             id_list[i['id']] = 0
-        return str([id_list, f_name, l_name, city])
-    except:
-        return str([{}, '', '', ''])
- 
-
-# Return string in NATO phonetics
-def convert_nato(string):
-    d_nato = { 'A': 'ALPHA', 'B': 'BRAVO', 'C': 'CHARLIE', 'D': 'DELTA',
-          'E': 'ECHO', 'F': 'FOXTROT', 'G': 'GOLF', 'H': 'HOTEL',
-          'I': 'INDIA', 'J': 'JULIETT','K': 'KILO', 'L': 'LIMA',
-         'M': 'MIKE', 'N': 'NOVEMBER','O': 'OSCAR', 'P': 'PAPA',
-         'Q': 'QUEBEC', 'R': 'ROMEO', 'S': 'SIERRA', 'T': 'TANGO',
-         'U': 'UNIFORM', 'V': 'VICTOR', 'W': 'WHISKEY', 'X': 'X-RAY',
-         'Y': 'YANKEE', 'Z': 'ZULU', '0': 'zero(0)', '1': 'one(1)',
-         '2': 'two(2)', '3': 'three(3)', '4': 'four(4)', '5': 'five(5)',
-         '6': 'six(6)', '7': 'seven(7)', '8': 'eight(8)', '9': 'nine(9)',
-         'a': 'alpha', 'b': 'bravo', 'c': 'charlie', 'd': 'delta',
-         'e': 'echo', 'f': 'foxtrot', 'g': 'golf', 'h': 'hotel',
-         'i': 'india', 'j': 'juliett','k': 'kilo', 'l': 'lima',
-         'm': 'mike', 'n': 'november','o': 'oscar', 'p': 'papa',
-         'q': 'quebec', 'r': 'romeo', 's': 'sierra', 't': 'tango',
-         'u': 'uniform', 'v': 'victor', 'w': 'whiskey', 'x': 'x-ray',
-         'y': 'yankee', 'z': 'Zulu'}
-    ns = ''
-    for c in string:
-        try:
-            ns = ns + d_nato[c] + ' '
-        except:
-            ns = ns + c + ' '
-    return ns
+### Query radioid.net for list of IDs
+##def get_ids(callsign):
+##    try:
+##        url = "https://www.radioid.net"
+##        response = requests.get(url+"/api/dmr/user/?callsign=" + callsign)
+##        result = response.json()
+####        print(result)
+##    #        id_list = []
+##        id_list = {}
+##        f_name = result['results'][0]['fname']
+##        l_name = result['results'][0]['surname']
+##        try:
+##            city = str(result['results'][0]['city'] + ', ' + result['results'][0]['state'] + ', ' + result['results'][0]['country'])
+##        except:
+##            city = result['results'][0]['country']
+##        for i in result['results']:
+##             id_list[i['id']] = 0
+##        return str([id_list, f_name, l_name, city])
+##    except:
+##        return str([{}, '', '', ''])
+## 
+##
+### Return string in NATO phonetics
+##def convert_nato(string):
+##    d_nato = { 'A': 'ALPHA', 'B': 'BRAVO', 'C': 'CHARLIE', 'D': 'DELTA',
+##          'E': 'ECHO', 'F': 'FOXTROT', 'G': 'GOLF', 'H': 'HOTEL',
+##          'I': 'INDIA', 'J': 'JULIETT','K': 'KILO', 'L': 'LIMA',
+##         'M': 'MIKE', 'N': 'NOVEMBER','O': 'OSCAR', 'P': 'PAPA',
+##         'Q': 'QUEBEC', 'R': 'ROMEO', 'S': 'SIERRA', 'T': 'TANGO',
+##         'U': 'UNIFORM', 'V': 'VICTOR', 'W': 'WHISKEY', 'X': 'X-RAY',
+##         'Y': 'YANKEE', 'Z': 'ZULU', '0': 'zero(0)', '1': 'one(1)',
+##         '2': 'two(2)', '3': 'three(3)', '4': 'four(4)', '5': 'five(5)',
+##         '6': 'six(6)', '7': 'seven(7)', '8': 'eight(8)', '9': 'nine(9)',
+##         'a': 'alpha', 'b': 'bravo', 'c': 'charlie', 'd': 'delta',
+##         'e': 'echo', 'f': 'foxtrot', 'g': 'golf', 'h': 'hotel',
+##         'i': 'india', 'j': 'juliett','k': 'kilo', 'l': 'lima',
+##         'm': 'mike', 'n': 'november','o': 'oscar', 'p': 'papa',
+##         'q': 'quebec', 'r': 'romeo', 's': 'sierra', 't': 'tango',
+##         'u': 'uniform', 'v': 'victor', 'w': 'whiskey', 'x': 'x-ray',
+##         'y': 'yankee', 'z': 'Zulu'}
+##    ns = ''
+##    for c in string:
+##        try:
+##            ns = ns + d_nato[c] + ' '
+##        except:
+##            ns = ns + c + ' '
+##    return ns
 
 # Class-based application configuration
 class ConfigClass(object):
@@ -662,108 +665,108 @@ def create_app():
 
         db.session.commit()
 
-    # The Home page is accessible to anyone
-    @app.route('/')
-    def home_page():
-        home_text = Misc.query.filter_by(field_1='home_page').first()
-        #content = Markup('<strong>Index</strong>')
-        try:
-            l_news = News.query.order_by(News.time.desc()).first()
-            content = '''
-
-<div class="well well-sm" style="text-align: center;"><h3>''' + l_news.subject + '''</h3>
-<hr />
-<p>&nbsp;</p>
-<strong>''' + l_news.date + '''</strong> - <a href="/news/''' + str(l_news.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
-<p>&nbsp;</p>
-
-<hr />
-<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
-''' + l_news.text + '''
-</div>
-</div>
-  
-  </div>
-    '''
-        except:
-            content = ''
-        return render_template('index.html', news = Markup(content), content_block = Markup(home_text.field_2))
-
-    @app.route('/tos')
-    def tos_page():
-        tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
-        content = tos_text.field_2
-        
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
-
-    @app.route('/map')
-    @login_required
-    def map_page():
-        print(peer_locations)
-        f_map = folium.Map(location=center_map, zoom_start=map_zoom)
-        for l in peer_locations.items():
-##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
-##<div class="panel panel-default">
-##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
-##  <div class="panel-body">
-##  ''' + l[1][5] + '''
-##  <hr />
-##  ''' + l[1][1] + ''', ''' + l[1][2] + '''
-##  <hr />
-##  ''' + l[1][3] + '''
-##  <hr />
-##  ''' + l[1][4] + '''
-##  <hr />
-##  ''' + l[1][6] + '''
-##    </div>
+##    # The Home page is accessible to anyone
+##    @app.route('/')
+##    def home_page():
+##        home_text = Misc.query.filter_by(field_1='home_page').first()
+##        #content = Markup('<strong>Index</strong>')
+##        try:
+##            l_news = News.query.order_by(News.time.desc()).first()
+##            content = '''
+##
+##<div class="well well-sm" style="text-align: center;"><h3>''' + l_news.subject + '''</h3>
+##<hr />
+##<p>&nbsp;</p>
+##<strong>''' + l_news.date + '''</strong> - <a href="/news/''' + str(l_news.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
+##<p>&nbsp;</p>
+##
+##<hr />
+##<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
+##''' + l_news.text + '''
 ##</div>
+##</div>
+##  
+##  </div>
+##    '''
+##        except:
+##            content = ''
+##        return render_template('index.html', news = Markup(content), content_block = Markup(home_text.field_2))
+##
+##    @app.route('/tos')
+##    def tos_page():
+##        tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
+##        content = tos_text.field_2
+##        
+##        return render_template('flask_user_layout.html', markup_content = Markup(content))
+##
+##    @app.route('/map')
+##    @login_required
+##    def map_page():
+##        print(peer_locations)
+##        f_map = folium.Map(location=center_map, zoom_start=map_zoom)
+##        for l in peer_locations.items():
+####            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+####<div class="panel panel-default">
+####  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
+####  <div class="panel-body">
+####  ''' + l[1][5] + '''
+####  <hr />
+####  ''' + l[1][1] + ''', ''' + l[1][2] + '''
+####  <hr />
+####  ''' + l[1][3] + '''
+####  <hr />
+####  ''' + l[1][4] + '''
+####  <hr />
+####  ''' + l[1][6] + '''
+####    </div>
+####</div>
+####         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
+##
+##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+##<table border="1">
+##<tbody>
+##<tr>
+##<td>&nbsp;<strong><h4>''' + l[1][0] + '''</strong></h4>&nbsp;</td>
+##</tr>
+##</tbody>
+##</table>
+##<table border="1">
+##<tbody>
+##<tr>
+##<td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
+##<td>&nbsp;''' + str(l[0]) + '''&nbsp;</td>
+##</tr>
+##<tr>
+##<td style="width: 64.4667px;"><strong>Location:</strong></td>
+##<td>&nbsp;''' + l[1][5] + '''&nbsp;</td>
+##</tr>
+##<tr>
+##<td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
+##<td>&nbsp;''' + l[1][1] + ''', ''' + l[1][2] + '''&nbsp;</td>
+##</tr>
+##<tr>
+##<td style="width: 64.4667px;"><strong>Description:</strong></td>
+##<td>&nbsp;''' + l[1][4] + '''&nbsp;</td>
+##</tr>
+##<tr>
+##<td style="width: 64.4667px;"><p><strong>URL:</strong></p>
+##</td>
+##<td><a href="''' + l[1][3] + '''">&nbsp;''' + l[1][3] + '''&nbsp;</a></td>
+##</tr>
+##<tr>
+##<td style="width: 64.4667px;"><strong>Device:</strong></td>
+##<td>&nbsp;''' + l[1][6] + '''&nbsp;</td>
+##</tr>
+##</tbody>
+##</table>
 ##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
-
-            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
-<table border="1">
-<tbody>
-<tr>
-<td>&nbsp;<strong><h4>''' + l[1][0] + '''</strong></h4>&nbsp;</td>
-</tr>
-</tbody>
-</table>
-<table border="1">
-<tbody>
-<tr>
-<td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
-<td>&nbsp;''' + str(l[0]) + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Location:</strong></td>
-<td>&nbsp;''' + l[1][5] + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
-<td>&nbsp;''' + l[1][1] + ''', ''' + l[1][2] + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Description:</strong></td>
-<td>&nbsp;''' + l[1][4] + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><p><strong>URL:</strong></p>
-</td>
-<td><a href="''' + l[1][3] + '''">&nbsp;''' + l[1][3] + '''&nbsp;</a></td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Device:</strong></td>
-<td>&nbsp;''' + l[1][6] + '''&nbsp;</td>
-</tr>
-</tbody>
-</table>
-         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
-        content = f_map._repr_html_()
-       
-        return render_template('map.html', markup_content = Markup(content))
-    
-    @app.route('/help')
-    def help_page():
-        return render_template('help.html')
+##        content = f_map._repr_html_()
+##       
+##        return render_template('map.html', markup_content = Markup(content))
+##    
+##    @app.route('/help')
+##    def help_page():
+##        return render_template('help.html')
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required
@@ -1150,6 +1153,8 @@ def create_app():
             if request.form.get('callsign'):
                 callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
+            if u.notes = None:
+                user_notes = ''
             confirm_link = ''
             if u.email_confirmed_at == None:
                 confirm_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?email_verified=true&callsign=' + str(u.username) + '''"><strong>Verify email -  <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
@@ -1281,7 +1286,7 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(u.notes) + '''</textarea><br /><br />
+<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(user_notes) + '''</textarea><br /><br />
 </td></tr>
 
 
