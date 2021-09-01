@@ -607,6 +607,7 @@ def create_app():
     def _after_user_registered_hook(sender, user, **extra):
         edit_user = User.query.filter(User.username == user.username).first()
         radioid_data = ast.literal_eval(get_ids(user.username))
+##        edit_user.notes = ''
         edit_user.dmr_ids = str(radioid_data[0])
         edit_user.first_name = str(radioid_data[1])
         edit_user.last_name = str(radioid_data[2])
@@ -1131,12 +1132,15 @@ def create_app():
             edit_user.initial_admin_approved = True
             db.session.commit()
             email_text = Misc.query.filter_by(field_1='approval_email').first()
-            msg = Message(recipients=[edit_user.email],
-                          sender=(title, MAIL_DEFAULT_SENDER),
-                          subject='Account Approval',
-                          body = str(email_text.field_2))
-            mail.send(msg)
-            content = '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
+            try:
+                msg = Message(recipients=[edit_user.email],
+                              sender=(title, MAIL_DEFAULT_SENDER),
+                              subject='Account Approval',
+                              body = str(email_text.field_2))
+                mail.send(msg)
+            except:
+                content = 'Failed to send email. Approved user anyway'
+            content = content + '''<p style="text-align: center;">User approved: <strong>''' + str(request.args.get('callsign')) + '''</strong></p>\n'''
             
         elif request.method == 'GET' and request.args.get('callsign') and request.args.get('email_verified') == 'true':
             edit_user = User.query.filter(User.username == request.args.get('callsign')).first()
@@ -1150,8 +1154,9 @@ def create_app():
             if request.form.get('callsign'):
                 callsign = request.form.get('callsign')
             u = User.query.filter_by(username=callsign).first()
-            if u.notes == None:
-                user_notes = ''
+            user_email_address = 'None'
+            if str(u.email):
+                user_email_address = str(u.email)
             confirm_link = ''
             if u.email_confirmed_at == None:
                 confirm_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?email_verified=true&callsign=' + str(u.username) + '''"><strong>Verify email -  <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
@@ -1171,7 +1176,7 @@ def create_app():
 <td style="text-align: center;"><strong>Passphrase</strong></td>
 </tr> '''
             for i in id_dict.items():
-                print(i[1])
+##                print(i[1])
                 if isinstance(i[1], int) == True: 
                     passphrase_list = passphrase_list + '''
 <tr>
@@ -1260,7 +1265,7 @@ def create_app():
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
   <label for="username">Portal Email:</label><br>
-  <input type="text" id="email" name="email" value="''' + u.email + '''"><br>
+  <input type="text" id="email" name="email" value="''' + user_email_address + '''"><br>
 </td></tr>
 
 <tr style="height: 51.1667px;">
@@ -1283,7 +1288,7 @@ def create_app():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(user_notes) + '''</textarea><br /><br />
+<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(u.notes) + '''</textarea><br /><br />
 </td></tr>
 
 
