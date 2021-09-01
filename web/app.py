@@ -1395,7 +1395,7 @@ def create_app():
                     passp = passphrase
                 pub_list.append([m.server + '_' + m.name, sl.ip, passphrase, m.port])
             for p in pl:
-                sl = ServerList.query.filter_by(name=m.server).first()
+                sl = ServerList.query.filter_by(name=p.server).first()
                 if p.enable_um == True:
                     passp = passphrase
                 pub_list.append([p.server + '_' + p.name, sl.ip, passphrase, p.external_port])
