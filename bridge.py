@@ -2,6 +2,7 @@
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
+#   Copyright (C) 2020-2021 Eric, KF7EEL, <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -70,12 +71,12 @@ from datetime import datetime
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
-__author__     = 'Cortney T. Buffington, N0MJS'
-__copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group'
+__author__     = 'Cortney T. Buffington, N0MJS, Eric Craw, KF7EEL, kf7eel@qsl.net'
+__copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group, Copyright (c) 2020-2021, Eric Craw, KF7EEL'
 __credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT'
 __license__    = 'GNU GPLv3'
-__maintainer__ = 'Cort Buffington, N0MJS'
-__email__      = 'n0mjs@me.com'
+__maintainer__ = 'Eric Craw, KF7EEL'
+__email__      = 'kf7eel@qsl.net'
 
 ##import os, ast
 
@@ -160,17 +161,7 @@ def download_config(L_CONFIG_FILE, cli_file):
     try:
         req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         resp = json.loads(req.text)
-##        print(resp)
-
-##        print(type(resp))
-##        conf = config.build_config(resp['config'])
-##        print(conf)
-##        with open('/tmp/conf_telp.cfg', 'w') as f:
-##            f.write(str(resp['config']))
-##        print(resp)
         iterate_config = resp['peers'].copy()
-##        iterate_masters = resp['masters'].copy()
-        
         corrected_config = resp['config'].copy()
         corrected_config['SYSTEMS'] = {}
         corrected_config['LOGGER'] = {}
@@ -178,35 +169,18 @@ def download_config(L_CONFIG_FILE, cli_file):
         corrected_config['SYSTEMS'].update(iterate_config)
         corrected_config['LOGGER'].update(L_CONFIG_FILE['LOGGER'])
 ##        corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
-##        print(resp['config']['USER_MANAGER'])
         corrected_config['USER_MANAGER'] = {}
         corrected_config['USER_MANAGER']['THIS_SERVER_NAME'] = L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME']
         corrected_config['USER_MANAGER']['URL'] = L_CONFIG_FILE['USER_MANAGER']['URL']
         corrected_config['USER_MANAGER']['SHARED_SECRET'] = L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET']
         corrected_config['USER_MANAGER']['REMOTE_CONFIG_ENABLED'] = L_CONFIG_FILE['USER_MANAGER']['REMOTE_CONFIG_ENABLED']
         corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
-
-##        iterate_config.update(resp['masters'].copy())
-##        print(iterate_config)
-##        print(iterate_config)
-
-##        corrected_config = CONFIG_FILE.copy()
-
-        
-##        print(corrected_config)
-##        print()
-##        print(iterate_config['config']['SYSTEMS'])
-##        print(resp['config'])
-##        print((iterate_config['test']))
-##        print(corrected_config)
-        
         corrected_config['GLOBAL']['TG1_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 4294967295)
         corrected_config['GLOBAL']['TG2_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 4294967295)
         corrected_config['GLOBAL']['REG_ACL'] = config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 4294967295)
         corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 4294967295)
 ##        corrected_config['SYSTEMS'] = {}
         for i in iterate_config:
-##            print(i)
 ##            corrected_config['SYSTEMS'][i] = {}
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
@@ -377,7 +351,7 @@ def make_bridges(_rules):
 
 
 # Run this every minute for rule timer updates
-def rule_timer_loop():
+def rule_timer_loop(unit_flood_time):
     global UNIT_MAP
     logger.debug('(ROUTER) routerHBP Rule timer loop started')
     _now = time()
@@ -391,7 +365,7 @@ def rule_timer_loop():
                         _system['ACTIVE'] = False
                         logger.info('(ROUTER) Conference Bridge TIMEOUT: DEACTIVATE System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
                         # Send not active POST
-                        update_tg(CONFIG, 'off', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
+                        #update_tg(CONFIG, 'off', 0, [{'SYSTEM':_system['SYSTEM']}, {'ts':_system['TS']}, {'tg': int_id(_system['TGID'])}])
 
 ##                        print(_system)
                     else:
@@ -417,7 +391,7 @@ def rule_timer_loop():
             else:
                 logger.debug('(ROUTER) Conference Bridge NO ACTION: System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
 
-    _then = _now - 60
+    _then = _now - unit_flood_time
     remove_list = []
     for unit in UNIT_MAP:
         if UNIT_MAP[unit][1] < (_then):
@@ -1369,6 +1343,8 @@ if __name__ == '__main__':
     import os
     import signal
 
+##    global unit_flood_time
+
     # Change the current directory to the location of the application
     os.chdir(os.path.dirname(os.path.realpath(sys.argv[0])))
 
@@ -1390,7 +1366,6 @@ if __name__ == '__main__':
         print('enabled')
     else:
         CONFIG = config.build_config(cli_args.CONFIG_FILE)
-
 
     # Ensure we have a path for the rules file, if one wasn't specified, then use the default (top of file)
     if not cli_args.RULES_FILE:
@@ -1502,8 +1477,8 @@ if __name__ == '__main__':
         except (ImportError, FileNotFoundError):
             sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
             spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
-        print('--------')
-        print(rules_module.BRIDGES)
+##        print('--------')
+##        print(rules_module.BRIDGES)
         # Build the routing rules file
         BRIDGES = make_bridges(rules_module.BRIDGES)
         # Get rule parameter for private calls
@@ -1522,8 +1497,9 @@ if __name__ == '__main__':
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
         reactor.stop()
 
+    unit_flood_time = CONFIG['OTHER']['UNIT_TIME']
     # Initialize the rule timer -- this if for user activated stuff
-    rule_timer_task = task.LoopingCall(rule_timer_loop)
+    rule_timer_task = task.LoopingCall(rule_timer_loop, unit_flood_time)
     rule_timer = rule_timer_task.start(60)
     rule_timer.addErrback(loopingErrHandle)
 
