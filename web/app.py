@@ -293,6 +293,7 @@ def create_app():
         notes =  db.Column(db.String(100), nullable=False, server_default='')
         dash_url = db.Column(db.String(1000), nullable=True, server_default='https://hbnet.xyz')
         public_notes =  db.Column(db.String(1000), nullable=False, server_default='')
+        other_options = db.Column(db.String(500), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -2876,7 +2877,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.commit()
 
 
-    def server_edit(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
+    def server_edit(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes, _other_options):
         print(_public_notes)
         s = ServerList.query.filter_by(name=_name).first()
         # print(_name)
@@ -2915,6 +2916,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         s.notes = _notes
         s.dash_url = _dash_url
         s.public_notes = _public_notes
+        s.other_options = _other_options
         db.session.commit()
         
     def master_delete(_mode, _server, _name):
@@ -3098,7 +3100,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 db.session.commit()
 
         
-    def server_add(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes):
+    def server_add(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes, _other_options):
         add_server = ServerList(
         name = _name,
         secret = hashlib.sha256(_secret.encode()).hexdigest(),
@@ -3133,7 +3135,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         unit_time = int(_unit_time),
         notes = _notes,
         dash_url = _dash_url,
-        public_notes = _public_notes
+        public_notes = _public_notes,
+        other_options = _other_options
         )
         db.session.add(add_server)
         db.session.commit()
@@ -3330,14 +3333,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
                 else:
-                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
+                    server_add(request.form.get('server_name'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'), request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">Server saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
             if request.args.get('save_mode') == 'edit':
-                print(_ai_try_download)
+##                print(_ai_try_download)
 ##                print(request.args.get('server'))
-                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'))
+                server_edit(request.args.get('server'), request.form.get('server_secret'), request.form.get('server_ip'), request.form.get('global_path'), _global_ping_time, _global_max_missed, _global_use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('global_ts1_acl'), request.form.get('global_ts2_acl'), request.form.get('sub_file'), _ai_try_download, request.form.get('aliases_path'), request.form.get('peer_file'), request.form.get('tgid_file'), request.form.get('peer_url'), request.form.get('sub_url'), _ai_stale, _um_shorten_passphrase, request.form.get('um_burn_file'), _report_enabled, _report_interval, _report_port, request.form.get('report_clients'), request.form.get('unit_time'), request.form.get('notes'), request.form.get('dash_url'), request.form.get('public_notes'), request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">Server changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
@@ -3381,6 +3384,11 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="''' + str(s.unit_time) + '''"/></td>
+</tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4">''' + str(s.other_options) + '''</textarea></td>
 </tr>
 
 <tr>
@@ -3583,6 +3591,11 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <tr>
 <td style="width: 16.0381%;"><strong>&nbsp;Unit Call Timeout (minutes):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="unit_time" type="text" value="10080"/></td>
+</tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4"></textarea></td>
 </tr>
 
 <tr>
