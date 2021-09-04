@@ -221,6 +221,7 @@ def create_app():
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes =  db.Column(db.String(500), nullable=False, server_default='')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
 
     class xlxPeer(db.Model):
         __tablename__ = 'XLX_peers'
@@ -256,6 +257,8 @@ def create_app():
         tg2_acl = db.Column(db.String(100), nullable=False, server_default='')
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(500), nullable=False, server_default='')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
+        
     class ServerList(db.Model):
         __tablename__ = 'server_list'
         name = db.Column(db.String(100), unique=True, primary_key=True)
@@ -293,7 +296,7 @@ def create_app():
         notes =  db.Column(db.String(100), nullable=False, server_default='')
         dash_url = db.Column(db.String(1000), nullable=True, server_default='https://hbnet.xyz')
         public_notes =  db.Column(db.String(1000), nullable=False, server_default='')
-        other_options = db.Column(db.String(500), nullable=False, server_default='')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
 
     class MasterList(db.Model):
         __tablename__ = 'master_list'
@@ -317,6 +320,7 @@ def create_app():
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(500), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
 
 
     class ProxyList(db.Model):
@@ -342,6 +346,7 @@ def create_app():
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(500), nullable=False, server_default='')
         public_list = db.Column(db.Boolean(), nullable=False, server_default='1')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
 
         
     class OBP(db.Model):
@@ -362,6 +367,7 @@ def create_app():
         enable_unit = db.Column(db.Boolean(), nullable=False, server_default='1')
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(500), nullable=False, server_default='')
+        other_options = db.Column(db.String(1000), nullable=False, server_default='')
         
     class BridgeRules(db.Model):
         __tablename__ = 'bridge_rules'
@@ -2691,6 +2697,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         s_config['REPORTS'] = {}
         s_config['ALIASES'] = {}
         s_config['USER_MANAGER'] = {}
+        s_config['OTHER'] = {}
 
         s_config['GLOBAL'].update({
                     'PATH': i.global_path,
@@ -2733,7 +2740,11 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 
 
                 })
-        print(s_config['REPORTS'])
+        s_config['OTHER'].update({
+            'UNIT_TIME': i.unit_time,
+            'OTHER_OPTIONS': i.other_options
+            })
+##        print(s_config['REPORTS'])
         return s_config
     def masters_get(_name):
 ##        # print(_name)
@@ -2932,7 +2943,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.delete(m)
         db.session.commit()
 
-    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public):
+    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options):
 ##        print(_mode)
 ####        print(_server)
 ##        print(_name)
@@ -2958,6 +2969,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##            m.server = _server
             m.notes = _notes
             m.public_list = _public
+            m.other_options = _other_options
             db.session.commit()
         if _mode == 'OBP':
             # print(_enable_unit)
@@ -2977,6 +2989,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             o.tg2_acl = _tg2_acl
             o.enable_unit = _enable_unit
             o.notes = _notes
+            o.other_options = _other_options
             db.session.commit()
         if _mode == 'PROXY':
 ##            print(_int_start_port)
@@ -3002,6 +3015,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             p.server = _server
             p.notes = _notes
             p.public_list = _public
+            p.other_options = _other_options
             db.session.commit()
 ##            add_proxy = ProxyList(
 ##                name = _name,
@@ -3025,7 +3039,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##                )
 ##            db.session.add(add_master)
 
-    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public):
+    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options):
         # print(_mode)
         if _mode == 'MASTER':
             add_master = MasterList(
@@ -3047,7 +3061,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 enable_unit = _enable_unit,
                 server = _server,
                 notes = _notes,
-                public_list = _public
+                public_list = _public,
+                other_options = _other_options
                 )
             db.session.add(add_master)
             db.session.commit()
@@ -3072,7 +3087,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 enable_unit = _enable_unit,
                 server = _server,
                 notes = _notes,
-                public_list = _public
+                public_list = _public,
+                other_options = _other_options
                 )
             db.session.add(add_proxy)
             db.session.commit()
@@ -3095,6 +3111,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     enable_unit = _enable_unit,
                     server = _server,
                     notes = _notes,
+                    other_options = _other_options
                     )
                 db.session.add(add_OBP)
                 db.session.commit()
@@ -3140,7 +3157,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         )
         db.session.add(add_server)
         db.session.commit()
-    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr, _enable_unit, _notes):
+    def peer_add(_mode, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _svr, _enable_unit, _notes, _other_options):
         if _mode == 'xlx':
             xlx_peer_add = xlxPeer(
                     name = _name,
@@ -3172,7 +3189,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     tg1_acl = _1_acl,
                     tg2_acl = _2_acl,
                     server = _svr,
-                    notes = _notes
+                    notes = _notes,
+                    other_options = _other_options
                         )
             db.session.add(xlx_peer_add)
             db.session.commit()
@@ -3206,11 +3224,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     tg1_acl = _1_acl,
                     tg2_acl = _2_acl,
                     server = _svr,
-                    notes = _notes
+                    notes = _notes,
+                    other_options = _other_options
                         )
             db.session.add(mmdvm_peer_add)
             db.session.commit()
-    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _enable_unit, _notes):
+    def peer_edit(_mode, _server, _name, _enabled, _loose, _ip, _port, _master_ip, _master_port, _passphrase, _callsign, _radio_id, _rx, _tx, _tx_power, _cc, _lat, _lon, _height, _loc, _desc, _slots, _url, _grp_hang, _xlx_mod, _opt, _use_acl, _sub_acl, _1_acl, _2_acl, _enable_unit, _notes, _other_options):
 ##        print(_mode)
         if _mode == 'mmdvm':
 ##            print(_server)
@@ -3246,6 +3265,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             p.tg1_acl = _1_acl
             p.tg2_acl = _2_acl
             p.notes = _notes
+            p.other_options = _other_options
         if _mode == 'xlx':
 ##            print(type(_server))
 ##            print(type(_name))
@@ -3287,6 +3307,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             p.tg1_acl = _1_acl
             p.tg2_acl = _2_acl
             p.notes = _notes
+            p.other_options = _other_options
         db.session.commit()
             
             
@@ -3842,12 +3863,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             else:
                 if request.args.get('save_mode') == 'mmdvm_peer':
-                    peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
+                    peer_add('mmdvm', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'), request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">MMDVM PEER saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
                 if request.args.get('save_mode') == 'xlx_peer':
-                    peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'))
+                    peer_add('xlx', request.form.get('name_text'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'), request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), request.form.get('server'), unit_enabled, request.form.get('notes'), request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">XLX PEER saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -4020,6 +4041,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
 <td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="PERMIT:ALL" /></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4"></textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
@@ -4055,12 +4082,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##            print(type(peer_enabled))
 ##            print(type(use_acl))
             if request.args.get('edit_mmdvm') == 'save':
-                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'))
+                peer_edit('mmdvm', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), 'MMDVM', request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'), request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">MMDVM PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
             if request.args.get('edit_xlx') == 'save':
-                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'))
+                peer_edit('xlx', request.args.get('server'), request.args.get('name'), peer_enabled, peer_loose, request.form.get('ip'), request.form.get('port'), request.form.get('master_ip'), request.form.get('master_port'), request.form.get('passphrase'), request.form.get('callsign'), request.form.get('radio_id'), request.form.get('rx'), request.form.get('tx'), request.form.get('tx_power'), request.form.get('cc'), request.form.get('lat'), request.form.get('lon'), request.form.get('height'), request.form.get('location'), request.form.get('description'), request.form.get('slots'), request.form.get('url'), request.form.get('group_hangtime'), request.form.get('xlxmodule'),  request.form.get('options'), use_acl, request.form.get('sub_acl'), request.form.get('tgid_ts1_acl'), request.form.get('tgid_ts2_acl'), unit_enabled, request.form.get('notes'), request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">XLX PEER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_peers" />'''
@@ -4229,6 +4256,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="width: 175.567px;"><strong>&nbsp;Talkgroup Slot 2 ACLs:</strong></td>
 <td style="width: 399.433px;">&nbsp;<input name="tgid_ts2_acl" type="text" value="''' + str(p.tg2_acl) + '''" /></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4">''' + str(p.other_options) + '''</textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(p.notes) + '''</textarea></td>
@@ -4332,13 +4365,13 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public)
+                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">PROXY saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('proxy_save') == 'edit':
 ##                print(request.args.get('name'))
-                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public)
+                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">PROXY changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -4367,12 +4400,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '')
+                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">OpenBridge connection saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('OBP_save') == 'edit':
-                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '')
+                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">OpenBridge connection changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -4410,12 +4443,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public)
+                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'))
                     content = '''<h3 style="text-align: center;">MASTER saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('master_save') == 'edit':
-                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public)
+                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'))
                 content = '''<h3 style="text-align: center;">MASTER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" /> '''
@@ -4508,6 +4541,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4"></textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
@@ -4642,6 +4681,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4">''' + str(p.other_options) + '''</textarea></td>
+</tr>
+
 <tr>
 <td style="width: 189.383px;"><strong>&nbsp;Notes:</strong></td>
 <td style="width: 392.617px;">&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(p.notes) + '''</textarea></td>
@@ -4771,6 +4816,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4"></textarea></td>
+</tr>
+
 <tr>
 <td style="width: 189.383px;"><strong>&nbsp;Notes:</strong></td>
 <td style="width: 392.617px;">&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
@@ -4889,6 +4940,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4"></textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4"></textarea></td>
@@ -4980,6 +5037,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4">''' + str(o.other_options) + '''</textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(o.notes) + '''</textarea></td>
@@ -5100,6 +5163,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="False">False</option>
 </select></td>
 </tr>
+
+<tr>
+<td><strong>&nbsp;Misc Options:</strong></td>
+<td>&nbsp;<textarea id="other_options" cols="50" name="other_options" rows="4">''' + str(m.other_options) + '''</textarea></td>
+</tr>
+
 <tr>
 <td><strong>&nbsp;Notes:</strong></td>
 <td>&nbsp;<textarea id="notes" cols="50" name="notes" rows="4">''' + str(m.notes) + '''</textarea></td>
@@ -5713,6 +5782,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##                    print(active_tgs)
     ##                try:
 ##                    print(get_peer_configs(hblink_req['get_config']))
+
+                    print(masters_get(hblink_req['get_config']))
                     response = jsonify(
                             config=server_get(hblink_req['get_config']),
                             peers=get_peer_configs(hblink_req['get_config']),
