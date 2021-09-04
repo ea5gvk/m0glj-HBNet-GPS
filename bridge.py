@@ -185,8 +185,9 @@ def download_config(L_CONFIG_FILE, cli_file):
         corrected_config['GLOBAL']['SUB_ACL'] = config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 4294967295)
 ##        corrected_config['SYSTEMS'] = {}
         for i in iterate_config:
+##            corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
 ##            corrected_config['SYSTEMS'][i] = {}
-##            print(iterate_config[i])
+            print(iterate_config[i])
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
@@ -200,6 +201,8 @@ def download_config(L_CONFIG_FILE, cli_file):
                     
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
+##                print(iterate_config[i])
+                corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
@@ -208,7 +211,7 @@ def download_config(L_CONFIG_FILE, cli_file):
                 corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes((iterate_config[i]['PASSPHRASE']), 'utf-8')
                 corrected_config['SYSTEMS'][i]['CALLSIGN'] = bytes((iterate_config[i]['CALLSIGN']).ljust(8)[:8], 'utf-8')
-                corrected_config['SYSTEMS'][i]['RX_FREQ']: bytes((iterate_config[i]['RX_FREQ']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['RX_FREQ'] = bytes((iterate_config[i]['RX_FREQ']).ljust(9)[:9], 'utf-8')
                 corrected_config['SYSTEMS'][i]['TX_FREQ'] = bytes((iterate_config[i]['TX_FREQ']).ljust(9)[:9], 'utf-8')
                 corrected_config['SYSTEMS'][i]['TX_POWER'] = bytes((iterate_config[i]['TX_POWER']).rjust(2,'0'), 'utf-8')
                 corrected_config['SYSTEMS'][i]['COLORCODE'] = bytes((iterate_config[i]['COLORCODE']).rjust(2,'0'), 'utf-8')
@@ -219,8 +222,8 @@ def download_config(L_CONFIG_FILE, cli_file):
                 corrected_config['SYSTEMS'][i]['DESCRIPTION'] = bytes((iterate_config[i]['DESCRIPTION']).ljust(19)[:19], 'utf-8')
                 corrected_config['SYSTEMS'][i]['SLOTS'] = bytes((iterate_config[i]['SLOTS']), 'utf-8')
                 corrected_config['SYSTEMS'][i]['URL'] = bytes((iterate_config[i]['URL']).ljust(124)[:124], 'utf-8')
-                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('HBNet V1.0').ljust(40)[:40], 'utf-8')
-                corrected_config['SYSTEMS'][i]['PACKAGE_ID'] = bytes(('Dev').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('Development').ljust(40)[:40], 'utf-8')#bytes(('HBNet V1.0').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['PACKAGE_ID'] = bytes(('HBNet').ljust(40)[:40], 'utf-8')
                 corrected_config['SYSTEMS'][i]['OPTIONS'] = b''.join([b'Type=HBNet;', bytes(iterate_config[i]['OPTIONS'], 'utf-8')])
 
 
