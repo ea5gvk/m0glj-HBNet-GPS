@@ -69,6 +69,10 @@ from hotspot_proxy_v2 import Proxy
 # Used for converting time
 from datetime import datetime
 
+import re
+from socket import gethostbyname
+
+
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS, Eric Craw, KF7EEL, kf7eel@qsl.net'
@@ -182,13 +186,18 @@ def download_config(L_CONFIG_FILE, cli_file):
 ##        corrected_config['SYSTEMS'] = {}
         for i in iterate_config:
 ##            corrected_config['SYSTEMS'][i] = {}
-            if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY':
+##            print(iterate_config[i])
+            if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')
                 if iterate_config[i]['MODE'] == 'OPENBRIDGE':
+##                    corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
                     corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
-                    corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'].ljust(20,'\x00')[:20], 'utf-8')
+                    corrected_config['SYSTEMS'][i]['PASSPHRASE'] = (iterate_config[i]['PASSPHRASE'] + b'\x00' * 30)[:20] #bytes(re.sub('', "b'|'", str(iterate_config[i]['PASSPHRASE'])).ljust(20, '\x00')[:20], 'utf-8') #bytes(iterate_config[i]['PASSPHRASE'].ljust(20,'\x00')[:20], 'utf-8')
+                    corrected_config['SYSTEMS'][i]['BOTH_SLOTS'] = iterate_config[i]['BOTH_SLOTS']
+                    corrected_config['SYSTEMS'][i]['TARGET_SOCK'] = (gethostbyname(iterate_config[i]['TARGET_IP']), iterate_config[i]['TARGET_PORT'])
+                    
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
@@ -242,7 +251,6 @@ def download_config(L_CONFIG_FILE, cli_file):
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
             corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
 
-##            print(corrected_config)
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -1363,7 +1371,8 @@ if __name__ == '__main__':
     LOCAL_CONFIG = config.build_config(cli_args.CONFIG_FILE)
     if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
         CONFIG = download_config(LOCAL_CONFIG, cli_args.CONFIG_FILE)
-        print('enabled')
+##        print(CONFIG['SYSTEMS'])
+##        print('enabled')
     else:
         CONFIG = config.build_config(cli_args.CONFIG_FILE)
 
@@ -1454,6 +1463,7 @@ if __name__ == '__main__':
             BRIDGES = make_bridges(remote_config[1]) #make_bridges(rules_module.BRIDGES)
             # Get rule parameter for private calls
             UNIT = remote_config[0]
+            unit_flood_time = CONFIG['OTHER']['UNIT_TIME']
         except:
             logger.error('Control server unreachable or other error. Using local config.')
             spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
@@ -1467,6 +1477,7 @@ if __name__ == '__main__':
             BRIDGES = make_bridges(rules_module.BRIDGES)
             # Get rule parameter for private calls
             UNIT = rules_module.UNIT
+            unit_flood_time = rules_module.FLOOD_TIMEOUT
 
     else:
         spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
@@ -1483,6 +1494,7 @@ if __name__ == '__main__':
         BRIDGES = make_bridges(rules_module.BRIDGES)
         # Get rule parameter for private calls
         UNIT = rules_module.UNIT
+        unit_flood_time = rules_module.FLOOD_TIMEOUT
 
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
@@ -1497,7 +1509,7 @@ if __name__ == '__main__':
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
         reactor.stop()
 
-    unit_flood_time = CONFIG['OTHER']['UNIT_TIME']
+    
     # Initialize the rule timer -- this if for user activated stuff
     rule_timer_task = task.LoopingCall(rule_timer_loop, unit_flood_time)
     rule_timer = rule_timer_task.start(60)

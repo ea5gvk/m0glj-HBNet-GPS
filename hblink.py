@@ -352,7 +352,7 @@ class HBSYSTEM(DatagramProtocol):
                 _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
         #If exception, assume UMS down and default to calculated passphrase
         except Exception as e:
-            logger.info('Execption, UMS possibly down')
+            logger.info('Execption, Web Service possibly down')
             _new_peer_id = bytes_4(int(str(int_id(peer_id))[:7]))
             if peer_id_trimmed in burn_id:
                 logger.info('User ID has been burned. Requiring passphrase version: ' + str(burn_id[peer_id_trimmed]))
@@ -550,7 +550,6 @@ class HBSYSTEM(DatagramProtocol):
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
                 if self._config['USE_USER_MAN'] == True:
-##                    print(str(_peer_id) + ' - hblink.py')
                     self.ums_response = self.check_user_man(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], self._system)
 ##                    print(self.ums_response)
                     #Will allow anyone to attempt authentication, used for a transition period
@@ -559,10 +558,15 @@ class HBSYSTEM(DatagramProtocol):
                         user_auth = self.ums_response['allow']
                     else:
                         user_auth = False
-                if self._config['USE_USER_MAN'] == False:
+                elif self._config['USE_USER_MAN'] == False:
                    # print('False')
-                    b_acl = acl_build(self._config['REG_ACL'], 4294967295)
-                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):
+####                    print(self._config['REG_ACL'])
+##                    print(self._CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED'])
+                    b_acl = self._config['REG_ACL']
+                    if self._CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED'] == True:
+                        b_acl = acl_build(self._config['REG_ACL'], 4294967295)
+                    print(b_acl)
+                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):#acl_check(_peer_id, b_acl):
                         user_auth = True
                 if user_auth == True:
                 # Build the configuration data strcuture for the peer
