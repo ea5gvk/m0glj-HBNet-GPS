@@ -368,6 +368,8 @@ def create_app():
         server = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(500), nullable=False, server_default='')
         other_options = db.Column(db.String(1000), nullable=False, server_default='')
+        encryption_key = db.Column(db.String(200), nullable=False, server_default='')
+        obp_encryption = db.Column(db.Boolean(), nullable=False, server_default='0')
         
     class BridgeRules(db.Model):
         __tablename__ = 'bridge_rules'
@@ -2793,7 +2795,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                         'USE_ACL': obp.use_acl,
                         'SUB_ACL': obp.sub_acl,
                         'TG1_ACL': obp.tg_acl,
-                        'TG2_ACL': 'PERMIT:ALL'
+                        'TG2_ACL': 'PERMIT:ALL',
+                        'USE_ENCRYPTION': obp.obp_encryption,
+                        'ENCRYPTION_KEY': obp.encryption_key
                     }})
         for pr in p:
             master_config_list.update({pr.name: {
@@ -2943,7 +2947,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.delete(m)
         db.session.commit()
 
-    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options):
+    def edit_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options, _encryption_key, _obp_encryption):
 ##        print(_mode)
 ####        print(_server)
 ##        print(_name)
@@ -2990,6 +2994,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             o.enable_unit = _enable_unit
             o.notes = _notes
             o.other_options = _other_options
+            o.encryption_key = _encryption_key
+            o.obp_encryption = _obp_encryption
             db.session.commit()
         if _mode == 'PROXY':
 ##            print(_int_start_port)
@@ -3039,7 +3045,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##                )
 ##            db.session.add(add_master)
 
-    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options):
+    def add_master(_mode, _name, _server, _static_positions, _repeat, _active, _max_peers, _ip, _port, _enable_um, _passphrase, _group_hang_time, _use_acl, _reg_acl, _sub_acl, _tg1_acl, _tg2_acl, _enable_unit, _notes, _external_proxy, _int_start_port, _int_stop_port, _network_id, _target_ip, _target_port, _both_slots, _public, _other_options, _encryption_key, _obp_encryption):
         # print(_mode)
         if _mode == 'MASTER':
             add_master = MasterList(
@@ -3111,7 +3117,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     enable_unit = _enable_unit,
                     server = _server,
                     notes = _notes,
-                    other_options = _other_options
+                    other_options = _other_options,
+                    encryption_key = _encryption_key,
+                    obp_encryption = _obp_encryption
                     )
                 db.session.add(add_OBP)
                 db.session.commit()
@@ -4365,13 +4373,13 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'))
+                    add_master('PROXY', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'), '', '')
                     content = '''<h3 style="text-align: center;">PROXY saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('proxy_save') == 'edit':
 ##                print(request.args.get('name'))
-                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'))
+                edit_master('PROXY', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, 0, request.form.get('ip'), request.form.get('external_port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), external_proxy, request.form.get('int_port_start'), request.form.get('int_port_stop'), '', '', '', '', public, request.form.get('other_options'), '', '')
                 content = '''<h3 style="text-align: center;">PROXY changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -4386,6 +4394,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             use_acl = False
             enable_unit = False
             both_slots = True
+            obp_encryption = False
+            if request.form.get('obp_encryption') == 'True':
+                obp_encryption = True
             if request.form.get('enabled') == 'True':
                 enabled = True
             if request.form.get('use_acl') == 'True':
@@ -4400,12 +4411,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'))
+                    add_master('OBP', request.form.get('name_text'), request.form.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'), request.form.get('encryption_key'), obp_encryption)
                     content = '''<h3 style="text-align: center;">OpenBridge connection saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('OBP_save') == 'edit':
-                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'))
+                edit_master('OBP', request.args.get('name'), request.args.get('server'), '', '', enabled, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), '', request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('tg_acl'), '', enable_unit, request.form.get('notes'), '', '', '', request.form.get('network_id'), request.form.get('target_ip'), request.form.get('target_port'), both_slots, '', request.form.get('other_options'), request.form.get('encryption_key'), obp_encryption)
                 content = '''<h3 style="text-align: center;">OpenBridge connection changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
@@ -4443,12 +4454,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
                 else:
-                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'))
+                    add_master('MASTER', request.form.get('name_text'), request.form.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'), '', '')
                     content = '''<h3 style="text-align: center;">MASTER saved.</h3>
     <p style="text-align: center;">Redirecting in 3 seconds.</p>
     <meta http-equiv="refresh" content="3; URL=manage_masters" />'''
             elif request.args.get('master_save') == 'edit':
-                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'))
+                edit_master('MASTER', request.args.get('name'), request.args.get('server'), aprs_pos, repeat, active, request.form.get('max_peers'), request.form.get('ip'), request.form.get('port'), enable_um, request.form.get('passphrase'), request.form.get('group_hangtime'), use_acl, request.form.get('reg_acl'), request.form.get('sub_acl'), request.form.get('ts1_acl'), request.form.get('ts2_acl'), enable_unit, request.form.get('notes'), '', '', '', '', '', '', '', public, request.form.get('other_options'), '', '')
                 content = '''<h3 style="text-align: center;">MASTER changed.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_masters" /> '''
@@ -4540,6 +4551,19 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
+</tr>
+
+<tr>
+<td><strong>&nbsp;Use Encryption:</strong></td>
+<td>&nbsp;<select name="obp_encryption">
+<option selected="selected" value="False">Current - False</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+
+<td><strong>&nbsp;Encryption_key:</strong></td>
+<td>&nbsp;<input name="encryption_key" type="text" value="" /></td>
 </tr>
 
 <tr>
@@ -5036,6 +5060,19 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
+</tr>
+
+<tr>
+<td><strong>&nbsp;Use Encryption:</strong></td>
+<td>&nbsp;<select name="obp_encryption">
+<option selected="selected" value="''' + str(o.obp_encryption) + '''">Current - ''' + str(o.obp_encryption) + '''</option>
+<option value="True">True</option>
+<option value="False">False</option>
+</select></td>
+</tr>
+
+<td><strong>&nbsp;Encryption_key:</strong></td>
+<td>&nbsp;<input name="encryption_key" type="text" value="''' + str(o.encryption_key) + '''" /></td>
 </tr>
 
 <tr>

@@ -63,6 +63,9 @@ import base64
 import libscrc
 import re
 
+# Encryption library
+from cryptography.fernet import Fernet
+
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
 __author__     = 'Cortney T. Buffington, N0MJS'
@@ -74,6 +77,19 @@ __email__      = 'n0mjs@me.com'
 
 # Global variables used whether we are a module or __main__
 systems = {}
+
+# Functions that provide a basic symetrical encryption using Fernet
+def encrypt_packet(key, message):
+    f = Fernet(key)
+    token = f.encrypt(message)
+
+    return token
+
+def decrypt_packet(key, message):
+    f = Fernet(key)
+    token = f.decrypt(message, ttl=1)
+
+    return token
 
 # Timed loop used for reporting HBP status
 def config_reports(_config, _factory):
@@ -148,9 +164,18 @@ class OPENBRIDGE(DatagramProtocol):
             _packet = b''.join([_packet[:11], self._config['NETWORK_ID'], _packet[15:]])
             #_packet += hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest()
             _packet = b''.join([_packet, (hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest())])
+            if self._config['USE_ENCRYPTION'] == True:
+                _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
+                _packet = b'EOBP' + _enc_pkt
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
             # KEEP THE FOLLOWING COMMENTED OUT UNLESS YOU'RE DEBUGGING DEEPLY!!!!
             # logger.debug('(%s) TX Packet to OpenBridge %s:%s -- %s', self._system, self._config['TARGET_IP'], self._config['TARGET_PORT'], ahex(_packet))
+        # Special Server Data packet, encrypted using frenet, send
+        elif _packet[:4] == SVRD:
+            _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
+            _packet = b'SVRD' + _enc_pkt
+            self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
+            print('Server data')
         else:
             logger.error('(%s) OpenBridge system was asked to send non DMRD packet: %s', self._system, _packet)
 
@@ -160,67 +185,75 @@ class OPENBRIDGE(DatagramProtocol):
 
     def datagramReceived(self, _packet, _sockaddr):
         # Keep This Line Commented Unless HEAVILY Debugging!
-        #logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
+##        logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
+        if _packet[:4] == DMRD or _packet[:4] == EOBP:
+            if _packet[:4] == EOBP:
+                _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
+                _packet = _d_pkt
 
-        if _packet[:4] == DMRD:    # DMRData -- encapsulated DMR data frame
-            _data = _packet[:53]
-            _hash = _packet[53:]
-            _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
+            # DMRData -- encapsulated DMR data frame
+            if _packet[:4] == DMRD:
+                _data = _packet[:53]
+                _hash = _packet[53:]
+                _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
 
-            if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
-                _peer_id = _data[11:15]
-                _seq = _data[4]
-                _rf_src = _data[5:8]
-                _dst_id = _data[8:11]
-                _bits = _data[15]
-                _slot = 2 if (_bits & 0x80) else 1
-                #_call_type = 'unit' if (_bits & 0x40) else 'group'
-                if _bits & 0x40:
-                    _call_type = 'unit'
-                elif (_bits & 0x23) == 0x23:
-                    _call_type = 'vcsbk'
-                else:
-                    _call_type = 'group'
-                _frame_type = (_bits & 0x30) >> 4
-                _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
-                _stream_id = _data[16:20]
-                #logger.debug('(%s) DMRD - Seqence: %s, RF Source: %s, Destination ID: %s', self._system, int_id(_seq), int_id(_rf_src), int_id(_dst_id))
+                if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
+                    _peer_id = _data[11:15]
+                    _seq = _data[4]
+                    _rf_src = _data[5:8]
+                    _dst_id = _data[8:11]
+                    _bits = _data[15]
+                    _slot = 2 if (_bits & 0x80) else 1
+                    #_call_type = 'unit' if (_bits & 0x40) else 'group'
+                    if _bits & 0x40:
+                        _call_type = 'unit'
+                    elif (_bits & 0x23) == 0x23:
+                        _call_type = 'vcsbk'
+                    else:
+                        _call_type = 'group'
+                    _frame_type = (_bits & 0x30) >> 4
+                    _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
+                    _stream_id = _data[16:20]
+                    #logger.debug('(%s) DMRD - Seqence: %s, RF Source: %s, Destination ID: %s', self._system, int_id(_seq), int_id(_rf_src), int_id(_dst_id))
 
-                # Sanity check for OpenBridge -- all calls must be on Slot 1 for Brandmeister or DMR+. Other HBlinks can process timeslot on OPB if the flag is set
-                if _slot != 1 and not self._config['BOTH_SLOTS'] and not _call_type == 'unit':
-                    logger.error('(%s) OpenBridge packet discarded because it was not received on slot 1. SID: %s, TGID %s', self._system, int_id(_rf_src), int_id(_dst_id))
-                    return
-
-                # ACL Processing
-                if self._CONFIG['GLOBAL']['USE_ACL']:
-                    if not acl_check(_rf_src, self._CONFIG['GLOBAL']['SUB_ACL']):
-                        if _stream_id not in self._laststrid:
-                            logger.info('(%s) CALL DROPPED WITH STREAM ID %s FROM SUBSCRIBER %s BY GLOBAL ACL', self._system, int_id(_stream_id), int_id(_rf_src))
-                            self._laststrid.append(_stream_id)
-                        return
-                    if _slot == 1 and not acl_check(_dst_id, self._CONFIG['GLOBAL']['TG1_ACL']):
-                        if _stream_id not in self._laststrid:
-                            logger.info('(%s) CALL DROPPED WITH STREAM ID %s ON TGID %s BY GLOBAL TS1 ACL', self._system, int_id(_stream_id), int_id(_dst_id))
-                            self._laststrid.append(_stream_id)
-                        return
-                if self._config['USE_ACL']:
-                    if not acl_check(_rf_src, self._config['SUB_ACL']):
-                        if _stream_id not in self._laststrid:
-                            logger.info('(%s) CALL DROPPED WITH STREAM ID %s FROM SUBSCRIBER %s BY SYSTEM ACL', self._system, int_id(_stream_id), int_id(_rf_src))
-                            self._laststrid.append(_stream_id)
-                        return
-                    if not acl_check(_dst_id, self._config['TG1_ACL']):
-                        if _stream_id not in self._laststrid:
-                            logger.info('(%s) CALL DROPPED WITH STREAM ID %s ON TGID %s BY SYSTEM ACL', self._system, int_id(_stream_id), int_id(_dst_id))
-                            self._laststrid.append(_stream_id)
+                    # Sanity check for OpenBridge -- all calls must be on Slot 1 for Brandmeister or DMR+. Other HBlinks can process timeslot on OPB if the flag is set
+                    if _slot != 1 and not self._config['BOTH_SLOTS'] and not _call_type == 'unit':
+                        logger.error('(%s) OpenBridge packet discarded because it was not received on slot 1. SID: %s, TGID %s', self._system, int_id(_rf_src), int_id(_dst_id))
                         return
 
-                # Userland actions -- typically this is the function you subclass for an application
-                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+                    # ACL Processing
+                    if self._CONFIG['GLOBAL']['USE_ACL']:
+                        if not acl_check(_rf_src, self._CONFIG['GLOBAL']['SUB_ACL']):
+                            if _stream_id not in self._laststrid:
+                                logger.info('(%s) CALL DROPPED WITH STREAM ID %s FROM SUBSCRIBER %s BY GLOBAL ACL', self._system, int_id(_stream_id), int_id(_rf_src))
+                                self._laststrid.append(_stream_id)
+                            return
+                        if _slot == 1 and not acl_check(_dst_id, self._CONFIG['GLOBAL']['TG1_ACL']):
+                            if _stream_id not in self._laststrid:
+                                logger.info('(%s) CALL DROPPED WITH STREAM ID %s ON TGID %s BY GLOBAL TS1 ACL', self._system, int_id(_stream_id), int_id(_dst_id))
+                                self._laststrid.append(_stream_id)
+                            return
+                    if self._config['USE_ACL']:
+                        if not acl_check(_rf_src, self._config['SUB_ACL']):
+                            if _stream_id not in self._laststrid:
+                                logger.info('(%s) CALL DROPPED WITH STREAM ID %s FROM SUBSCRIBER %s BY SYSTEM ACL', self._system, int_id(_stream_id), int_id(_rf_src))
+                                self._laststrid.append(_stream_id)
+                            return
+                        if not acl_check(_dst_id, self._config['TG1_ACL']):
+                            if _stream_id not in self._laststrid:
+                                logger.info('(%s) CALL DROPPED WITH STREAM ID %s ON TGID %s BY SYSTEM ACL', self._system, int_id(_stream_id), int_id(_dst_id))
+                                self._laststrid.append(_stream_id)
+                            return
+
+                    # Userland actions -- typically this is the function you subclass for an application
+                    self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
             else:
                 logger.info('(%s) OpenBridge HMAC failed, packet discarded - OPCODE: %s DATA: %s HMAC LENGTH: %s HMAC: %s', self._system, _packet[:4], repr(_packet[:53]), len(_packet[53:]), repr(_packet[53:])) 
-
-
+        # Server Data packet, decrypt and process it.
+        elif _packet[:4] == SVRD:
+            _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
+            print('svr pakcet')
+            print(_d_pkt)
 #************************************************
 #     HB MASTER CLASS
 #************************************************

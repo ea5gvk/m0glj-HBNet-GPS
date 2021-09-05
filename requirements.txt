@@ -9,4 +9,5 @@ maidenhead
 requests
 libscrc
 resettabletimer
+cryptography
 

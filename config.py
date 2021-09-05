@@ -300,7 +300,9 @@ def build_config(_config_file):
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_ACL'),
-                        'TG2_ACL': 'PERMIT:ALL'
+                        'TG2_ACL': 'PERMIT:ALL',
+                        'USE_ENCRYPTION': config.getboolean(section, 'USE_ENCRYPTION'),
+                        'ENCRYPTION_KEY': bytes(config.get(section, 'ENCRYPTION_KEY'), 'utf-8'),
                     }})
                 elif config.get(section, 'MODE') == 'PROXY':
                     CONFIG['SYSTEMS'].update({section: {
@@ -318,7 +320,7 @@ def build_config(_config_file):
                         'REG_ACL': config.get(section, 'REG_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TG1_ACL'),
-                        'TG2_ACL': config.get(section, 'TG2_ACL')
+                        'TG2_ACL': config.get(section, 'TG2_ACL'),
                     }})
                     CONFIG['SYSTEMS'][section].update({'PEERS': {}})
     

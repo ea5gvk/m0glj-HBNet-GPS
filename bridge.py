@@ -187,7 +187,7 @@ def download_config(L_CONFIG_FILE, cli_file):
         for i in iterate_config:
 ##            corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
 ##            corrected_config['SYSTEMS'][i] = {}
-            print(iterate_config[i])
+##            print(iterate_config[i])
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
@@ -198,6 +198,8 @@ def download_config(L_CONFIG_FILE, cli_file):
                     corrected_config['SYSTEMS'][i]['PASSPHRASE'] = (iterate_config[i]['PASSPHRASE'] + b'\x00' * 30)[:20] #bytes(re.sub('', "b'|'", str(iterate_config[i]['PASSPHRASE'])).ljust(20, '\x00')[:20], 'utf-8') #bytes(iterate_config[i]['PASSPHRASE'].ljust(20,'\x00')[:20], 'utf-8')
                     corrected_config['SYSTEMS'][i]['BOTH_SLOTS'] = iterate_config[i]['BOTH_SLOTS']
                     corrected_config['SYSTEMS'][i]['TARGET_SOCK'] = (gethostbyname(iterate_config[i]['TARGET_IP']), iterate_config[i]['TARGET_PORT'])
+                    corrected_config['SYSTEMS'][i]['ENCRYPTION_KEY'] = bytes(iterate_config[i]['ENCRYPTION_KEY'], 'utf-8')
+                    corrected_config['SYSTEMS'][i]['USE_ENCRYPTION'] = iterate_config[i]['USE_ENCRYPTION']
                     
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':

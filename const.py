@@ -69,6 +69,10 @@ RPTP    = b'RPTP'
 RPTA    = b'RPTA'
 RPTO    = b'RPTO'
 
+# Sever Data and Encrypted OBP
+SVRD    = b'SVRD'
+EOBP    = b'EOBP'
+
 
 # Higheset peer ID permitted by HBP
 PEER_MAX = 4294967295
