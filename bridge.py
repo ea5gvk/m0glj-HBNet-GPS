@@ -145,7 +145,7 @@ def download_rules(L_CONFIG_FILE, cli_file):
     try:
         req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         resp = json.loads(req.text)
-        print(resp)
+##        print(resp)
         return resp['rules']
     except requests.ConnectionError:
         logger.error('Config server unreachable, defaulting to local config')
@@ -189,6 +189,7 @@ def download_config(L_CONFIG_FILE, cli_file):
 ##            corrected_config['SYSTEMS'][i] = {}
 ##            print(iterate_config[i])
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
+##                print(iterate_config[i])
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')

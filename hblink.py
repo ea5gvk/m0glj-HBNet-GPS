@@ -159,14 +159,16 @@ class OPENBRIDGE(DatagramProtocol):
         logger.info('(%s) is mode OPENBRIDGE. No De-Registration required, continuing shutdown', self._system)
 
     def send_system(self, _packet):
-        if _packet[:4] == DMRD:
+        if _packet[:4] == DMRD or _packet[:4] == EOBP:
             #_packet = _packet[:11] + self._config['NETWORK_ID'] + _packet[15:]
             _packet = b''.join([_packet[:11], self._config['NETWORK_ID'], _packet[15:]])
             #_packet += hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest()
             _packet = b''.join([_packet, (hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest())])
-            if self._config['USE_ENCRYPTION'] == True:
+            if self._config['USE_ENCRYPTION'] == True or _packet[:4] == EOBP:
                 _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
                 _packet = b'EOBP' + _enc_pkt
+                print('Encrypting')
+                print(_packet)
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
             # KEEP THE FOLLOWING COMMENTED OUT UNLESS YOU'RE DEBUGGING DEEPLY!!!!
             # logger.debug('(%s) TX Packet to OpenBridge %s:%s -- %s', self._system, self._config['TARGET_IP'], self._config['TARGET_PORT'], ahex(_packet))
@@ -188,8 +190,11 @@ class OPENBRIDGE(DatagramProtocol):
 ##        logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
         if _packet[:4] == DMRD or _packet[:4] == EOBP:
             if _packet[:4] == EOBP:
+                print('dec')
+                print(_packet)
                 _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
                 _packet = _d_pkt
+                print(_packet)
 
             # DMRData -- encapsulated DMR data frame
             if _packet[:4] == DMRD:
@@ -252,7 +257,7 @@ class OPENBRIDGE(DatagramProtocol):
         # Server Data packet, decrypt and process it.
         elif _packet[:4] == SVRD:
             _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
-            print('svr pakcet')
+            print('SVRD')
             print(_d_pkt)
 #************************************************
 #     HB MASTER CLASS
@@ -309,7 +314,7 @@ class HBSYSTEM(DatagramProtocol):
             return resp
         except requests.ConnectionError:
             return {'allow':True}
-
+# Sends login confirmation for log
     def send_login_conf(self, _id, server_name, peer_ip, old_auth):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
@@ -331,7 +336,7 @@ class HBSYSTEM(DatagramProtocol):
         #return resp
         except Exception as e:
             logger.info(e)
-            
+# Sends PEER info for map and other stuff            
     def send_peer_loc(self, _id, call, lat, lon, url, description, loc, soft):
         #Change this to a config value
         user_man_url = self._CONFIG['USER_MANAGER']['URL']
@@ -592,7 +597,7 @@ class HBSYSTEM(DatagramProtocol):
                     else:
                         user_auth = False
                 elif self._config['USE_USER_MAN'] == False:
-                   # print('False')
+##                    print('False')
 ####                    print(self._config['REG_ACL'])
 ##                    print(self._CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED'])
                     b_acl = self._config['REG_ACL']

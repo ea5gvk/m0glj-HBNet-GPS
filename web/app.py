@@ -5139,7 +5139,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <tr>
 <td><strong>&nbsp;User Manager for login:</strong></td>
 <td>&nbsp;<select name="enable_um">
-<option selected="selected" value="''' + str(m.enable_um) + '''">Current - ''' + str(m.static_positions) + '''</option>
+<option selected="selected" value="''' + str(m.enable_um) + '''">Current - ''' + str(m.enable_um) + '''</option>
 <option value="True">True</option>
 <option value="False">False</option>
 </select></td>
