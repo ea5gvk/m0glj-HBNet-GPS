@@ -167,8 +167,6 @@ class OPENBRIDGE(DatagramProtocol):
             if self._config['USE_ENCRYPTION'] == True or _packet[:4] == EOBP:
                 _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
                 _packet = b'EOBP' + _enc_pkt
-                print('Encrypting')
-                print(_packet)
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
             # KEEP THE FOLLOWING COMMENTED OUT UNLESS YOU'RE DEBUGGING DEEPLY!!!!
             # logger.debug('(%s) TX Packet to OpenBridge %s:%s -- %s', self._system, self._config['TARGET_IP'], self._config['TARGET_PORT'], ahex(_packet))
@@ -177,7 +175,7 @@ class OPENBRIDGE(DatagramProtocol):
             _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
             _packet = b'SVRD' + _enc_pkt
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
-            print('Server data')
+            logger.info('SVRD packet')
         else:
             logger.error('(%s) OpenBridge system was asked to send non DMRD packet: %s', self._system, _packet)
 
@@ -190,11 +188,8 @@ class OPENBRIDGE(DatagramProtocol):
 ##        logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
         if _packet[:4] == DMRD or _packet[:4] == EOBP:
             if _packet[:4] == EOBP:
-                print('dec')
-                print(_packet)
                 _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
                 _packet = _d_pkt
-                print(_packet)
 
             # DMRData -- encapsulated DMR data frame
             if _packet[:4] == DMRD:
@@ -203,6 +198,7 @@ class OPENBRIDGE(DatagramProtocol):
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
+                    print('good data')
                     _peer_id = _data[11:15]
                     _seq = _data[4]
                     _rf_src = _data[5:8]
@@ -252,13 +248,38 @@ class OPENBRIDGE(DatagramProtocol):
 
                     # Userland actions -- typically this is the function you subclass for an application
                     self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-            else:
-                logger.info('(%s) OpenBridge HMAC failed, packet discarded - OPCODE: %s DATA: %s HMAC LENGTH: %s HMAC: %s', self._system, _packet[:4], repr(_packet[:53]), len(_packet[53:]), repr(_packet[53:])) 
+                else:
+                    if not compare_digest(_hash, _ckhs):
+                        logger.info('(%s) OpenBridge HMAC failed, packet discarded - OPCODE: %s DATA: %s HMAC LENGTH: %s HMAC: %s', self._system, _packet[:4], repr(_packet[:53]), len(_packet[53:]), repr(_packet[53:]))
+
+                    if not _sockaddr == self._config['TARGET_SOCK']:
+                         logger.info('(%s) OpenBridge socket mismatch, packet discarded - OPCODE: %s DATA: %s ', self._system, _packet[:4], repr(_packet[:53]))
+                         
         # Server Data packet, decrypt and process it.
         elif _packet[:4] == SVRD:
             _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
-            print('SVRD')
-            print(_d_pkt)
+
+            # DMR Data packet, sent via SVRD
+            if _d_pkt[:4] == b'DATA':
+                _data = _d_pkt[4:]
+                _peer_id = _data[11:15]
+                _seq = _data[4]
+                _rf_src = _data[5:8]
+                _dst_id = _data[8:11]
+                _bits = _data[15]
+                _slot = 2 if (_bits & 0x80) else 1
+                #_call_type = 'unit' if (_bits & 0x40) else 'group'
+                if _bits & 0x40:
+                    _call_type = 'unit'
+                elif (_bits & 0x23) == 0x23:
+                    _call_type = 'vcsbk'
+                else:
+                    _call_type = 'group'
+                _frame_type = (_bits & 0x30) >> 4
+                _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
+                _stream_id = _data[16:20]
+                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+                
 #************************************************
 #     HB MASTER CLASS
 #************************************************
