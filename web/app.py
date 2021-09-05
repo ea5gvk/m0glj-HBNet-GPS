@@ -47,6 +47,9 @@ from gen_script_template import gen_script
 import os, ast
 ##import hb_config
 
+from cryptography.fernet import Fernet
+
+
 script_links = {}
 active_tgs = {}
 ping_list = {}
@@ -5283,6 +5286,10 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 </table>
 <p>&nbsp;</p>
 
+<p style="text-align: center;"><a href="/OBP_key_gen"><button class="btn btn-primary" type="button">Generate OpenBridge Encryption Key</button></a></p>
+
+<p>&nbsp;</p>
+
 ''' + m_list
 
         return render_template('flask_user_layout.html', markup_content = Markup(content))
@@ -5720,6 +5727,32 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 r_list = r_list + '''</tbody></table><p>&nbsp;</p>'''
             content = b_list + r_list + '''</tbody></table>'''
             
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+    @login_required
+    @roles_required('Admin')
+    @app.route('/OBP_key_gen')
+    def obp_key_gen():
+        key = Fernet.generate_key()
+##        content = str(key)[2:-1]
+        content = '''
+<h3 style="text-align: center;">Generate OpenBridge Encryption Key</h3>
+<p>&nbsp;</p>
+<p style="text-align: center;">Both ends of the OpenBridge connection must share this same key.</p>
+<p>&nbsp;</p>
+<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+<tbody>
+<tr>
+<td style="text-align: center;">KEY: (Copy and Paste)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>''' + str(key)[2:-1] + '''</strong></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+'''
+        
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/svr', methods=['POST'])

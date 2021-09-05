@@ -8,3 +8,5 @@ pymysql
 folium
 requests
 libscrc
+dmr_utils3
+cryptography
