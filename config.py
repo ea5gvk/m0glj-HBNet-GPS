@@ -107,7 +107,7 @@ def build_config(_config_file):
     CONFIG['REPORTS'] = {}
     CONFIG['LOGGER'] = {}
     CONFIG['ALIASES'] = {}
-    CONFIG['USER_MANAGER'] = {}
+    CONFIG['WEB_SERVICE'] = {}
     CONFIG['SYSTEMS'] = {}
 
     try:
@@ -154,8 +154,8 @@ def build_config(_config_file):
                     'STALE_TIME': config.getint(section, 'STALE_DAYS') * 86400,
                 })
 
-            elif section == 'USER_MANAGER':
-                CONFIG['USER_MANAGER'].update({
+            elif section == 'WEB_SERVICE':
+                CONFIG['WEB_SERVICE'].update({
                     'THIS_SERVER_NAME': config.get(section, 'THIS_SERVER_NAME'),
                     'URL': config.get(section, 'URL'),
                     'REMOTE_CONFIG_ENABLED': config.getboolean(section, 'REMOTE_CONFIG_ENABLED'),

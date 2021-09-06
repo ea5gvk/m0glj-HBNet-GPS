@@ -86,10 +86,10 @@ __email__      = 'kf7eel@qsl.net'
 
 # Function to download rules
 def update_tg(CONFIG, mode, dmr_id, data):
-    user_man_url = CONFIG['USER_MANAGER']['URL']
-    shared_secret = str(sha256(CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     update_srv = {
-    'update_tg':CONFIG['USER_MANAGER']['THIS_SERVER_NAME'],
+    'update_tg':CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret,
     'dmr_id': dmr_id,
 ##    'ts1': data['ts1'],
@@ -111,10 +111,10 @@ def update_tg(CONFIG, mode, dmr_id, data):
 
 
 def ping(CONFIG):
-    user_man_url = CONFIG['USER_MANAGER']['URL']
-    shared_secret = str(sha256(CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     ping_data = {
-    'ping': CONFIG['USER_MANAGER']['THIS_SERVER_NAME'],
+    'ping': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret
 
     }
@@ -133,10 +133,10 @@ def ping(CONFIG):
 
 # Function to download rules
 def download_rules(L_CONFIG_FILE, cli_file):
-    user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
-    shared_secret = str(sha256(L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    user_man_url = L_CONFIG_FILE['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(L_CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     rules_check = {
-    'get_rules':L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME'],
+    'get_rules':L_CONFIG_FILE['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret
     }
 ##    print(rules_check)
@@ -154,10 +154,10 @@ def download_rules(L_CONFIG_FILE, cli_file):
 
 # Function to download config
 def download_config(L_CONFIG_FILE, cli_file):
-    user_man_url = L_CONFIG_FILE['USER_MANAGER']['URL']
-    shared_secret = str(sha256(L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    user_man_url = L_CONFIG_FILE['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(L_CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     config_check = {
-    'get_config':L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME'],
+    'get_config':L_CONFIG_FILE['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret
     }
     json_object = json.dumps(config_check, indent = 4)
@@ -172,13 +172,13 @@ def download_config(L_CONFIG_FILE, cli_file):
         iterate_config.update(resp['masters'].copy())
         corrected_config['SYSTEMS'].update(iterate_config)
         corrected_config['LOGGER'].update(L_CONFIG_FILE['LOGGER'])
-##        corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
-        corrected_config['USER_MANAGER'] = {}
-        corrected_config['USER_MANAGER']['THIS_SERVER_NAME'] = L_CONFIG_FILE['USER_MANAGER']['THIS_SERVER_NAME']
-        corrected_config['USER_MANAGER']['URL'] = L_CONFIG_FILE['USER_MANAGER']['URL']
-        corrected_config['USER_MANAGER']['SHARED_SECRET'] = L_CONFIG_FILE['USER_MANAGER']['SHARED_SECRET']
-        corrected_config['USER_MANAGER']['REMOTE_CONFIG_ENABLED'] = L_CONFIG_FILE['USER_MANAGER']['REMOTE_CONFIG_ENABLED']
-        corrected_config['USER_MANAGER'].update(resp['config']['USER_MANAGER'])
+##        corrected_config['WEB_SERVICE'].update(resp['config']['WEB_SERVICE'])
+        corrected_config['WEB_SERVICE'] = {}
+        corrected_config['WEB_SERVICE']['THIS_SERVER_NAME'] = L_CONFIG_FILE['WEB_SERVICE']['THIS_SERVER_NAME']
+        corrected_config['WEB_SERVICE']['URL'] = L_CONFIG_FILE['WEB_SERVICE']['URL']
+        corrected_config['WEB_SERVICE']['SHARED_SECRET'] = L_CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET']
+        corrected_config['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] = L_CONFIG_FILE['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']
+        corrected_config['WEB_SERVICE'].update(resp['config']['WEB_SERVICE'])
         corrected_config['GLOBAL']['TG1_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 4294967295)
         corrected_config['GLOBAL']['TG2_ACL'] = config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 4294967295)
         corrected_config['GLOBAL']['REG_ACL'] = config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 4294967295)
@@ -1375,7 +1375,7 @@ if __name__ == '__main__':
 
     # Call the external routine to build the configuration dictionary
     LOCAL_CONFIG = config.build_config(cli_args.CONFIG_FILE)
-    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
         CONFIG = download_config(LOCAL_CONFIG, cli_args.CONFIG_FILE)
 ##        print(CONFIG['SYSTEMS'])
 ##        print('enabled')
@@ -1462,7 +1462,7 @@ if __name__ == '__main__':
         logger.info('Generated MASTER instances for proxy set: ' + i)
 
     # Attempt to use downloaded rules    
-    if LOCAL_CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED']:
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
         try:
             remote_config = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)
             # Build the routing rules file
@@ -1528,7 +1528,7 @@ if __name__ == '__main__':
 
     logger.info('Unit calls will be bridged to: ' + str(UNIT))
     # Download burn list
-    with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
+    with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
 
     reactor.run()

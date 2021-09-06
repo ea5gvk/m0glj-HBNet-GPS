@@ -126,8 +126,8 @@ def acl_check(_id, _acl):
 
 
 def download_burnlist(_CONFIG):
-    user_man_url = _CONFIG['USER_MANAGER']['URL']
-    shared_secret = str(sha256(_CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+    user_man_url = _CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(_CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     burn_check = {
     'burn_list':True,
     'secret':shared_secret
@@ -317,8 +317,8 @@ class HBSYSTEM(DatagramProtocol):
             
     def check_user_man(self, _id, server_name, peer_ip, _system):
         #Change this to a config value
-        user_man_url = self._CONFIG['USER_MANAGER']['URL']
-        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+        user_man_url = self._CONFIG['WEB_SERVICE']['URL']
+        shared_secret = str(sha256(self._CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
 ##        print(int(str(int_id(_id))[:7]))
         auth_check = {
         'secret':shared_secret,
@@ -338,8 +338,8 @@ class HBSYSTEM(DatagramProtocol):
 # Sends login confirmation for log
     def send_login_conf(self, _id, server_name, peer_ip, old_auth):
         #Change this to a config value
-        user_man_url = self._CONFIG['USER_MANAGER']['URL']
-        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+        user_man_url = self._CONFIG['WEB_SERVICE']['URL']
+        shared_secret = str(sha256(self._CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
         #print(int(str(int_id(_id))[:7]))
         auth_conf = {
         'secret':shared_secret,
@@ -360,8 +360,8 @@ class HBSYSTEM(DatagramProtocol):
 # Sends PEER info for map and other stuff            
     def send_peer_loc(self, _id, call, lat, lon, url, description, loc, soft):
         #Change this to a config value
-        user_man_url = self._CONFIG['USER_MANAGER']['URL']
-        shared_secret = str(sha256(self._CONFIG['USER_MANAGER']['SHARED_SECRET'].encode()).hexdigest())
+        user_man_url = self._CONFIG['WEB_SERVICE']['URL']
+        shared_secret = str(sha256(self._CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
         peer_loc_conf = {
         'secret':shared_secret,
         'loc_callsign':re.sub("b'|'|\s\s+", '', str(call)),
@@ -383,7 +383,7 @@ class HBSYSTEM(DatagramProtocol):
             logger.info(e)
 
     def calc_passphrase(self, peer_id, _salt_str):
-        burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['USER_MANAGER']['BURN_FILE']).read())
+        burn_id = ast.literal_eval(os.popen('cat ' + self._CONFIG['WEB_SERVICE']['BURN_FILE']).read())
         peer_id_trimmed = int(str(int_id(peer_id))[:7])
         try:
 ##            print(self.ums_response)
@@ -398,15 +398,15 @@ class HBSYSTEM(DatagramProtocol):
                 try:
                     if burn_id[peer_id_trimmed]:
                         logger.info('User ID has been burned. Requiring passphrase version: ' + str(burn_id[peer_id_trimmed]))
-                        calc_passphrase = sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_1']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))+ sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_2']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
+                        calc_passphrase = sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_1']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))+ sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_2']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
                 except:
-                    # + base64.b64encode(str.encode(str(_new_peer_id) + self._CONFIG['USER_MANAGER']['EXTRA_3'] + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_1'] - self._CONFIG['USER_MANAGER']['APPEND_INT'])  + str(_new_peer_id) + self._CONFIG['USER_MANAGER']['EXTRA_2']))
-                    calc_passphrase = sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_1']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_2']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
+                    # + base64.b64encode(str.encode(str(_new_peer_id) + self._CONFIG['WEB_SERVICE']['EXTRA_3'] + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_1'] - self._CONFIG['WEB_SERVICE']['APPEND_INT'])  + str(_new_peer_id) + self._CONFIG['WEB_SERVICE']['EXTRA_2']))
+                    calc_passphrase = sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_1']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_2']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
 ##                    print(base64.b64encode(calc_passphrase))
-                if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == True:
+                if self._CONFIG['WEB_SERVICE']['SHORTEN_PASSPHRASE'] == True:
 ##                    print(calc_passphrase)
-                    calc_passphrase = calc_passphrase[::int(self._CONFIG['USER_MANAGER']['SHORTEN_SAMPLE'])][-int(self._CONFIG['USER_MANAGER']['SHORTEN_LENGTH']):]
-                if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
+                    calc_passphrase = calc_passphrase[::int(self._CONFIG['WEB_SERVICE']['SHORTEN_SAMPLE'])][-int(self._CONFIG['WEB_SERVICE']['SHORTEN_LENGTH']):]
+                if self._CONFIG['WEB_SERVICE']['SHORTEN_PASSPHRASE'] == False:
                     pass
                 _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
         #If exception, assume UMS down and default to calculated passphrase
@@ -415,14 +415,14 @@ class HBSYSTEM(DatagramProtocol):
             _new_peer_id = bytes_4(int(str(int_id(peer_id))[:7]))
             if peer_id_trimmed in burn_id:
                 logger.info('User ID has been burned. Requiring passphrase version: ' + str(burn_id[peer_id_trimmed]))
-                calc_passphrase = sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_1']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_2']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
+                calc_passphrase = sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_1']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + burn_id[peer_id_trimmed].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['BURN_INT'].to_bytes(2, 'big') + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_2']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
             else:
-                calc_passphrase = sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_1']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['USER_MANAGER']['EXTRA_2']).encode() + str(self._CONFIG['USER_MANAGER']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
+                calc_passphrase = sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_1']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_1']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14] + base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8))) + sha256(str(self._CONFIG['WEB_SERVICE']['EXTRA_2']).encode() + str(self._CONFIG['WEB_SERVICE']['EXTRA_INT_2']).encode() + str(_new_peer_id).encode()[-3:]).hexdigest().upper().encode()[::14]
 
-            #calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['USER_MANAGER']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
-            if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == True:
-                calc_passphrase = calc_passphrase[::int(self._CONFIG['USER_MANAGER']['SHORTEN_SAMPLE'])][-int(self._CONFIG['USER_MANAGER']['SHORTEN_LENGTH']):]
-            if self._CONFIG['USER_MANAGER']['SHORTEN_PASSPHRASE'] == False:
+            #calc_passphrase = base64.b64encode(bytes.fromhex(str(hex(libscrc.ccitt((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))))[2:].zfill(4)) + (_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big') + bytes.fromhex(str(hex(libscrc.posix((_new_peer_id) + self._CONFIG['WEB_SERVICE']['APPEND_INT'].to_bytes(2, 'big'))))[2:].zfill(8)))
+            if self._CONFIG['WEB_SERVICE']['SHORTEN_PASSPHRASE'] == True:
+                calc_passphrase = calc_passphrase[::int(self._CONFIG['WEB_SERVICE']['SHORTEN_SAMPLE'])][-int(self._CONFIG['WEB_SERVICE']['SHORTEN_LENGTH']):]
+            if self._CONFIG['WEB_SERVICE']['SHORTEN_PASSPHRASE'] == False:
                 pass
             _calc_hash = bhex(sha256(_salt_str+calc_passphrase).hexdigest())
 ##        print(calc_passphrase)
@@ -609,7 +609,7 @@ class HBSYSTEM(DatagramProtocol):
                 # Check for valid Radio ID
                 #print(self.check_user_man(_peer_id))
                 if self._config['USE_USER_MAN'] == True:
-                    self.ums_response = self.check_user_man(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], self._system)
+                    self.ums_response = self.check_user_man(_peer_id, self._CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'], _sockaddr[0], self._system)
 ##                    print(self.ums_response)
                     #Will allow anyone to attempt authentication, used for a transition period
 ##                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and self.ums_response['allow'] or acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
@@ -620,9 +620,9 @@ class HBSYSTEM(DatagramProtocol):
                 elif self._config['USE_USER_MAN'] == False:
 ##                    print('False')
 ####                    print(self._config['REG_ACL'])
-##                    print(self._CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED'])
+##                    print(self._CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'])
                     b_acl = self._config['REG_ACL']
-                    if self._CONFIG['USER_MANAGER']['REMOTE_CONFIG_ENABLED'] == True:
+                    if self._CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
                         b_acl = acl_build(self._config['REG_ACL'], 4294967295)
                     print(b_acl)
                     if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):#acl_check(_peer_id, b_acl):
@@ -692,11 +692,11 @@ class HBSYSTEM(DatagramProtocol):
                     _this_peer['CONNECTION'] = 'WAITING_CONFIG'
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s has completed the login exchange successfully', self._system, _this_peer['RADIO_ID'])
-                    self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
+                    self.send_login_conf(_peer_id, self._CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'], _sockaddr[0], False)
 ##                    if _sent_hash == _ocalc_hash:
-##                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], True)
+##                        self.send_login_conf(_peer_id, self._CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'], _sockaddr[0], True)
 ##                    else:
-##                        self.send_login_conf(_peer_id, self._CONFIG['USER_MANAGER']['THIS_SERVER_NAME'], _sockaddr[0], False)
+##                        self.send_login_conf(_peer_id, self._CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'], _sockaddr[0], False)
                 else:
                     logger.info('(%s) Peer %s has FAILED the login exchange successfully', self._system, _this_peer['RADIO_ID'])
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
@@ -1081,7 +1081,7 @@ if __name__ == '__main__':
             logger.debug('(GLOBAL) %s instance created: %s, %s', CONFIG['SYSTEMS'][system]['MODE'], system, systems[system])
 
     # Download burn list
-    with open(CONFIG['USER_MANAGER']['BURN_FILE'], 'w') as f:
+    with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
 
     reactor.run()

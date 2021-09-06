@@ -2701,7 +2701,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         s_config['GLOBAL'] = {}
         s_config['REPORTS'] = {}
         s_config['ALIASES'] = {}
-        s_config['USER_MANAGER'] = {}
+        s_config['WEB_SERVICE'] = {}
         s_config['OTHER'] = {}
 
         s_config['GLOBAL'].update({
@@ -2731,7 +2731,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     'SUBSCRIBER_URL': i.ai_subs_url,
                     'STALE_TIME': i.ai_stale * 86400,
                 })
-        s_config['USER_MANAGER'].update({
+        s_config['WEB_SERVICE'].update({
                     'SHORTEN_LENGTH': shorten_length,
                     'SHORTEN_SAMPLE': shorten_sample,
                     'EXTRA_1': extra_1,
