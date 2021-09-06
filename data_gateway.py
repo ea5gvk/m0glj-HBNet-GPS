@@ -749,7 +749,7 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
             print(ahex(the_mmdvm_pkt))
-            systems['OBP-2'].send_system(the_mmdvm_pkt)
+            systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
             
     with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
         packet_write_file.write(str(mmdvm_send_seq))
