@@ -1,4 +1,4 @@
-### The sms_dev branch contains the next "version" of this APRS/SMS enabled HBLink project. It is still under heavy development and not ready for production. You can see it [here](https://github.com/kf7eel/hblink3/tree/sms_dev). The example/development server can be found at [https://hbl.ink](https://hbl.ink).
+### This project has morphed into HBNet. It is still under heavy development and not ready for production. You can see it [here](https://github.com/kf7eel/hblink3/tree/hbnet). The example/development server can be found at [https://demo.hbnet.xyz](https://demo.hbnet.xyz).
 
 # GPS/Data Application
 
