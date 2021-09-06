@@ -338,6 +338,16 @@ def config_reports(_config, _factory):
 
     return report_server
 
+# Send data to all OBP connections that have an encryption key. Data such as subscribers are sent to other HBNet servers.
+def svrd_send_all(_svrd_data):
+    _svrd_packet = SVRD
+    for system in CONFIG['SYSTEMS']:
+        if CONFIG['SYSTEMS'][system]['ENABLED']:
+                if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
+                    if CONFIG['SYSTEMS'][system]['ENCRYPTION_KEY'] != b'':
+                        systems[system].send_system(_svrd_packet + _svrd_data)
+##    pass
+
 
 # Import Bridging rules
 # Note: A stanza *must* exist for any MASTER or CLIENT configured in the main
@@ -405,6 +415,8 @@ def rule_timer_loop(unit_flood_time):
             else:
                 logger.debug('(ROUTER) Conference Bridge NO ACTION: System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
 
+    for unit in UNIT_MAP:
+        svrd_send_all(b'UNIT' + unit)
     _then = _now - unit_flood_time
     remove_list = []
     for unit in UNIT_MAP:
@@ -423,10 +435,11 @@ def rule_timer_loop(unit_flood_time):
 
 # run this every 10 seconds to trim orphaned stream ids
 def stream_trimmer_loop():
+    print(UNIT_MAP)
     ping(CONFIG)
     logger.debug('(ROUTER) Trimming inactive stream IDs from system lists')
     _now = time()
-
+       
     for system in systems:
         # HBP systems, master and peer
         if CONFIG['SYSTEMS'][system]['MODE'] != 'OPENBRIDGE':
@@ -481,6 +494,12 @@ class routerOBP(OPENBRIDGE):
         
         # list of self._targets for unit (subscriber, private) calls
         self._targets = []
+
+    def svrd_received(self, _mode, _data):
+        logger.info('SVRD Received. Mode: ' + str(_mode) + ' Data: ' + str(_data))
+        if _mode == b'UNIT':
+            UNIT_MAP[_data] = (self._system, time())
+
 
     def group_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data):
         pkt_time = time()
@@ -684,6 +703,9 @@ class routerOBP(OPENBRIDGE):
  
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
+
+        # Send update to all OpenBridge connections
+##        svrd_send_all(b'UNIT' + _rf_src) # + b'TIME' + pkt_time)
         
         
         # Is this a new call stream?
@@ -910,6 +932,9 @@ class routerHBP(HBSYSTEM):
         # Make/update an entry in the UNIT_MAP for this subscriber
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
 
+        # Update other servers via OBP
+##        svrd_send_all(b'UNIT' + _rf_src) # + b'TIME' + pkt_time)
+
         # Is this a new call stream?
         if (_stream_id != self.STATUS[_slot]['RX_STREAM_ID']):
             if (self.STATUS[_slot]['RX_TYPE'] != HBPF_SLT_VTERM) and (pkt_time < (self.STATUS[_slot]['RX_TIME'] + STREAM_TO)) and (_rf_src != self.STATUS[_slot]['RX_RFS']):
@@ -917,6 +942,10 @@ class routerHBP(HBSYSTEM):
                 return
 
             # This is a new call stream
+
+            # Send subscriber ID over OBP
+            svrd_send_all(b'UNIT' + _rf_src)
+            
             self.STATUS[_slot]['RX_START'] = pkt_time
             logger.info('(%s) *GROUP CALL START* STREAM ID: %s SUB: %s (%s) PEER: %s (%s) TGID %s (%s), TS %s', \
                     self._system, int_id(_stream_id), get_alias(_rf_src, subscriber_ids), int_id(_rf_src), get_alias(_peer_id, peer_ids), int_id(_peer_id), get_alias(_dst_id, talkgroup_ids), int_id(_dst_id), _slot)
@@ -1186,6 +1215,9 @@ class routerHBP(HBSYSTEM):
  
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
+
+        # Update other servers via OBP
+##        svrd_send_all(b'UNIT' + _rf_src) # + b'TIME' + pkt_time)
         
         
         # Is this a new call stream?
@@ -1208,6 +1240,7 @@ class routerHBP(HBSYSTEM):
                 self._targets.remove(self._system)
             
             # This is a new call stream, so log & report
+            svrd_send_all(b'UNIT' + _rf_src)
             self.STATUS[_slot]['RX_START'] = pkt_time
             logger.info('(%s) *UNIT CALL START* STREAM ID: %s SUB: %s (%s) PEER: %s (%s) UNIT: %s (%s), TS: %s, FORWARD: %s', \
                     self._system, int_id(_stream_id), get_alias(_rf_src, subscriber_ids), int_id(_rf_src), get_alias(_peer_id, peer_ids), int_id(_peer_id), get_alias(_dst_id, talkgroup_ids), int_id(_dst_id), _slot, self._targets)

@@ -111,6 +111,7 @@ __email__      = 'n0mjs@me.com'
 hdr_type = ''
 btf = -1
 ssid = ''
+UNIT_MAP = {}
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
 def decode_full(_data):
@@ -889,6 +890,30 @@ def data_que_send():
     except Exception as e:
         logger.info(e)
 
+# the APRS RX process
+def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid):
+    global AIS
+    AIS = aprslib.IS(aprs_rx_login, passwd=int(aprs_passcode), host=aprs_server, port=int(aprs_port))
+    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+    AIS.set_filter(aprs_filter)#parser.get('DATA_CONFIG', 'APRS_FILTER'))
+    try:
+        if 'N0CALL' in aprs_callsign:
+            logger.info()
+            logger.info('APRS callsighn set to N0CALL, not connecting to APRS-IS')
+            logger.info()
+            pass
+        else:
+            AIS.connect()
+            print('Connecting to APRS-IS')
+            if int(CONFIG['DATA_CONFIG']['IGATE_BEACON_TIME']) == 0:
+                   logger.info('APRS beacon disabled')
+            if int(CONFIG['DATA_CONFIG']['IGATE_BEACON_TIME']) != 0:
+                aprs_beacon=task.LoopingCall(aprs_beacon_send)
+                aprs_beacon.start(int(CONFIG['DATA_CONFIG']['IGATE_BEACON_TIME'])*60)
+            AIS.consumer(aprs_process, raw=True, immortal=False)
+    except Exception as e:
+        logger.info(e)
+
 ##### DMR data function ####
 def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
     # Capture data headers
@@ -1142,8 +1167,22 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
 
 ######
 
-##call_type = 'unit'
+def rule_timer_loop():
+    global UNIT_MAP
+    logger.debug('(ROUTER) routerHBP Rule timer loop started')
+    _now = time()
+    _then = _now - 60
+    remove_list = []
+    for unit in UNIT_MAP:
+        if UNIT_MAP[unit][1] < (_then):
+            remove_list.append(unit)
 
+    for unit in remove_list:
+        del UNIT_MAP[unit]
+
+    logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
+
+    
 class OBP(OPENBRIDGE):
 
     def __init__(self, _name, _config, _report):
@@ -1151,9 +1190,13 @@ class OBP(OPENBRIDGE):
 
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
+        UNIT_MAP[_rf_src] = (self._system, time())
         print('OBP RCVD')
         data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-##        pass
+
+    def svrd_received(self, _mode, _data):
+        if _mode == b'UNIT':
+            UNIT_MAP[_data] = (self._system, time())
 
 
 class HBP(HBSYSTEM):
@@ -1162,6 +1205,7 @@ class HBP(HBSYSTEM):
         HBSYSTEM.__init__(self, _name, _config, _report)
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
+        UNIT_MAP[_rf_src] = (self._system, time())
         print('MMDVM RCVD')
         data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 ##        pass
@@ -1307,5 +1351,17 @@ if __name__ == '__main__':
         logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error in timed loop.\n %s', failure)
         reactor.stop()
 
+    # Initialize the rule timer -- this if for user activated stuff
+    rule_timer_task = task.LoopingCall(rule_timer_loop)
+    rule_timer = rule_timer_task.start(60)
+    rule_timer.addErrback(loopingErrHandle)
 
+    if 'N0CALL' in aprs_callsign:
+        logger.info('APRS callsighn set to N0CALL, packet not sent.')
+        pass
+    else:
+        aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
+        aprs_thread.daemon = True
+        aprs_thread.start()
+        
     reactor.run()

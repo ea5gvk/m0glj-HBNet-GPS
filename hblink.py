@@ -172,6 +172,7 @@ class OPENBRIDGE(DatagramProtocol):
             # logger.debug('(%s) TX Packet to OpenBridge %s:%s -- %s', self._system, self._config['TARGET_IP'], self._config['TARGET_PORT'], ahex(_packet))
         # Special Server Data packet, encrypted using frenet, send
         elif _packet[:4] == SVRD:
+            print(_packet)
             _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
             _packet = b'SVRD' + _enc_pkt
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
@@ -182,6 +183,9 @@ class OPENBRIDGE(DatagramProtocol):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         pass
         #print(int_id(_peer_id), int_id(_rf_src), int_id(_dst_id), int_id(_seq), _slot, _call_type, _frame_type, repr(_dtype_vseq), int_id(_stream_id))
+
+    def svrd_received(self, _mode, _data):
+        pass
 
     def datagramReceived(self, _packet, _sockaddr):
         # Keep This Line Commented Unless HEAVILY Debugging!
@@ -196,10 +200,10 @@ class OPENBRIDGE(DatagramProtocol):
                 _data = _packet[:53]
                 _hash = _packet[53:]
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
-                print(ahex(_ckhs))
-                print(ahex(_hash))
+##                print(ahex(_ckhs))
+##                print(ahex(_hash))
 
-                print(compare_digest(_hash, _ckhs))
+##                print(compare_digest(_hash, _ckhs))
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
                     _peer_id = _data[11:15]
@@ -261,6 +265,7 @@ class OPENBRIDGE(DatagramProtocol):
         # Server Data packet, decrypt and process it.
         elif _packet[:4] == SVRD:
             _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
+##            logger.info('SVRD Received: ' + str(_d_pkt))
 
             # DMR Data packet, sent via SVRD
             if _d_pkt[:4] == b'DATA':
@@ -282,6 +287,8 @@ class OPENBRIDGE(DatagramProtocol):
                 _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
                 _stream_id = _data[16:20]
                 self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            else:
+                self.svrd_received(_d_pkt[:4], _d_pkt[4:]) 
                 
 #************************************************
 #     HB MASTER CLASS
