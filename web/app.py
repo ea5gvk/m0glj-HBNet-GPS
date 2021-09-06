@@ -2800,7 +2800,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                         'TG1_ACL': obp.tg_acl,
                         'TG2_ACL': 'PERMIT:ALL',
                         'USE_ENCRYPTION': obp.obp_encryption,
-                        'ENCRYPTION_KEY': obp.encryption_key
+                        'ENCRYPTION_KEY': obp.encryption_key,
+                        'OTHER_OPTIONS': obp.other_options
                     }})
         for pr in p:
             master_config_list.update({pr.name: {

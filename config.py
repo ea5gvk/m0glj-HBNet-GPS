@@ -303,6 +303,7 @@ def build_config(_config_file):
                         'TG2_ACL': 'PERMIT:ALL',
                         'USE_ENCRYPTION': config.getboolean(section, 'USE_ENCRYPTION'),
                         'ENCRYPTION_KEY': bytes(config.get(section, 'ENCRYPTION_KEY'), 'utf-8'),
+                        'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
                     }})
                 elif config.get(section, 'MODE') == 'PROXY':
                     CONFIG['SYSTEMS'].update({section: {

@@ -172,7 +172,6 @@ class OPENBRIDGE(DatagramProtocol):
             # logger.debug('(%s) TX Packet to OpenBridge %s:%s -- %s', self._system, self._config['TARGET_IP'], self._config['TARGET_PORT'], ahex(_packet))
         # Special Server Data packet, encrypted using frenet, send
         elif _packet[:4] == SVRD:
-            print(_packet)
             _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
             _packet = b'SVRD' + _enc_pkt
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))
@@ -288,7 +287,8 @@ class OPENBRIDGE(DatagramProtocol):
                 _stream_id = _data[16:20]
                 self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
             else:
-                self.svrd_received(_d_pkt[4:8], _d_pkt[4:]) 
+               
+                self.svrd_received(_d_pkt[4:8], _d_pkt[8:]) 
                 
 #************************************************
 #     HB MASTER CLASS
@@ -525,6 +525,9 @@ class HBSYSTEM(DatagramProtocol):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         pass
 
+    def mmdvm_cmd(self, _cmd):
+        pass
+
     def master_dereg(self):
         for _peer in self._peers:
             self.send_peer(_peer, MSTCL + _peer)
@@ -751,7 +754,12 @@ class HBSYSTEM(DatagramProtocol):
 
                     self.send_peer(_peer_id, b''.join([RPTACK, _peer_id]))
                     logger.info('(%s) Peer %s (%s) has sent repeater configuration', self._system, _this_peer['CALLSIGN'], _this_peer['RADIO_ID'])
-                    self.send_peer_loc(_peer_id, _this_peer['CALLSIGN'], _this_peer['LATITUDE'], _this_peer['LONGITUDE'], _this_peer['URL'], _this_peer['DESCRIPTION'], _this_peer['LOCATION'], str(_this_peer['PACKAGE_ID']) + ' - ' + str(_this_peer['SOFTWARE_ID']))
+                    if 'NO_MAP' in str(_this_peer['LOCATION']):
+                        self.send_peer_loc(_peer_id, self._peers[_peer_id]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
+##                        print(_this_peer['LOCATION'])
+##                        pass
+                    else:
+                        self.send_peer_loc(_peer_id, _this_peer['CALLSIGN'], _this_peer['LATITUDE'], _this_peer['LONGITUDE'], _this_peer['URL'], _this_peer['DESCRIPTION'], _this_peer['LOCATION'], str(_this_peer['PACKAGE_ID']) + ' - ' + str(_this_peer['SOFTWARE_ID']))
                 else:
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
                     logger.warning('(%s) Peer info from Radio ID that has not logged in: %s', self._system, int_id(_peer_id))
@@ -776,6 +784,7 @@ class HBSYSTEM(DatagramProtocol):
                         and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
                 logger.info('(%s) Peer %s (%s) has send options: %s', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id), _data[8:])
                 # Send remove from map command
+##                self.mmdvm_cmd(_data)
                 if 'NO_MAP' in str(_data[8:]):
                     self.send_peer_loc(_peer_id, self._peers[_peer_id]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
                 self.transport.write(b''.join([RPTACK, _peer_id]), _sockaddr)

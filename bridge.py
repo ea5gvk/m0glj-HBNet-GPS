@@ -346,7 +346,15 @@ def svrd_send_all(_svrd_data):
                 if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
                     if CONFIG['SYSTEMS'][system]['ENCRYPTION_KEY'] != b'':
                         systems[system].send_system(_svrd_packet + _svrd_data)
-##    pass
+                        
+# Send any data packets to connections with ALL_DATA specified in other options
+def all_data(_data):
+    for system in CONFIG['SYSTEMS']:
+        if CONFIG['SYSTEMS'][system]['ENABLED']:
+                if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
+                    if 'ALL_DATA' in CONFIG['SYSTEMS'][system]['OTHER_OPTIONS']:
+                        print('mirrored to ' + system)
+                        systems[system].send_system(_data)
 
 
 # Import Bridging rules
@@ -500,6 +508,12 @@ class routerOBP(OPENBRIDGE):
         logger.info('SVRD Received. Mode: ' + str(_mode) + ' Data: ' + str(_data))
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
+
+##    def mmdvm_cmd(self, _cmd):
+##        print('---')
+##        print(_cmd)
+##        print('---')
+##        pass
 
 
     def group_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data):
@@ -852,8 +866,9 @@ class routerOBP(OPENBRIDGE):
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'unit':
             self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
-        elif _call_type == 'vscsbk':
-            logger.debug('CSBK recieved, but HBlink does not process them currently')
+        elif _call_type == 'vcsbk':
+            self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+            logger.debug('CSBK recieved, forwarded to destination TG.')
         else:
             logger.error('Unknown call type recieved -- not processed')
 
@@ -1361,7 +1376,9 @@ class routerHBP(HBSYSTEM):
             else:
                 self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
         elif _call_type == 'vcsbk':
-            logger.debug('CSBK recieved, but HBlink does not process them currently')
+            self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+            logger.debug('CSBK recieved, forwarded to destination TG.')
+            all_data(_data)
         else:
             logger.error('Unknown call type recieved -- not processed')
 
@@ -1564,5 +1581,5 @@ if __name__ == '__main__':
     # Download burn list
     with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
         f.write(str(download_burnlist(CONFIG)))
-
+    print(CONFIG['SYSTEMS'])
     reactor.run()
