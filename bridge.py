@@ -496,6 +496,7 @@ class routerOBP(OPENBRIDGE):
         self._targets = []
 
     def svrd_received(self, _mode, _data):
+        print(UNIT_MAP)
         logger.info('SVRD Received. Mode: ' + str(_mode) + ' Data: ' + str(_data))
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())

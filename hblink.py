@@ -288,7 +288,7 @@ class OPENBRIDGE(DatagramProtocol):
                 _stream_id = _data[16:20]
                 self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
             else:
-                self.svrd_received(_d_pkt[:4], _d_pkt[4:]) 
+                self.svrd_received(_d_pkt[4:8], _d_pkt[4:]) 
                 
 #************************************************
 #     HB MASTER CLASS

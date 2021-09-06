@@ -1171,8 +1171,9 @@ def rule_timer_loop():
     global UNIT_MAP
     logger.debug('(ROUTER) routerHBP Rule timer loop started')
     _now = time()
-    _then = _now - 60
+    _then = _now - 3600
     remove_list = []
+    print(UNIT_MAP)
     for unit in UNIT_MAP:
         if UNIT_MAP[unit][1] < (_then):
             remove_list.append(unit)
@@ -1197,6 +1198,7 @@ class OBP(OPENBRIDGE):
     def svrd_received(self, _mode, _data):
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
+            print(UNIT_MAP)
 
 
 class HBP(HBSYSTEM):
