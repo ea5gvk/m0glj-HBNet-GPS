@@ -40,7 +40,7 @@ from twisted.internet import reactor, task
 from hblink import HBSYSTEM, OPENBRIDGE, systems, hblink_handler, reportFactory, REPORT_OPCODES, mk_aliases, config_reports
 from dmr_utils3.utils import bytes_3, int_id, get_alias
 from dmr_utils3 import decode, bptc, const
-import config
+import data_gateway_config
 import log
 from const import *
 
@@ -52,7 +52,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 #### Modules for data gateway ###
-# modules from gps_data.py
+# modules from DATA_CONFIG.py
 from bitarray import bitarray
 from binascii import b2a_hex as ahex
 import re
@@ -251,9 +251,9 @@ def send_app_request(url, message, source_id):
         auth_token.close()
     app_request = {
     'mode':'app',
-    'system_shortcut':CONFIG['GPS_DATA']['MY_SERVER_SHORTCUT'],
-    'server_name':CONFIG['GPS_DATA']['SERVER_NAME'],
-    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
+    'system_shortcut':CONFIG['DATA_CONFIG']['MY_SERVER_SHORTCUT'],
+    'server_name':CONFIG['DATA_CONFIG']['SERVER_NAME'],
+    'response_url':CONFIG['DATA_CONFIG']['DASHBOARD_URL'] + '/api',
     'auth_token':the_token,
     'data':{
             'source_id':source_id,
@@ -272,8 +272,8 @@ def send_msg_xfer(url, user, password, message, source_id, dest_id):
     url = url + '/api/msg_xfer'
     msg_xfer = {
     'mode':'msg_xfer',
-    'system_shortcut':CONFIG['GPS_DATA']['MY_SERVER_SHORTCUT'],
-    'response_url':CONFIG['GPS_DATA']['DASHBOARD_URL'] + '/api',
+    'system_shortcut':CONFIG['DATA_CONFIG']['MY_SERVER_SHORTCUT'],
+    'response_url':CONFIG['DATA_CONFIG']['DASHBOARD_URL'] + '/api',
     'auth_type':'private',
     'credentials': {
         'user':user,
@@ -307,11 +307,11 @@ def send_email(to_email, email_subject, email_message):
 def generate_apps():
     global access_systems
     #local_apps = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-    public_systems_file = requests.get(CONFIG['GPS_DATA']['PUBLIC_APPS_LIST'])
+    public_systems_file = requests.get(CONFIG['DATA_CONFIG']['PUBLIC_APPS_LIST'])
     public_apps = ast.literal_eval(public_systems_file.text)
     access_systems = {}
     #combined = public_apps.items() + local_acess_systems.items()
-    if CONFIG['GPS_DATA']['USE_PUBLIC_APPS'] == True:
+    if CONFIG['DATA_CONFIG']['USE_PUBLIC_APPS'] == True:
         for i in public_apps.items():
             key = str(i[0])
             access_systems[key] = i[1]
@@ -502,7 +502,7 @@ def process_sms(_rf_src, sms, call_type):
         packet_assembly = ''
           
     elif '?' in parse_sms[0][0:1]:
-        use_api = CONFIG['GPS_DATA']['USE_API']
+        use_api = CONFIG['DATA_CONFIG']['USE_API']
         print(use_api)
         if use_api == True:
             auth_tokens = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
@@ -674,8 +674,9 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                 aprslib.parse(aprs_loc_packet)
                 float(lat_deg) < 91
                 float(lon_deg) < 121
-                aprs_send(aprs_loc_packet)
-                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
+                if int_id(_dst_id) == data_id:
+                    aprs_send(aprs_loc_packet)
+                    dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
                 #logger.info('Sent APRS packet')
             except Exception as error_exception:
                 logger.info('Error. Failed to send packet. Packet may be malformed.')
@@ -776,8 +777,9 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                     # Float values of lat and lon. Anything that is not a number will cause it to fail.
                         float(loc.lat)
                         float(loc.lon)
-                        aprs_send(aprs_loc_packet)
-                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment)
+                        if int_id(_dst_id) == data_id:
+                            aprs_send(aprs_loc_packet)
+                            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment)
                     except Exception as error_exception:
                         logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                         logger.info(error_exception)
@@ -809,12 +811,13 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         #logger.info(final_packet)
                         logger.info(sms_hex)
 ##                                logger.info(type(sms_hex))
-                        logger.info('Attempting to find command...')
+##                        logger.info('Attempting to find command...')
 ##                                sms = codecs.decode(bytes.fromhex(''.join(sms_hex[:-8].split('00'))), 'utf-8', 'ignore')
                         sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
                         msg_found = re.sub('.*\n', '', sms)
                         logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
-##                        process_sms(_rf_src, msg_found, _call_type)
+                        if int_id(_dst_id) == data_id:
+                            process_sms(_rf_src, msg_found, _call_type)
                         #packet_assembly = ''
                         pass
                         #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
@@ -833,7 +836,7 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
 
 ######
 
-call_type = 'unit'
+##call_type = 'unit'
 
 class OBP(OPENBRIDGE):
 
@@ -875,16 +878,80 @@ if __name__ == '__main__':
 
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hblink.cfg)')
+    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually data_gateway.cfg)')
     parser.add_argument('-l', '--logging', action='store', dest='LOG_LEVEL', help='Override config file logging level.')
     cli_args = parser.parse_args()
 
     # Ensure we have a path for the config file, if one wasn't specified, then use the default (top of file)
     if not cli_args.CONFIG_FILE:
-        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hblink.cfg'
+        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/data_gateway.cfg'
 
     # Call the external routine to build the configuration dictionary
-    CONFIG = config.build_config(cli_args.CONFIG_FILE)
+    CONFIG = data_gateway_config.build_config(cli_args.CONFIG_FILE)
+
+
+    data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
+    #echo_id = int(CONFIG['DATA_CONFIG']['ECHO_DMR_ID'])
+
+    # Group call or Unit (private) call
+    call_type = CONFIG['DATA_CONFIG']['CALL_TYPE']
+    # APRS-IS login information
+    aprs_callsign = str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper()
+    aprs_passcode = int(CONFIG['DATA_CONFIG']['APRS_LOGIN_PASSCODE'])
+    aprs_server = CONFIG['DATA_CONFIG']['APRS_SERVER']
+    aprs_port = int(CONFIG['DATA_CONFIG']['APRS_PORT'])
+    user_ssid = CONFIG['DATA_CONFIG']['USER_APRS_SSID']
+    aprs_comment = CONFIG['DATA_CONFIG']['USER_APRS_COMMENT']
+    aprs_filter = CONFIG['DATA_CONFIG']['APRS_FILTER']
+    # EMAIL variables
+##    email_sender = CONFIG['DATA_CONFIG']['EMAIL_SENDER']
+##    email_password = CONFIG['DATA_CONFIG']['EMAIL_PASSWORD']
+##    smtp_server = CONFIG['DATA_CONFIG']['SMTP_SERVER']
+##    smtp_port = CONFIG['DATA_CONFIG']['SMTP_PORT']
+
+    # Dashboard files
+    bb_file = CONFIG['DATA_CONFIG']['BULLETIN_BOARD_FILE']
+    loc_file = CONFIG['DATA_CONFIG']['LOCATION_FILE']
+    the_mailbox_file = CONFIG['DATA_CONFIG']['MAILBOX_FILE']
+    emergency_sos_file = CONFIG['DATA_CONFIG']['EMERGENCY_SOS_FILE']
+    sms_file = CONFIG['DATA_CONFIG']['SMS_FILE']
+    # User APRS settings
+    user_settings_file = CONFIG['DATA_CONFIG']['USER_SETTINGS_FILE']
+
+##    use_api = CONFIG['DATA_CONFIG']['USE_API']
+
+    # Check if user_settings (for APRS settings of users) exists. Creat it if not.
+    if Path(user_settings_file).is_file():
+        pass
+    else:
+        Path(user_settings_file).touch()
+        with open(user_settings_file, 'w') as user_dict_file:
+            user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]}")
+            user_dict_file.close()
+    # Check to see if dashboard files exist
+    if Path(loc_file).is_file():
+        pass
+    else:
+        Path(loc_file).touch()
+        with open(loc_file, 'w') as user_loc_file:
+            user_loc_file.write("[]")
+            user_loc_file.close()
+    if Path(bb_file).is_file():
+        pass
+    else:
+        Path(bb_file).touch()
+        with open(bb_file, 'w') as user_bb_file:
+            user_bb_file.write("[]")
+            user_bb_file.close()
+            
+    if Path(sms_file).is_file():
+        pass
+    else:
+        Path(sms_file).touch()
+        with open(sms_file, 'w') as user_sms_file:
+            user_sms_file.write("[]")
+            user_sms_file.close()
+    
 
     # Start the system logger
     if cli_args.LOG_LEVEL:
