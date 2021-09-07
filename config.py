@@ -203,11 +203,13 @@ def build_config(_config_file):
                         'SOFTWARE_ID': bytes(config.get(section, 'SOFTWARE_ID').ljust(40)[:40], 'utf-8'),
                         'PACKAGE_ID': bytes(config.get(section, 'PACKAGE_ID').ljust(40)[:40], 'utf-8'),
                         'GROUP_HANGTIME': config.getint(section, 'GROUP_HANGTIME'),
-                        'OPTIONS': b''.join([b'Type=HBlink;', bytes(config.get(section, 'OPTIONS'), 'utf-8')]),
+                        'OPTIONS': b''.join([b'Type=HBNet;', bytes(config.get(section, 'OPTIONS'), 'utf-8')]),
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
-                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL'),
+                        'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
+
                     }})
                     CONFIG['SYSTEMS'][section].update({'STATS': {
                         'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
@@ -253,7 +255,9 @@ def build_config(_config_file):
                         'USE_ACL': config.getboolean(section, 'USE_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
-                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL'),
+                        'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
+
                     }})
                     CONFIG['SYSTEMS'][section].update({'XLXSTATS': {
                         'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
@@ -281,7 +285,8 @@ def build_config(_config_file):
                         'REG_ACL': config.get(section, 'REG_ACL'),
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_TS1_ACL'),
-                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL')
+                        'TG2_ACL': config.get(section, 'TGID_TS2_ACL'),
+                        'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
                     }})
                     CONFIG['SYSTEMS'][section].update({'PEERS': {}})
                     
@@ -322,6 +327,7 @@ def build_config(_config_file):
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TG1_ACL'),
                         'TG2_ACL': config.get(section, 'TG2_ACL'),
+                        'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
                     }})
                     CONFIG['SYSTEMS'][section].update({'PEERS': {}})
     

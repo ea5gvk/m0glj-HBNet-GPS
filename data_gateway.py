@@ -1167,6 +1167,15 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
 
 ######
 
+# Send data to all OBP connections that have an encryption key. Data such as subscribers are sent to other HBNet servers.
+def svrd_send_all(_svrd_data):
+    _svrd_packet = SVRD
+    for system in CONFIG['SYSTEMS']:
+        if CONFIG['SYSTEMS'][system]['ENABLED']:
+                if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
+                    if CONFIG['SYSTEMS'][system]['ENCRYPTION_KEY'] != b'':
+                        systems[system].send_system(_svrd_packet + _svrd_data)
+
 def rule_timer_loop():
     global UNIT_MAP
     logger.debug('(ROUTER) routerHBP Rule timer loop started')

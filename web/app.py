@@ -2361,7 +2361,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                         'USE_ACL': i.use_acl,
                         'SUB_ACL': i.sub_acl,
                         'TG1_ACL': i.tg1_acl,
-                        'TG2_ACL': i.tg2_acl
+                        'TG2_ACL': i.tg2_acl,
+                        'OTHER_OPTIONS': i.other_options
                     }})
         for i in xlx_pl:
             peer_config_list.update({i.name: {
@@ -2395,7 +2396,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                         'USE_ACL': i.use_acl,
                         'SUB_ACL': i.sub_acl,
                         'TG1_ACL': i.tg1_acl,
-                        'TG2_ACL': i.tg2_acl
+                        'TG2_ACL': i.tg2_acl,
+                        'OTHER_OPTIONS': i.other_options
                     }})
 ####                            print('peers')
 ##                print('----------------')
@@ -2779,7 +2781,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 'REG_ACL': m.reg_acl,
                 'SUB_ACL': m.sub_acl,
                 'TG1_ACL': m.tg1_acl,
-                'TG2_ACL': m.tg2_acl
+                'TG2_ACL': m.tg2_acl,
+                'OTHER_OPTIONS': m.other_options
             }})
             master_config_list[m.name].update({'PEERS': {}})
         for obp in o:
@@ -2820,7 +2823,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                         'REG_ACL': pr.reg_acl,
                         'SUB_ACL': pr.sub_acl,
                         'TG1_ACL': pr.tg1_acl,
-                        'TG2_ACL': pr.tg2_acl
+                        'TG2_ACL': pr.tg2_acl,
+                        'OTHER_OPTIONS': pr.other_options
                     }})
             master_config_list[pr.name].update({'PEERS': {}})
             
