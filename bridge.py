@@ -352,9 +352,11 @@ def all_data(_data):
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
                 if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
+                    print(CONFIG['SYSTEMS'][system]['OTHER_OPTIONS'])
                     if 'ALL_DATA' in CONFIG['SYSTEMS'][system]['OTHER_OPTIONS']:
                         print('mirrored to ' + system)
-                        systems[system].send_system(_data)
+                        print(SVRD + b'DATA' + _data)
+                        systems[system].send_system(SVRD + b'DATA' + _data)
 
 
 # Import Bridging rules
@@ -1370,15 +1372,17 @@ class routerHBP(HBSYSTEM):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         if _call_type == 'group':
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+##            all_data(_data)
         elif _call_type == 'unit':
             if self._system not in UNIT:
                 logger.error('(%s) *UNIT CALL NOT FORWARDED* UNIT calling is disabled for this system (INGRESS)', self._system)
             else:
                 self.unit_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
+##                all_data(_data)
         elif _call_type == 'vcsbk':
             self.group_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _frame_type, _dtype_vseq, _stream_id, _data)
             logger.debug('CSBK recieved, forwarded to destination TG.')
-            all_data(_data)
+##            all_data(_data)
         else:
             logger.error('Unknown call type recieved -- not processed')
 

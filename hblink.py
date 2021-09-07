@@ -187,6 +187,7 @@ class OPENBRIDGE(DatagramProtocol):
         pass
 
     def datagramReceived(self, _packet, _sockaddr):
+##        print(_packet[:4])
         # Keep This Line Commented Unless HEAVILY Debugging!
 ##        logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
         if _packet[:4] == DMRD or _packet[:4] == EOBP:
@@ -199,10 +200,6 @@ class OPENBRIDGE(DatagramProtocol):
                 _data = _packet[:53]
                 _hash = _packet[53:]
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
-##                print(ahex(_ckhs))
-##                print(ahex(_hash))
-
-##                print(compare_digest(_hash, _ckhs))
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
                     _peer_id = _data[11:15]
@@ -265,30 +262,33 @@ class OPENBRIDGE(DatagramProtocol):
         elif _packet[:4] == SVRD:
             _d_pkt = decrypt_packet(self._config['ENCRYPTION_KEY'], _packet[4:])
 ##            logger.info('SVRD Received: ' + str(_d_pkt))
-
             # DMR Data packet, sent via SVRD
-            if _d_pkt[:4] == b'DATA':
-                _data = _d_pkt[4:]
-                _peer_id = _data[11:15]
-                _seq = _data[4]
-                _rf_src = _data[5:8]
-                _dst_id = _data[8:11]
-                _bits = _data[15]
-                _slot = 2 if (_bits & 0x80) else 1
-                #_call_type = 'unit' if (_bits & 0x40) else 'group'
-                if _bits & 0x40:
-                    _call_type = 'unit'
-                elif (_bits & 0x23) == 0x23:
-                    _call_type = 'vcsbk'
-                else:
-                    _call_type = 'group'
-                _frame_type = (_bits & 0x30) >> 4
-                _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
-                _stream_id = _data[16:20]
-                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-            else:
+##            if _d_pkt[4:8] == b'DATA':
+##                print('----------------------')
+##                _data = _d_pkt[4:]
+##                _peer_id = _data[11:15]
+##                _seq = _data[4]
+##                _rf_src = _data[5:8]
+##                _dst_id = _data[8:11]
+##                _bits = _data[15]
+##                _slot = 2 if (_bits & 0x80) else 1
+##                #_call_type = 'unit' if (_bits & 0x40) else 'group'
+##                if _bits & 0x40:
+##                    _call_type = 'unit'
+##                elif (_bits & 0x23) == 0x23:
+##                    _call_type = 'vcsbk'
+##                else:
+##                    _call_type = 'group'
+##                _frame_type = (_bits & 0x30) >> 4
+##                _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
+##                _stream_id = _data[16:20]
+##                print(_stream_id)
+##
+##                print(_call_type)
+##                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+##            else:
                
-                self.svrd_received(_d_pkt[4:8], _d_pkt[8:]) 
+            self.svrd_received(_d_pkt[4:8], _d_pkt[8:]) 
                 
 #************************************************
 #     HB MASTER CLASS
@@ -539,7 +539,6 @@ class HBSYSTEM(DatagramProtocol):
 
     # Aliased in __init__ to datagramReceived if system is a master
     def master_datagramReceived(self, _data, _sockaddr):
-##        global user_db
         # Keep This Line Commented Unless HEAVILY Debugging!
         # logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_data))
 

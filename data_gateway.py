@@ -1196,9 +1196,32 @@ class OBP(OPENBRIDGE):
         data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 
     def svrd_received(self, _mode, _data):
+        print('SVRD RCV')
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
             print(UNIT_MAP)
+        if _mode == b'DATA':
+                    # DMR Data packet, sent via SVRD
+            _peer_id = _data[11:15]
+            _seq = _data[4]
+            _rf_src = _data[5:8]
+            _dst_id = _data[8:11]
+            _bits = _data[15]
+            _slot = 2 if (_bits & 0x80) else 1
+            #_call_type = 'unit' if (_bits & 0x40) else 'group'
+            if _bits & 0x40:
+                _call_type = 'unit'
+            elif (_bits & 0x23) == 0x23:
+                _call_type = 'vcsbk'
+            else:
+                _call_type = 'group'
+            _frame_type = (_bits & 0x30) >> 4
+            _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
+            _stream_id = _data[16:20]
+
+            self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            pass
+
 
 
 class HBP(HBSYSTEM):
