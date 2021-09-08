@@ -112,6 +112,7 @@ hdr_type = ''
 btf = -1
 ssid = ''
 UNIT_MAP = {}
+PACKET_MATCH = {}
 
 # From dmr_utils3, modified to decode entire packet. Works for 1/2 rate coded data. 
 def decode_full(_data):
@@ -1201,8 +1202,19 @@ class OBP(OPENBRIDGE):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
-        print('OBP RCVD')
-        data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+
+        # Check to see if we have already received this packet
+        if _data == PACKET_MATCH[_rf_src][0] and time() - PACKET_MATCH[_rf_src][1] < 1:
+            print('matched, dropping')
+            pass
+            print(PACKET_MATCH)
+        else:
+            PACKET_MATCH[_rf_src] = [_data, time()]
+            print('OBP RCVD')
+            if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dtype_vseq == 6 or _call_type == 'vcsbk':
+                data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            else:
+                pass       
 
     def svrd_received(self, _mode, _data):
         print('SVRD RCV')
@@ -1210,7 +1222,7 @@ class OBP(OPENBRIDGE):
             UNIT_MAP[_data] = (self._system, time())
             print(UNIT_MAP)
         if _mode == b'DATA':
-                    # DMR Data packet, sent via SVRD
+        # DMR Data packet, sent via SVRD
             _peer_id = _data[11:15]
             _seq = _data[4]
             _rf_src = _data[5:8]
@@ -1228,8 +1240,11 @@ class OBP(OPENBRIDGE):
             _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
             _stream_id = _data[16:20]
 
+            # Record last packet to prevent duplicates, think finger printing.
+            PACKET_MATCH[_rf_src] = [_data, time()]
+
+
             self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-            pass
 
 
 
@@ -1241,7 +1256,10 @@ class HBP(HBSYSTEM):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
         print('MMDVM RCVD')
-        data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+        if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
+            data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+        else:
+            pass
 ##        pass
 
 
