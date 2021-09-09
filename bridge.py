@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 ###############################################################################
 #   Copyright (C) 2016-2019 Cortney T. Buffington, N0MJS <n0mjs@me.com>
@@ -1420,14 +1420,14 @@ if __name__ == '__main__':
 
     # CLI argument parser - handles picking up the config file from the command line, and sending a "help" message
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hblink.cfg)')
+    parser.add_argument('-c', '--config', action='store', dest='CONFIG_FILE', help='/full/path/to/config.file (usually hbnet.cfg)')
     parser.add_argument('-r', '--rules', action='store', dest='RULES_FILE', help='/full/path/to/rules.file (usually rules.py)')
     parser.add_argument('-l', '--logging', action='store', dest='LOG_LEVEL', help='Override config file logging level.')
     cli_args = parser.parse_args()
 
     # Ensure we have a path for the config file, if one wasn't specified, then use the default (top of file)
     if not cli_args.CONFIG_FILE:
-        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hblink.cfg'
+        cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/hbnet.cfg'
 
     # Call the external routine to build the configuration dictionary
     LOCAL_CONFIG = config.build_config(cli_args.CONFIG_FILE)
@@ -1446,6 +1446,7 @@ if __name__ == '__main__':
     if cli_args.LOG_LEVEL:
         CONFIG['LOGGER']['LOG_LEVEL'] = cli_args.LOG_LEVEL
     logger = log.config_logging(CONFIG['LOGGER'])
+    logger.info('\n\nCopyright (c) 2020, 2021\n\tKF7EEL - Eric, kf7eel@qsl.net -  All rights reserved.\n')
     logger.info('\n\nCopyright (c) 2013, 2014, 2015, 2016, 2018, 2019, 2020\n\tThe Regents of the K0USY Group. All rights reserved.\n')
     logger.debug('(GLOBAL) Logging system started, anything from here on gets logged')
 
@@ -1472,7 +1473,7 @@ if __name__ == '__main__':
         logger.info('(REPORT) TCP Socket reporting not configured')
 
     # HBlink instance creation
-    logger.info('(GLOBAL) HBNet \'bridge.py\' -- SYSTEM STARTING...')
+    logger.info('(GLOBAL) HBNet \'hbnet.py\' -- SYSTEM STARTING...')
 
     # Generate list of Enabled MODE: PROXY masters
     proxy_master_list = []

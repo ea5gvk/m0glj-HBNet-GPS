@@ -95,12 +95,12 @@ import traceback
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
-__author__     = 'Cortney T. Buffington, N0MJS'
-__copyright__  = 'Copyright (c) 2016-2018 Cortney T. Buffington, N0MJS and the K0USY Group'
+__author__     = 'Cortney T. Buffington, N0MJS, Eric Craw, KF7EEL, kf7eel@qsl.net'
+__copyright__  = 'Copyright (c) 2016-2019 Cortney T. Buffington, N0MJS and the K0USY Group, Copyright (c) 2020-2021, Eric Craw, KF7EEL'
 __credits__    = 'Colin Durbridge, G4EML, Steve Zingman, N4IRS; Mike Zingman, N4IRR; Jonathan Naylor, G4KLX; Hans Barthen, DL5DI; Torsten Shultze, DG1HT'
 __license__    = 'GNU GPLv3'
-__maintainer__ = 'Cort Buffington, N0MJS'
-__email__      = 'n0mjs@me.com'
+__maintainer__ = 'Eric Craw, KF7EEL'
+__email__      = 'kf7eel@qsl.net'
 
 
 ##################################################################################################
@@ -1202,9 +1202,12 @@ class OBP(OPENBRIDGE):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
+        if _rf_src not in PACKET_MATCH:
+            PACKET_MATCH[_rf_src] = [_data, time()]
 
         # Check to see if we have already received this packet
-        if _data == PACKET_MATCH[_rf_src][0] and time() - PACKET_MATCH[_rf_src][1] < 1:
+##        print(time() - 1)
+        elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
             print('matched, dropping')
             pass
             print(PACKET_MATCH)
@@ -1256,6 +1259,14 @@ class HBP(HBSYSTEM):
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
         print('MMDVM RCVD')
+        if _rf_src not in PACKET_MATCH:
+            PACKET_MATCH[_rf_src] = [_data, time()]
+        elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
+            print('matched, dropping')
+            print(PACKET_MATCH)
+            pass
+        else:
+            PACKET_MATCH[_rf_src] = [_data, time()]
         if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
             data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
         else:
@@ -1364,6 +1375,7 @@ if __name__ == '__main__':
     if cli_args.LOG_LEVEL:
         CONFIG['LOGGER']['LOG_LEVEL'] = cli_args.LOG_LEVEL
     logger = log.config_logging(CONFIG['LOGGER'])
+    logger.info('\n\nCopyright (c) 2020, 2021\n\tKF7EEL - Eric, kf7eel@qsl.net -  All rights reserved.\n')
     logger.info('\n\nCopyright (c) 2013, 2014, 2015, 2016, 2018\n\tThe Regents of the K0USY Group. All rights reserved.\n')
     logger.debug('(GLOBAL) Logging system started, anything from here on gets logged')
 
