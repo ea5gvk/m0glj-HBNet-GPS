@@ -2419,6 +2419,20 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             )
         db.session.add(burn_list)
         db.session.commit()
+
+    def dash_loc_add(_call, _lat, _lon, _time, _comment, _dmr_id, _server):
+        add_loc = GPS_LocLog(
+            callsign = _callsign,
+            lat = _lat,
+            lon = _lon,
+            time = _time,
+            comment = _comment,
+            dmr_id = _dmr_id,
+            server = _server,
+            system_name = ''
+            )
+        db.session.add(add_bridge)
+        db.session.commit()
         
     def update_burnlist(_dmr_id, _version):
         update_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
@@ -5849,6 +5863,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 else:
                     peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
                 response = ''
+            elif 'dashboard' in hblink_req:
+                if 'lat' in hblink_req:
+                    # Assuming this is a GPS loc
+                    dash_loc_add(hblink_req['call'], hblink_req['lat'], hblink_req['lon'], time(), hblink_req['comment'], hblink_req['dmr_id'], hblink_req['dashboard'])
+                    
+                    
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 

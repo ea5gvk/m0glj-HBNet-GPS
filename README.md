@@ -9,9 +9,9 @@ This project originally started as a not so simple set of scripts to decode GPS 
 
 ### User end features:
 
-* Handles user registration and email verification, and more
+* Handles user registration and email verification
 
-* Individual passphrases for each user
+* Individual hotspot passphrases for each user
 
 * Automatic retrieval of DMR IDs on registration
 
@@ -24,13 +24,29 @@ This project originally started as a not so simple set of scripts to decode GPS 
 
 ### Administrative features:
 
-* Administrate multiple DMR servers through the web service
+* Administrate multiple DMR servers through a single web service
 
 * Optional manual approval of new users
 
 * Multiple Admin user logins
 
-* Entirely configure DMR server (HBlink) in web service
+
+### OpenBridge additions
+
+* Enhanced unit call routing between connected servers. Every server known which server every subscribers is on.
+
+* Optionally encrypt data sent over OpenBridge
+
+
+### Data Gateway (APRS/SMS)
+
+* Compatable with HBNet and original HBLink.
+
+* Connect your server via OpenBridge or MMDVM.
+
+* Decodes GPS positions and generates APRS positions
+
+* Simple web dashboard
 
 
 
@@ -67,32 +83,6 @@ None. The owners of this work make absolutely no warranty, express or implied. U
 
 **PRE-REQUISITE KNOWLEDGE:**  
 This document assumes the reader is familiar with Linux/UNIX, the Python programming language and DMR.  
-
-**Using docker version**
-
-To work with provided docker setup you will need:
-* A private repository with your configuration files (all .cfg files in repo will be copyed to the application root directory on start up)
-* A service user able to read your private repository (or be brave and publish your configuration, or be really brave and give your username and password to the docker)
-* A server with docker installed
-* Follow this simple steps:
-
-Build your own image from source
-
-```bash
-
-docker build . -t millaguie/hblink:3.0.0
-
-```
-
-Or user a prebuilt one in docker hub: millaguie/hblink:3.0.0
-
-Wake up your container
-
-```bash
-touch /var/log/hblink.log
-chown 65000  /var/log/hblink.log
- run -v /var/log/hblink.log:/var/log/hblink.log -e GIT_USER=$USER -e GIT_PASSWORD=$PASSWORD -e GIT_REPO=$URL_TO_REPO_WITHOUT_HTTPS://  -p 54000:54000  millaguie/hblink:3.0.0
- ```
 
 **MORE DOCUMENTATION TO COME**
 

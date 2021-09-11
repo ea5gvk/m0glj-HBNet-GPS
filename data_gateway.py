@@ -103,6 +103,49 @@ __maintainer__ = 'Eric Craw, KF7EEL'
 __email__      = 'kf7eel@qsl.net'
 
 
+def ping(CONFIG):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    ping_data = {
+    'ping': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret
+    }
+    json_object = json.dumps(ping_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+##        return config.build_config(cli_file)
+
+
+def send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    ping_data = {
+    'dashboard': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'call': call,
+    'lat' : lat,
+    'lon' : lon,
+    'comment' : comment,
+    'dmr_id' : dmr_id
+    }
+    json_object = json.dumps(ping_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+##        return config.build_config(cli_file)
+
+
 ##################################################################################################
 
 # Headers for GPS by model of radio:
@@ -158,27 +201,30 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time, comment):
-    dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
-    dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
-# Clear old entries
-    list_index = 0
-    call_count = 0
-    new_dash_entries = []
-    for i in dash_entries:
-        if i['call'] == call:
-            if call_count >= 25:
-                pass
-            else:
-                new_dash_entries.append(i)
-            call_count = call_count + 1
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id)
+    else:
+        dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
+        dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
+    # Clear old entries
+        list_index = 0
+        call_count = 0
+        new_dash_entries = []
+        for i in dash_entries:
+            if i['call'] == call:
+                if call_count >= 25:
+                    pass
+                else:
+                    new_dash_entries.append(i)
+                call_count = call_count + 1
 
-        if call != i['call']:
-            new_dash_entries.append(i)
-            pass
-        list_index = list_index + 1
-    with open(loc_file, 'w') as user_loc_file:
-            user_loc_file.write(str(new_dash_entries[:500]))
-            user_loc_file.close()
+            if call != i['call']:
+                new_dash_entries.append(i)
+                pass
+            list_index = list_index + 1
+        with open(loc_file, 'w') as user_loc_file:
+                user_loc_file.write(str(new_dash_entries[:500]))
+                user_loc_file.close()
     logger.info('User location saved for dashboard')
     #logger.info(dash_entries)
     
@@ -1192,6 +1238,7 @@ def rule_timer_loop():
         del UNIT_MAP[unit]
 
     logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
+    ping(CONFIG)
 
     
 class OBP(OPENBRIDGE):
