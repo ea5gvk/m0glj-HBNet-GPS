@@ -103,6 +103,12 @@ def convert_nato(string):
             ns = ns + c + ' '
     return ns
 
+# Convert APRS to map coordinates
+def aprs_to_latlon(x):
+    degrees = int(x) // 100
+    minutes = x - 100*degrees
+    return degrees + minutes/60 
+
 # Class-based application configuration
 class ConfigClass(object):
     from config import MAIL_SERVER, MAIL_PORT, MAIL_USE_SSL, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER, USER_ENABLE_EMAIL, USER_ENABLE_USERNAME, USER_REQUIRE_RETYPE_PASSWORD, USER_ENABLE_CHANGE_USERNAME, USER_ENABLE_MULTIPLE_EMAILS, USER_ENABLE_CONFIRM_EMAIL, USER_ENABLE_REGISTER, USER_AUTO_LOGIN_AFTER_CONFIRM, USER_SHOW_USERNAME_DOES_NOT_EXIST 
@@ -712,8 +718,43 @@ def create_app():
     @app.route('/map')
     @login_required
     def map_page():
-        print(peer_locations)
+        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(300).all()
+        dev_list = []
         f_map = folium.Map(location=center_map, zoom_start=map_zoom)
+        for i in dev_loc:
+            if i.callsign in dev_list:
+                pass
+            elif i.callsign not in dev_list:
+                dev_list.append(i.callsign)
+                lat = i.lat
+                lon = i.lon
+                if 'S' in i.lat:
+                    lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lat)))
+                    lat = -lat
+                if 'S' not in i.lat:
+                    lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lat)))
+                if 'W' in i.lon:
+                    lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
+                    lon = -lon
+                if 'W' not in i.lon:
+                    lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
+                folium.Marker([lat, lon], popup="""<i>
+                    <table style="width: 150px;">
+                    <tbody>
+                    <tr>
+                    <td style="text-align: center;">Last Location:</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><em>"""+ str(i.time) +"""</em></td>
+                    """ + i.comment + """
+                    </tr>
+                    </tbody>
+                    </table>
+                    </i>
+                    """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
         for l in peer_locations.items():
 ##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
 ##<div class="panel panel-default">
@@ -2420,18 +2461,18 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.add(burn_list)
         db.session.commit()
 
-    def dash_loc_add(_call, _lat, _lon, _time, _comment, _dmr_id, _server):
+    def dash_loc_add(_call, _lat, _lon, _comment, _dmr_id, _server):
         add_loc = GPS_LocLog(
-            callsign = _callsign,
+            callsign = _call,
             lat = _lat,
             lon = _lon,
-            time = _time,
+            time = datetime.datetime.utcnow(),
             comment = _comment,
             dmr_id = _dmr_id,
             server = _server,
             system_name = ''
             )
-        db.session.add(add_bridge)
+        db.session.add(add_loc)
         db.session.commit()
         
     def update_burnlist(_dmr_id, _version):
@@ -5774,6 +5815,27 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    
+    @app.route('/aprs')
+    def data_dash():
+
+##        dev_loc = GPS_LocLog.query.order_by(time).limit(3).all()
+        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(3).all()
+        content = ''
+        for i in dev_loc:
+            print(i.callsign)
+            content = content + '''
+    <tr>
+    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><strong>''' + i.callsign + '''</strong></a></td>
+    <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
+    <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
+    <td style="text-align: center;">&nbsp;''' + str(i.time) + '''&nbsp;</td>
+    </tr>
+'''
+##        content = dev_loc
+
+        return render_template('aprs_page.html', markup_content = Markup(content))
+
     @app.route('/svr', methods=['POST'])
     def auth():
         hblink_req = request.json
@@ -5866,7 +5928,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             elif 'dashboard' in hblink_req:
                 if 'lat' in hblink_req:
                     # Assuming this is a GPS loc
-                    dash_loc_add(hblink_req['call'], hblink_req['lat'], hblink_req['lon'], time(), hblink_req['comment'], hblink_req['dmr_id'], hblink_req['dashboard'])
+                    dash_loc_add(hblink_req['call'], hblink_req['lat'], hblink_req['lon'], hblink_req['comment'], hblink_req['dmr_id'], hblink_req['dashboard'])
+                    response = 'yes'
                     
                     
 

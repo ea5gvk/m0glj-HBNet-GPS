@@ -159,7 +159,7 @@ class OPENBRIDGE(DatagramProtocol):
         logger.info('(%s) is mode OPENBRIDGE. No De-Registration required, continuing shutdown', self._system)
 
     def send_system(self, _packet):
-        if _packet[:4] == DMRD or _packet[:4] == EOBP or _packet[:4] == b'NOCK':
+        if _packet[:4] == DMRD or _packet[:4] == EOBP:
             #_packet = _packet[:11] + self._config['NETWORK_ID'] + _packet[15:]
             _packet = b''.join([_packet[:11], self._config['NETWORK_ID'], _packet[15:]])
             #_packet += hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest()
@@ -200,6 +200,7 @@ class OPENBRIDGE(DatagramProtocol):
                 _data = _packet[:53]
                 _hash = _packet[53:]
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
+                
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
                     _peer_id = _data[11:15]

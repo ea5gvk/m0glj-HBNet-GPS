@@ -1584,8 +1584,10 @@ if __name__ == '__main__':
     stream_trimmer.addErrback(loopingErrHandle)
 
     logger.info('Unit calls will be bridged to: ' + str(UNIT))
+    
     # Download burn list
-    with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
-        f.write(str(download_burnlist(CONFIG)))
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
+            f.write(str(download_burnlist(CONFIG)))
     print(CONFIG['SYSTEMS'])
     reactor.run()

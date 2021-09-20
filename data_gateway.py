@@ -65,6 +65,11 @@ import codecs
 #Needed for working with NMEA
 import pynmea2
 
+# Used with HTTP POST
+from hashlib import sha256
+import json, requests
+
+
 # Modules for executing commands/scripts
 import os
 ##from gps_functions import cmd_list
@@ -200,7 +205,7 @@ def aprs_send(packet):
         AIS.sendall(packet)
         logger.info('Packet sent to APRS-IS.')
 
-def dashboard_loc_write(call, lat, lon, time, comment):
+def dashboard_loc_write(call, lat, lon, time, comment, dmr_id):
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
         send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id)
     else:
@@ -543,7 +548,7 @@ def process_sms(_rf_src, sms, call_type):
         try:
             aprslib.parse(aprs_loc_packet)
             aprs_send(aprs_loc_packet)
-            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
+            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment, int_id(_rf_src))
             #logger.info('Sent manual position to APRS')
         except Exception as error_exception:
             logger.info('Exception. Not uploaded')
@@ -1054,7 +1059,7 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                 float(lon_deg) < 121
                 if int_id(_dst_id) == data_id:
                     aprs_send(aprs_loc_packet)
-                    dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment)
+                    dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment, int_id(_rf_src))
                 #logger.info('Sent APRS packet')
             except Exception as error_exception:
                 logger.info('Error. Failed to send packet. Packet may be malformed.')
@@ -1157,7 +1162,7 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         float(loc.lon)
                         if int_id(_dst_id) == data_id:
                             aprs_send(aprs_loc_packet)
-                            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment)
+                            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment, int_id(_rf_src))
                     except Exception as error_exception:
                         logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
                         logger.info(error_exception)
@@ -1268,6 +1273,7 @@ class OBP(OPENBRIDGE):
 
     def svrd_received(self, _mode, _data):
         print('SVRD RCV')
+        print(_mode)
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
             print(UNIT_MAP)
