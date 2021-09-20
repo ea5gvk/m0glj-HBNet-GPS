@@ -50,6 +50,7 @@ import os, ast
 from cryptography.fernet import Fernet
 
 
+
 script_links = {}
 active_tgs = {}
 ping_list = {}
@@ -748,7 +749,7 @@ def create_app():
                     <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><em>"""+ str(i.time) +"""</em></td>
+                    <td style="text-align: center;"><em>"""+ str(i.time.strftime(time_format)) +"""</em></td>
                     """ + i.comment + """
                     </tr>
                     </tbody>
@@ -1279,7 +1280,7 @@ def create_app():
 <td>&nbsp;
 <p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update from RadioID.net</a></strong></p>
 &nbsp;</td>
-<td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at) + '''</strong></p></td>
+<td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at.strftime(time_format)) + '''</strong></p></td>
 </tr>
 <tr>
 <td>&nbsp;
@@ -2475,10 +2476,22 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.add(add_loc)
         db.session.commit()
         
+    def trim_dash_loc():
+        trim_dash = GPS_LocLog.query.all()
+##        db.session.delete(delete_b)
+##        db.session.commit()
+        for i in trim_dash:
+            elap_time = int(datetime.datetime.utcnow().strftime('%s')) - int(i.time.strftime('%s'))
+            # Remove entries more than 2 weeks old
+            if elap_time > 1209600:
+                db.session.delete(i)
+        db.session.commit()
+        
     def update_burnlist(_dmr_id, _version):
         update_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
         update_b.version=_version
         db.session.commit()
+        
     def delete_burnlist(_dmr_id):
         delete_b = BurnList.query.filter_by(dmr_id=_dmr_id).first()
         db.session.delete(delete_b)
@@ -5820,16 +5833,18 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     def data_dash():
 
 ##        dev_loc = GPS_LocLog.query.order_by(time).limit(3).all()
-        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(3).all()
+        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(20).all()
         content = ''
+        dev_lst = []
         for i in dev_loc:
-            print(i.callsign)
-            content = content + '''
+            if i.callsign not in dev_lst:
+                dev_lst.append(i.callsign)
+                content = content + '''
     <tr>
     <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><strong>''' + i.callsign + '''</strong></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
-    <td style="text-align: center;">&nbsp;''' + str(i.time) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str(i.time.strftime(time_format)) + '''&nbsp;</td>
     </tr>
 '''
 ##        content = dev_loc
@@ -5929,6 +5944,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 if 'lat' in hblink_req:
                     # Assuming this is a GPS loc
                     dash_loc_add(hblink_req['call'], hblink_req['lat'], hblink_req['lon'], hblink_req['comment'], hblink_req['dmr_id'], hblink_req['dashboard'])
+                    trim_dash_loc()
                     response = 'yes'
                     
                     
