@@ -181,7 +181,6 @@ class OPENBRIDGE(DatagramProtocol):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         pass
-        #print(int_id(_peer_id), int_id(_rf_src), int_id(_dst_id), int_id(_seq), _slot, _call_type, _frame_type, repr(_dtype_vseq), int_id(_stream_id))
 
     def svrd_received(self, _mode, _data):
         pass
@@ -728,6 +727,7 @@ class HBSYSTEM(DatagramProtocol):
                     logger.info('(%s) Peer is closing down: %s (%s)', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id))
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
                     del self._peers[_peer_id]
+                    self.send_peer_loc(_peer_id, self._peers[_peer_id]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
 
             else:
                 _peer_id = _data[4:8]      # Configure Command
