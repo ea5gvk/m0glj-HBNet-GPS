@@ -132,7 +132,7 @@ class ConfigClass(object):
 
      
 # Setup Flask-User
-def create_app():
+def hbnet_web_service():
     """ Flask application factory """
     
     # Create Flask app load app.config
@@ -6086,5 +6086,5 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 
 
 if __name__ == '__main__':
-    app = create_app()
+    app = hbnet_web_service()
     app.run(debug = True, port=hws_port, host=hws_host)
