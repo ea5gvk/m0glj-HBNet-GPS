@@ -353,10 +353,11 @@ def mirror_traffic(_data):
         if CONFIG['SYSTEMS'][system]['ENABLED']:
                 if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
                     print(CONFIG['SYSTEMS'][system]['OTHER_OPTIONS'])
-                    if 'MIRROR_TRAFFIC' in CONFIG['SYSTEMS'][system]['OTHER_OPTIONS']:
+                    if 'MIRROR_ALL_TRAFFIC' in CONFIG['SYSTEMS'][system]['OTHER_OPTIONS']:
                         print('mirrored to ' + system)
                         print(_data)
                         systems[system].send_system(SVRD + b'DATA' + _data)
+                    
 
 
 # Import Bridging rules
@@ -1583,11 +1584,10 @@ if __name__ == '__main__':
     stream_trimmer = stream_trimmer_task.start(5)
     stream_trimmer.addErrback(loopingErrHandle)
 
-    logger.info('Unit calls will be bridged to: ' + str(UNIT))
+    logger.info('UNIT calls will be bridged to: ' + str(UNIT))
     
     # Download burn list
     if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
         with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
             f.write(str(download_burnlist(CONFIG)))
-    print(CONFIG['SYSTEMS'])
     reactor.run()

@@ -1253,6 +1253,7 @@ class OBP(OPENBRIDGE):
 
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
+        print(_frame_type)
         UNIT_MAP[_rf_src] = (self._system, time())
         if _rf_src not in PACKET_MATCH:
             PACKET_MATCH[_rf_src] = [_data, time()]
@@ -1296,8 +1297,8 @@ class OBP(OPENBRIDGE):
             _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
             _stream_id = _data[16:20]
 
-            # Record last packet to prevent duplicates, think finger printing.
-            PACKET_MATCH[_rf_src] = [_data, time()]
+##            # Record last packet to prevent duplicates, think finger printing.
+##            PACKET_MATCH[_rf_src] = [_data, time()]
 
 
             self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
