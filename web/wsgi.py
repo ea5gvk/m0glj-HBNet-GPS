@@ -1,4 +1,4 @@
-from app import create_app
+from app import hbnet_web_service
 
 app = hbnet_web_service()
 
