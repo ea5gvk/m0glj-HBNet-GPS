@@ -166,6 +166,7 @@ def create_app():
         dmr_ids = db.Column(db.String(1000), nullable=False, server_default='')
         city = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(2000), nullable=False, server_default='')
+        aprs = db.Column(db.String(2000), nullable=False, server_default='')
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
