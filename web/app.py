@@ -5856,6 +5856,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     def auth():
         hblink_req = request.json
         print((hblink_req))
+        print(peer_locations)
         if hblink_req['secret'] in shared_secrets():
             try:
                 if hblink_req['ping']:
