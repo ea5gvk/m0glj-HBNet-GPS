@@ -51,9 +51,9 @@ from cryptography.fernet import Fernet
 
 
 
-script_links = {}
-active_tgs = {}
-ping_list = {}
+##script_links = {}
+##active_tgs = {}
+##ping_list = {}
 peer_locations = {}
 
 # Query radioid.net for list of IDs
@@ -158,7 +158,7 @@ def hbnet_web_service():
         username = db.Column(db.String(100,), nullable=False, unique=True)
         password = db.Column(db.String(255), nullable=False, server_default='')
         email_confirmed_at = db.Column(db.DateTime())
-        email = db.Column(db.String(255), nullable=True, unique=True)
+        email = db.Column(db.String(255), nullable=True, unique=True, server_default='')
         
         # User information
         first_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -620,6 +620,20 @@ def hbnet_web_service():
             time = datetime.datetime.utcnow()
             )
         db.session.add(home_entry_add)
+        ping_list_initial = Misc(
+            field_1 = 'ping_list',
+            field_2 = '{}',
+            
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(ping_list_initial)
+        script_links_initial = Misc(
+            field_1 = 'script_links',
+            field_2 = '{}',
+            
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(script_links_initial)
         db.session.commit()
 
     # Query radioid.net for list of DMR IDs, then add to DB
@@ -827,6 +841,8 @@ def hbnet_web_service():
         try:
             u = current_user
             id_dict = ast.literal_eval(u.dmr_ids)
+            script_l = Misc.query.filter_by(field_1='script_links').first()
+            script_links = ast.literal_eval(script_l.field_2)
             #u = User.query.filter_by(username=user).first()
     ##        print(request.args.get('mode'))
     ##        if request.args.get('mode') == 'generated':
@@ -835,6 +851,7 @@ def hbnet_web_service():
                 #if i[1] == '':
                 link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                 script_links[i[0]] = link_num
+                misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                 content = content + '''
         <div class="panel panel-default">
   <div class="panel-heading" style="text-align: center;"><h4>ID: ''' + str(i[0]) + '''</h4></div>
@@ -857,7 +874,11 @@ def hbnet_web_service():
     @login_required
     def gen():
         #print(str(gen_passphrase(3153591))) #(int(i[0])))
+        pl = Misc.query.filter_by(field_1='ping_list').first()
+        ping_list = ast.literal_eval(pl.field_2)
         sl = ServerList.query.all()
+        script_l = Misc.query.filter_by(field_1='script_links').first()
+        script_links = ast.literal_eval(script_l.field_2)
         svr_content = ''
         for i in sl:
             try:
@@ -912,6 +933,7 @@ def hbnet_web_service():
                 if isinstance(i[1], int) == True and i[1] != 0:
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
+                    misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                     #print(script_links)
                     content = content + '''\n
             <div class="panel panel-default" style="text-align: center;">
@@ -927,6 +949,7 @@ def hbnet_web_service():
                 elif i[1] == 0:
                     link_num = str(random.randint(1,99999999)).zfill(8) + str(time.time()) + str(random.randint(1,99999999)).zfill(8)
                     script_links[i[0]] = link_num
+                    misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                     #print(script_links)
                     content = content + '''\n
 <div class="panel panel-default" style="text-align: center;">
@@ -1414,6 +1437,8 @@ def hbnet_web_service():
         dmr_id = int(request.args.get('dmr_id'))
         number = float(request.args.get('number'))
         #print(type(script_links[dmr_id]))
+        script_l = Misc.query.filter_by(field_1='script_links').first()
+        script_links = ast.literal_eval(script_l.field_2)
         u = User.query.filter(User.dmr_ids.contains(request.args.get('dmr_id'))).first()
 
         pub_list = []
@@ -1433,6 +1458,7 @@ def hbnet_web_service():
         #try:
         if dmr_id in script_links and number == float(script_links[dmr_id]):
             script_links.pop(dmr_id)
+            misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
             
             ml = MasterList.query.filter_by(public_list=True).filter_by(active=True).all()
             pl = ProxyList.query.filter_by(public_list=True).filter_by(active=True).all()
@@ -3870,6 +3896,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 '''
         else:
             all_s = ServerList.query.all()
+            pl = Misc.query.filter_by(field_1='ping_list').first()
+            ping_list = ast.literal_eval(pl.field_2)
             p_list = '''
 <h3 style="text-align: center;">View/Edit Servers</h3>
 
@@ -5853,14 +5881,17 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         return render_template('aprs_page.html', markup_content = Markup(content))
 
     @app.route('/svr', methods=['POST'])
-    def auth():
+    def svr_endpoint():
         hblink_req = request.json
         print((hblink_req))
         print(peer_locations)
         if hblink_req['secret'] in shared_secrets():
             try:
                 if hblink_req['ping']:
+                    pl = Misc.query.filter_by(field_1='ping_list').first()
+                    ping_list = ast.literal_eval(pl.field_2)
                     ping_list[hblink_req['ping']] = time.time()
+                    misc_edit_field_1('ping_list', str(ping_list), '', '', 0, 0, 0, 0, True, True)
                     response = ''
             except:
                 pass
@@ -5953,8 +5984,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 
-                    active_tgs[hblink_req['get_config']] = {}
+##                    active_tgs[hblink_req['get_config']] = {}
+
+                    pl = Misc.query.filter_by(field_1='ping_list').first()
+                    ping_list = ast.literal_eval(pl.field_2)
+        
                     ping_list[hblink_req['get_config']] = time.time()
+                    
+                    misc_edit_field_1('ping_list', str(ping_list), '', '', 0, 0, 0, 0, True, True)
 ##                    print(active_tgs)
     ##                try:
 ##                    print(get_peer_configs(hblink_req['get_config']))
