@@ -735,6 +735,54 @@ def hbnet_web_service():
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+    @app.route('/map/<dmr_id>')
+    @login_required
+    def single_peer(dmr_id):
+        try:
+            l = PeerLoc.query.filter_by(dmr_id=dmr_id).first()
+
+            content = '''
+    <table border="1">
+    <tbody>
+    <tr>
+    <td>&nbsp;<strong><h4>''' + l.callsign + '''</strong></h4>&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    <table border="1">
+    <tbody>
+    <tr>
+    <td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
+    <td>&nbsp;''' + str(l.dmr_id) + '''&nbsp;</td>
+    </tr>
+    <tr>
+    <td style="width: 64.4667px;"><strong>Location:</strong></td>
+    <td>&nbsp;''' + l.loc + '''&nbsp;</td>
+    </tr>
+    <tr>
+    <td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
+    <td>&nbsp;''' + l.lat + ''', ''' + l.lon + '''&nbsp;</td>
+    </tr>
+    <tr>
+    <td style="width: 64.4667px;"><strong>Description:</strong></td>
+    <td>&nbsp;''' + l.comment + '''&nbsp;</td>
+    </tr>
+    <tr>
+    <td style="width: 64.4667px;"><p><strong>URL:</strong></p>
+    </td>
+    <td><a href="''' + l.url + '''">&nbsp;''' + l.url + '''&nbsp;</a></td>
+    </tr>
+    <tr>
+    <td style="width: 64.4667px;"><strong>Device:</strong></td>
+    <td>&nbsp;''' + l.software + '''&nbsp;</td>
+    </tr>
+    </tbody>
+    </table>
+    '''
+        except:
+            content = 'No peer found.'
+        return render_template('single_map_peer.html', markup_content = Markup(content))
+
     @app.route('/map')
     @login_required
     def map_page():
@@ -796,43 +844,28 @@ def hbnet_web_service():
 ##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
 
             folium.Marker([float(l.lat), float(l.lon)], popup='''
-<table border="1">
+<table style="width: 100px; height: 100px;">
 <tbody>
 <tr>
-<td>&nbsp;<strong><h4>''' + l.callsign + '''</strong></h4>&nbsp;</td>
-</tr>
-</tbody>
-</table>
-<table border="1">
+<td>
+<table>
 <tbody>
 <tr>
-<td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
-<td>&nbsp;''' + str(l.dmr_id) + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Location:</strong></td>
-<td>&nbsp;''' + l.loc + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
-<td>&nbsp;''' + l.lat + ''', ''' + l.lon + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><strong>Description:</strong></td>
-<td>&nbsp;''' + l.comment + '''&nbsp;</td>
-</tr>
-<tr>
-<td style="width: 64.4667px;"><p><strong>URL:</strong></p>
+<td>
+<p><h4><a href="''' + url + '/map/' + str(l.dmr_id) + '''" target="_blank" rel="noopener"><strong>''' + l.callsign + '''</strong></a></h4></p>
 </td>
-<td><a href="''' + l.url + '''">&nbsp;''' + l.url + '''&nbsp;</a></td>
 </tr>
 <tr>
-<td style="width: 64.4667px;"><strong>Device:</strong></td>
-<td>&nbsp;''' + l.software + '''&nbsp;</td>
+<td>''' + l.loc + '''</td>
 </tr>
 </tbody>
 </table>
-         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l.callsign + '</strong>').add_to(f_map)
+</td>
+</tr>
+</tbody>
+</table>
+
+''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l.callsign + '</strong>').add_to(f_map)
         content = f_map._repr_html_()
        
         return render_template('map.html', markup_content = Markup(content))
