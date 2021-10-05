@@ -471,8 +471,12 @@ def hbnet_web_service():
         time = db.Column(db.DateTime())
         server = db.Column(db.String(100), nullable=False, server_default='')
         system_name = db.Column(db.String(100), nullable=False, server_default='')
-        user = db.Column(db.Boolean(), nullable=False, server_default='1')
+        user = db.Column(db.String(100), nullable=False, server_default='')
         dmr_id = db.Column(db.Integer(), primary_key=False)
+        url = db.Column(db.String(100), nullable=False, server_default='')
+        software = db.Column(db.String(100), nullable=False, server_default='')
+        loc = db.Column(db.String(100), nullable=False, server_default='')
+
 
     class CustomID(db.Model):
         __tablename__ = 'custom_dmr_id'
@@ -737,6 +741,8 @@ def hbnet_web_service():
         dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(300).all()
         dev_list = []
         f_map = folium.Map(location=center_map, zoom_start=map_zoom)
+        peer_l = PeerLoc.query.all()
+        print(peer_l)
         for i in dev_loc:
             if i.callsign in dev_list:
                 pass
@@ -771,7 +777,7 @@ def hbnet_web_service():
                     </table>
                     </i>
                     """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
-        for l in peer_locations.items():
+        for l in peer_l:
 ##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
 ##<div class="panel panel-default">
 ##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
@@ -789,11 +795,11 @@ def hbnet_web_service():
 ##</div>
 ##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
 
-            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+            folium.Marker([float(l.lat), float(l.lon)], popup='''
 <table border="1">
 <tbody>
 <tr>
-<td>&nbsp;<strong><h4>''' + l[1][0] + '''</strong></h4>&nbsp;</td>
+<td>&nbsp;<strong><h4>''' + l.callsign + '''</strong></h4>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -801,32 +807,32 @@ def hbnet_web_service():
 <tbody>
 <tr>
 <td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
-<td>&nbsp;''' + str(l[0]) + '''&nbsp;</td>
+<td>&nbsp;''' + str(l.dmr_id) + '''&nbsp;</td>
 </tr>
 <tr>
 <td style="width: 64.4667px;"><strong>Location:</strong></td>
-<td>&nbsp;''' + l[1][5] + '''&nbsp;</td>
+<td>&nbsp;''' + l.loc + '''&nbsp;</td>
 </tr>
 <tr>
 <td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
-<td>&nbsp;''' + l[1][1] + ''', ''' + l[1][2] + '''&nbsp;</td>
+<td>&nbsp;''' + l.lat + ''', ''' + l.lon + '''&nbsp;</td>
 </tr>
 <tr>
 <td style="width: 64.4667px;"><strong>Description:</strong></td>
-<td>&nbsp;''' + l[1][4] + '''&nbsp;</td>
+<td>&nbsp;''' + l.comment + '''&nbsp;</td>
 </tr>
 <tr>
 <td style="width: 64.4667px;"><p><strong>URL:</strong></p>
 </td>
-<td><a href="''' + l[1][3] + '''">&nbsp;''' + l[1][3] + '''&nbsp;</a></td>
+<td><a href="''' + l.url + '''">&nbsp;''' + l.url + '''&nbsp;</a></td>
 </tr>
 <tr>
 <td style="width: 64.4667px;"><strong>Device:</strong></td>
-<td>&nbsp;''' + l[1][6] + '''&nbsp;</td>
+<td>&nbsp;''' + l.software + '''&nbsp;</td>
 </tr>
 </tbody>
 </table>
-         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
+         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l.callsign + '</strong>').add_to(f_map)
         content = f_map._repr_html_()
        
         return render_template('map.html', markup_content = Markup(content))
@@ -2488,6 +2494,33 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             )
         db.session.add(burn_list)
         db.session.commit()
+
+    def peer_loc_add(_call, _lat, _lon, _comment, _dmr_id, _server, _user, _url, _software, _loc):
+        add_peer_loc = PeerLoc(
+            callsign = _call,
+            lat = _lat,
+            lon = _lon,
+            time = datetime.datetime.utcnow(),
+            comment = _comment,
+            dmr_id = _dmr_id,
+            server = _server,
+            user = _user,
+            url = _url,
+            software = _software,
+            system_name = '',
+            loc = _loc
+            )
+        db.session.add(add_peer_loc)
+        db.session.commit()
+
+    def del_peer_loc(_dmr_id):
+        try:
+            _peer_loc = PeerLoc.query.filter_by(dmr_id=_dmr_id).first()
+            db.session.delete(_peer_loc)
+            db.session.commit()
+        except:
+            print('Peer not in DB')
+            pass
 
     def dash_loc_add(_call, _lat, _lon, _comment, _dmr_id, _server):
         add_loc = GPS_LocLog(
@@ -5922,12 +5955,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                                     mode='override',
                                     value=authorized_peer(hblink_req['login_id'])[1]
                                         )
-                        try:
-                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
+##                        try:
+##                            active_tgs[hblink_req['login_server']][hblink_req['system']] = [{'1':[]}, {'2':[]}, {'SYSTEM': ''}, {'peer_id':hblink_req['login_id']}]
 ##                            print('Restart ' + hblink_req['login_server'] + ' please.')
-                        except:
+##                        except:
 ##                            active_tgs[hblink_req['login_server']] = {}
-                            pass
+##                            pass
                     elif authorized_peer(hblink_req['login_id'])[0] == False:
 ##                        print('log fail')
                         authlog_add(hblink_req['login_id'], hblink_req['login_ip'], hblink_req['login_server'], 'Not Registered', '-', 'Failed')
@@ -5969,9 +6002,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                                     )
             elif 'loc_callsign' in hblink_req:
                 if hblink_req['lat'] == '*' and hblink_req['lon'] == '*':
-                    del peer_locations[hblink_req['dmr_id']]
+##                    del peer_locations[hblink_req['dmr_id']]
+                    del_peer_loc(hblink_req['dmr_id'])
+                    print('del peer loc')
                 else:
-                    peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
+##                    peer_locations[hblink_req['dmr_id']] = [hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['url'], hblink_req['description'], hblink_req['loc'], hblink_req['software']]
+                    del_peer_loc(hblink_req['dmr_id'])
+                    peer_loc_add(hblink_req['loc_callsign'], hblink_req['lat'], hblink_req['lon'], hblink_req['description'], hblink_req['dmr_id'], '', '', hblink_req['url'], hblink_req['software'], hblink_req['loc'])
+                    print(PeerLoc.query.all())
                 response = ''
             elif 'dashboard' in hblink_req:
                 if 'lat' in hblink_req:

@@ -199,7 +199,11 @@ class OPENBRIDGE(DatagramProtocol):
                 _data = _packet[:53]
                 _hash = _packet[53:]
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
-                
+
+##                print(compare_digest(_hash, _ckhs))
+##                print(_sockaddr == self._config['TARGET_SOCK'])
+##                print(ahex(_ckhs))
+##                print(ahex(_hash))
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
                     _peer_id = _data[11:15]
@@ -726,8 +730,8 @@ class HBSYSTEM(DatagramProtocol):
                             and self._peers[_peer_id]['SOCKADDR'] == _sockaddr:
                     logger.info('(%s) Peer is closing down: %s (%s)', self._system, self._peers[_peer_id]['CALLSIGN'], int_id(_peer_id))
                     self.transport.write(b''.join([MSTNAK, _peer_id]), _sockaddr)
-                    del self._peers[_peer_id]
                     self.send_peer_loc(_peer_id, self._peers[_peer_id]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
+                    del self._peers[_peer_id]
 
             else:
                 _peer_id = _data[4:8]      # Configure Command
