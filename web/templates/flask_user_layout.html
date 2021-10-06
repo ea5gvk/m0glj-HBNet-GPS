@@ -34,14 +34,15 @@
 
 <body>
 
+<p><img class="img-responsive" style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
+    <h2 class="card-body" style="text-align: center;">{{ user_manager.USER_APP_NAME }}</h2>
+<hr />
+
  <!-- A grey horizontal navbar that becomes vertical on small screens -->
 <nav class="navbar navbar-expand-sm bg-light">
 
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">
-      
-      {{ user_manager.USER_APP_NAME }}
-    </a>
+
     <!-- Links -->
     <ul class="navbar-nav">
       <li class="nav-item">
@@ -71,12 +72,21 @@
         <a class="nav-link" href="{{url}}/help"><i class="bi bi-question-square"></i> Help </a>
       </li>
     </ul>
+  
 
-
-    <!--Admin Menu -->
+        <ul class="navbar-nav">
+    {% if not call_or_get(current_user.is_authenticated) %}
+        <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('user.login') }}"><i class="bi bi-door-open"></i> Sign In </a>
+      </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('user.register') }}"><i class="bi bi-person-plus"></i> Register </a>
+      </li>
+      {% endif %}
+    
     {% if call_or_get(current_user.is_authenticated) %}
+        <!--Admin Menu -->
             {% if call_or_get(current_user.has_roles('Admin')) %}
-    <ul class="navbar-nav">
     <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="aprs_menu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-tools"></i> Admin
@@ -97,22 +107,8 @@
 
           </ul>
         </li>
-    </ul>
-    
-    {% endif %}
-            {% endif %}
+        {% endif %}
 
-
-        <ul class="navbar-nav">
-    {% if not call_or_get(current_user.is_authenticated) %}
-        <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('user.login') }}"><i class="bi bi-door-open"></i> Sign In </a>
-      </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('user.register') }}"> Register </a>
-      </li>
-      {% endif %}
-    {% if call_or_get(current_user.is_authenticated) %}
             <li class="nav-item">
         <a class="nav-link" href="{{url}}/generate_passphrase"><i class="bi bi-info-square"></i> Passphrase(s) </a>
       </li>
@@ -130,12 +126,7 @@
 
 </nav> 
 
-
-
-    <p><img class="img-responsive" style="display: block; margin-left: auto; margin-right: auto;" src="{{ url_for('static', filename='HBnet.png') }}" alt="Logo" width="300" height="144" /></p>
-<hr />
-
-    
+   
     {% block body %}
 
     <hr class="no-margins"/>

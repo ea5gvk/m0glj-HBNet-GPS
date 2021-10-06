@@ -974,7 +974,7 @@ def hbnet_web_service():
                     #print(script_links)
                     content = content + '''\n
             <div class="card " style="text-align: center;">
-  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-header"><h4><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></h4></div>
   <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
   <hr />
@@ -990,7 +990,7 @@ def hbnet_web_service():
                     #print(script_links)
                     content = content + '''\n
 <div class="card" style="text-align: center;">
-  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-header"><h4><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></h4></div>
   <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
   <hr />
@@ -1002,7 +1002,7 @@ def hbnet_web_service():
                 elif i[1] == '':
                     content = content + '''
 <div class="card" style="text-align: center;">
-  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-header"><h4><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></h4></div>
   <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + legacy_passphrase + '''</strong></pre>
   <hr />
@@ -1014,7 +1014,7 @@ def hbnet_web_service():
                 else:
                     content = content + '''
   <div class="card" style="text-align: center;">
-  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-header"><h4><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></h4></div>
   <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(i[1]) + '''</strong></pre>
   <hr />
@@ -1300,17 +1300,17 @@ def hbnet_web_service():
                 if isinstance(i[1], int) == True: 
                     passphrase_list = passphrase_list + '''
 <tr>
-<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
 <td style="text-align: center;">''' + str(gen_passphrase(int(i[0]))) + '''</td>
 </tr> \n'''
                 if i[1] == '':
                     passphrase_list = passphrase_list + '''<tr>
-<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
 <td style="text-align: center;">''' + legacy_passphrase + '''</td>
 </tr> \n'''
                 if not isinstance(i[1], int) == True and i[1] != '':
                     passphrase_list = passphrase_list + '''<tr>
-<td style="text-align: center;">''' + str(i[0]) + '''</td>
+<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
 <td style="text-align: center;">''' + str(i[1]) + '''</td>
 </tr> \n'''
             
@@ -2383,9 +2383,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     <div class="card-body">
     <h4 class="card-title" style="text-align: center;">''' + ssd.callsign + ' - ' + str(ssd.dmr_id) + '''</h4>\n <p style="text-align: center;">''' + str(ssd.time.strftime(time_format)) + '''</p>
     <br /><hr /><br />
-    <p class="card-text" style="text-align: center;">''' + ssd.message + '''</p>
-    </div>
-    </div>
+    <p class="card-text" style="text-align: center;"><strong>''' + ssd.message + '''</strong></p>
+<br /><hr /><br />
+
 
     '''
             for i in ss_all:
