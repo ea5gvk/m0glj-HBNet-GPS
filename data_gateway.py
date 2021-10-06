@@ -149,7 +149,7 @@ def send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
-def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id):
+def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id, system_name):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     sms_data = {
@@ -159,7 +159,8 @@ def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id):
     'rcv_call': rcv_call,
     'message' : msg,
     'snd_id' : snd_id,
-    'rcv_id' : rcv_id
+    'rcv_id' : rcv_id,
+    'system_name': system_name
     }
     json_object = json.dumps(sms_data, indent = 4)
     
@@ -170,7 +171,27 @@ def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id):
 ##        return resp['rules']
     except requests.ConnectionError:
         logger.error('Config server unreachable')
-##        return config.build_config(cli_file)
+
+def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_data = {
+    'bb_send': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'callsign': callsign,
+    'dmr_id': dmr_id,
+    'bulletin': bulletin,
+    'system_name' : system_name
+    }
+    json_object = json.dumps(sms_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
 
 
 
@@ -257,21 +278,24 @@ def dashboard_loc_write(call, lat, lon, time, comment, dmr_id):
     logger.info('User location saved for dashboard')
     #logger.info(dash_entries)
     
-def dashboard_bb_write(call, dmr_id, time, bulletin):
-    #try:
-    dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
-   # except:
-    #    dash_entries = []
-    dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
-    with open(bb_file, 'w') as user_bb_file:
-            user_bb_file.write(str(dash_bb[:20]))
-            user_bb_file.close()
-    logger.info('User bulletin entry saved.')
-    #logger.info(dash_bb)
-
-def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time):
+def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id)
+        send_bb(CONFIG, call, dmr_id, bulletin, system_name)
+    else:
+        #try:
+        dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
+       # except:
+        #    dash_entries = []
+        dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
+        with open(bb_file, 'w') as user_bb_file:
+                user_bb_file.write(str(dash_bb[:20]))
+                user_bb_file.close()
+        logger.info('User bulletin entry saved.')
+        #logger.info(dash_bb)
+
+def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time, system_name):
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id, system_name)
     else:
         #try:
         dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
@@ -467,7 +491,7 @@ def user_setting_write(dmr_id, setting, value, call_type):
             
 # Process SMS, do something bases on message
 
-def process_sms(_rf_src, sms, call_type):
+def process_sms(_rf_src, sms, call_type, system_name):
     logger.info(call_type)
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
@@ -497,7 +521,7 @@ def process_sms(_rf_src, sms, call_type):
     elif '@APRS OFF' in sms or '@APRS off' in sms:
         user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
     elif '@BB' in sms:
-        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms))
+        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms), system_name)
     elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
         s = ' '
         email_message =  s.join(parse_sms[1:])#str(re.sub('.*@|.* E-', '', sms))
@@ -1226,9 +1250,10 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         sms = codecs.decode(bytes.fromhex(''.join(sms_hex_string[:-8].split('00'))), 'utf-8', 'ignore')
                         msg_found = re.sub('.*\n', '', sms)
                         logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
+                        
                         if int_id(_dst_id) == data_id:
-                            process_sms(_rf_src, msg_found, _call_type)
-                        dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time())
+                            process_sms(_rf_src, msg_found, _call_type, UNIT_MAP[_rf_src][0])
+                        dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time(), UNIT_MAP[_rf_src][0])
                         #packet_assembly = ''
                         pass
                         #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))

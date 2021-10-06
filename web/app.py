@@ -782,7 +782,7 @@ def hbnet_web_service():
         return render_template('single_map_peer.html', markup_content = Markup(content))
 
     @app.route('/map')
-    @login_required
+##    @login_required
     def map_page():
         dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(300).all()
         dev_list = []
@@ -2351,8 +2351,25 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
       <td>''' + i.snd_callsign + ''' \n ''' + str(i.snd_id) + '''</td>
       <td>''' + i.rcv_callsign + ''' \n ''' + str(i.rcv_id) + '''</td>
       <td>''' + i.message + '''</td>
+      <td>''' + i.server + ' - ' + i.system_name + '''</td>
+
     </tr>'''
         return render_template('sms.html', markup_content = Markup(content))
+
+    @app.route('/bb')
+    def all_bb():
+        bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).all()
+        content = ''' '''
+        for i in bbl:
+            content = content + '''
+    <tr>
+      <td>''' + i.callsign + ''' \n ''' + str(i.dmr_id) + '''</td>
+      <td>''' + i.bulletin + '''</td>
+      <td>''' + str(i.time.strftime(time_format)) + '''</td>
+      <td>''' + i.server + ' - ' + i.system_name + '''</td>
+
+    </tr>'''
+        return render_template('bb.html', markup_content = Markup(content))
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
     @login_required
@@ -2589,6 +2606,18 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.add(add_loc)
         db.session.commit()
 
+    def bb_add(_callsign, _bulletin, _dmr_id, _server, _system_name):
+        add_bb = BulletinBoard(
+            callsign = _callsign,
+            bulletin = _bulletin,
+            time = datetime.datetime.utcnow(),
+            dmr_id = _dmr_id,
+            server = _server,
+            system_name = _system_name
+            )
+        db.session.add(add_bb)
+        db.session.commit()
+
     def sms_log_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):
         add_sms = SMSLog(
             snd_callsign = _snd_call,
@@ -2598,10 +2627,19 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             snd_id = _snd_id,
             rcv_id = _rcv_id,
             server = _server,
-            system_name = ''
+            system_name = _system_name
             )
         db.session.add(add_sms)
         db.session.commit()
+        
+    def trim_bb():
+        trim_bb = BulletinBoard.query.all()
+
+        for i in trim_bb:
+            elap_time = int(datetime.datetime.utcnow().strftime('%s')) - int(i.time.strftime('%s'))
+            # Remove entries more than 1 month old
+            if elap_time > 2678400:
+                db.session.delete(i)
         
     def trim_sms_log():
         trim_sms = SMSLog.query.all()
@@ -6095,10 +6133,13 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     trim_dash_loc()
                     response = 'yes'
             elif 'log_sms' in hblink_req:
-                    sms_log_add(hblink_req['snd_call'], hblink_req['rcv_call'], hblink_req['message'], hblink_req['snd_id'], hblink_req['rcv_id'], '', '')
+                    sms_log_add(hblink_req['snd_call'], hblink_req['rcv_call'], hblink_req['message'], hblink_req['snd_id'], hblink_req['rcv_id'], hblink_req['log_sms'], hblink_req['system_name'])
                     trim_sms_log()
                     response = 'rcvd'
-                    
+            elif 'bb_send' in hblink_req:
+                    bb_add(hblink_req['callsign'], hblink_req['bulletin'], hblink_req['dmr_id'], hblink_req['bb_send'], hblink_req['system_name'])
+                    trim_sms_log()
+                    response = 'rcvd'
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 
