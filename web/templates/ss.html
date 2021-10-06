@@ -1,0 +1,31 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">Social Status</h1>
+
+<div class="row">
+  <div class="col-lg-12">
+
+  {{markup_content}}
+
+  </div>
+  <div class="col-lg-12">
+<p>&nbsp;</p>
+
+  <table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Post</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody>
+
+      {{all_post}}
+
+  </tbody>
+  </table>
+  </div>
+</div>
+
+{% endblock %}

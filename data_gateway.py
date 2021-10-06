@@ -193,6 +193,28 @@ def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
+        
+def send_ss(CONFIG, callsign, message, dmr_id):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_data = {
+    'ss_update': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'callsign': callsign,
+    'message' : message,
+    'dmr_id' : dmr_id,
+
+    }
+    json_object = json.dumps(sms_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
 
 
 
@@ -495,7 +517,11 @@ def process_sms(_rf_src, sms, call_type, system_name):
     logger.info(call_type)
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
-    if parse_sms[0] == 'ID':
+    if '@SS' in parse_sms[0]:
+        s = ' '
+        post = s.join(parse_sms[1:])
+        send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
+    elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
             send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
@@ -1253,7 +1279,8 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         
                         if int_id(_dst_id) == data_id:
                             process_sms(_rf_src, msg_found, _call_type, UNIT_MAP[_rf_src][0])
-                        dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time(), UNIT_MAP[_rf_src][0])
+                        if int_id(_dst_id) != data_id:
+                            dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time(), UNIT_MAP[_rf_src][0])
                         #packet_assembly = ''
                         pass
                         #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))

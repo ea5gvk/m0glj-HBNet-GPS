@@ -494,6 +494,7 @@ def hbnet_web_service():
         callsign = db.Column(db.String(100), nullable=False, server_default='')
         message = db.Column(db.String(150), nullable=False, server_default='')
         time = db.Column(db.DateTime())
+        dmr_id = db.Column(db.Integer(), primary_key=False)
         
     class Misc(db.Model):
         __tablename__ = 'misc'
@@ -817,7 +818,6 @@ def hbnet_web_service():
                     </tr>
                     <tr>
                     <td style="text-align: center;"><em>"""+ str(i.time.strftime(time_format)) +"""</em></td>
-                    """ + i.comment + """
                     </tr>
                     </tbody>
                     </table>
@@ -2348,8 +2348,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         for i in smsl:
             content = content + '''
     <tr>
-      <td>''' + i.snd_callsign + ''' \n ''' + str(i.snd_id) + '''</td>
-      <td>''' + i.rcv_callsign + ''' \n ''' + str(i.rcv_id) + '''</td>
+      <td><p style="text-align: center;"><strong>''' + i.snd_callsign + '''</strong></p> \n <a href="/ss/''' + str(i.snd_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.snd_id) + '''</button></a></td>
+      <td><p style="text-align: center;"><strong>''' + i.rcv_callsign + '''</strong></p> \n <a href="/ss/''' + str(i.rcv_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.rcv_id) + '''</button></a></td>
       <td>''' + i.message + '''</td>
       <td>''' + i.server + ' - ' + i.system_name + '''</td>
 
@@ -2363,13 +2363,41 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         for i in bbl:
             content = content + '''
     <tr>
-      <td>''' + i.callsign + ''' \n ''' + str(i.dmr_id) + '''</td>
+      <td><p style="text-align: center;"><strong>''' + i.callsign + '''<strong></p> \n <a href="/ss/''' + str(i.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></td>
       <td>''' + i.bulletin + '''</td>
       <td>''' + str(i.time.strftime(time_format)) + '''</td>
       <td>''' + i.server + ' - ' + i.system_name + '''</td>
 
     </tr>'''
         return render_template('bb.html', markup_content = Markup(content))
+
+    @app.route('/ss/<dmr_id>')
+    def get_ss(dmr_id):
+        try:
+            ssd = Social.query.filter_by(dmr_id=dmr_id).order_by(Social.time.desc()).first() 
+            ss_all = Social.query.filter_by(dmr_id=dmr_id).order_by(Social.time.desc()).all()
+            print(ss_all)
+            post_content = ''
+            content = '''
+    <div class="card" style="width: 400px;">
+    <div class="card-body">
+    <h4 class="card-title" style="text-align: center;">''' + ssd.callsign + ' - ' + str(ssd.dmr_id) + '''</h4>\n <p style="text-align: center;">''' + str(ssd.time.strftime(time_format)) + '''</p>
+    <br /><hr /><br />
+    <p class="card-text" style="text-align: center;">''' + ssd.message + '''</p>
+    </div>
+    </div>
+
+    '''
+            for i in ss_all:
+                post_content = post_content + '''
+        <tr>
+          <td>''' + i.message + '''</td>
+          <td>''' + str(i.time.strftime(time_format)) + '''</td>
+        </tr>'''
+        except:
+            content = '<h4><p style="text-align: center;">Not posts by user.</p></h4>'
+            all_post = ''
+        return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content))
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
     @login_required
@@ -2616,6 +2644,32 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             system_name = _system_name
             )
         db.session.add(add_bb)
+        db.session.commit()
+        
+    def del_ss(_dmr_id):
+        try:
+##            ss_post = Social.query.filter_by(dmr_id=_dmr_id).first()
+##            db.session.delete(ss_post)
+##            db.session.commit()
+            ss_post = Social.query.filter_by(dmr_id=_dmr_id).all()
+            for i in ss_post:
+                elap_time = int(datetime.datetime.utcnow().strftime('%s')) - int(i.time.strftime('%s'))
+                # Remove entries more than 1 year old
+                if elap_time > 31536000:
+                    db.session.delete(i)
+
+        except:
+            print('Social Status not in DB')
+            pass
+    
+    def ss_add(_callsign, _message, _dmr_id):
+        add_ss = Social(
+            callsign = _callsign,
+            message = _message,
+            time = datetime.datetime.utcnow(),
+            dmr_id = _dmr_id
+            )
+        db.session.add(add_ss)
         db.session.commit()
 
     def sms_log_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):
@@ -6138,7 +6192,11 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     response = 'rcvd'
             elif 'bb_send' in hblink_req:
                     bb_add(hblink_req['callsign'], hblink_req['bulletin'], hblink_req['dmr_id'], hblink_req['bb_send'], hblink_req['system_name'])
-                    trim_sms_log()
+                    trim_bb()
+                    response = 'rcvd'
+            elif 'ss_update' in hblink_req:
+                    del_ss(hblink_req['dmr_id'])
+                    ss_add(hblink_req['callsign'], str(hblink_req['message']), hblink_req['dmr_id'])
                     response = 'rcvd'
 
             elif 'get_config' in hblink_req:
