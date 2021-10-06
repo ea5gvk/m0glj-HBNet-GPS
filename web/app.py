@@ -710,19 +710,17 @@ def hbnet_web_service():
             l_news = News.query.order_by(News.time.desc()).first()
             content = '''
 
-<div class="well well-sm" style="text-align: center;"><h3>''' + l_news.subject + '''</h3>
-<hr />
-<p>&nbsp;</p>
-<strong>''' + l_news.date + '''</strong> - <a href="/news/''' + str(l_news.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
-<p>&nbsp;</p>
-
-<hr />
-<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
-''' + l_news.text + '''
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title"><a href="news/''' + str(l_news.id) + '''">''' + l_news.subject + '''</h4></a>
+    <hr />
+    <p style="text-align: center;">''' + l_news.date + '''</p>
+    <hr />
+    &nbsp;
+    <p class="card-text">''' + l_news.text + '''</p>
+    <p style="text-align: center;"></p>
 </div>
 </div>
-  
-  </div>
     '''
         except:
             content = ''
@@ -892,9 +890,9 @@ def hbnet_web_service():
                 script_links[i[0]] = link_num
                 misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                 content = content + '''
-        <div class="panel panel-default">
-  <div class="panel-heading" style="text-align: center;"><h4>ID: ''' + str(i[0]) + '''</h4></div>
-  <div class="panel-body"><pre>rpi-rw; wget -O /root/auto_pistar.py "<a href="''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''">''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''</a>"; chmod +x /root/auto_pistar.py; python3 /root/auto_pistar.py; pistar-update</pre></div>
+        <div class="card">
+  <div class="card-header" style="text-align: center;"><h4>ID: ''' + str(i[0]) + '''</h4></div>
+  <div class="card-body"><pre>rpi-rw; wget -O /root/auto_pistar.py "<a href="''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''">''' + str(url) + '/get_script?dmr_id=' + str(i[0]) + '&number=' + str(link_num) + '''</a>"; chmod +x /root/auto_pistar.py; python3 /root/auto_pistar.py; pistar-update</pre></div>
 </div>
     '''
                 #else:
@@ -945,9 +943,9 @@ def hbnet_web_service():
        </div> '''
                
             svr_content = svr_content + '''
-<div class="panel panel-default">
-  <div class="panel-heading" style="text-align: center;"><h3>''' + i.name + '''</h3></div>
-  <div class="panel-body container-fluid center;">
+<div class="card">
+  <div class="card-header" style="text-align: center;"><h3>''' + i.name + '''</h3></div>
+  <div class="card-body container-fluid center;">
   <hr />
   ''' + svr_status + '''
     <div style="max-width:200px; word-wrap:break-word; text-align: center;">''' + i.public_notes + '''</div>
@@ -975,9 +973,9 @@ def hbnet_web_service():
                     misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                     #print(script_links)
                     content = content + '''\n
-            <div class="panel panel-default" style="text-align: center;">
-  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
-  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+            <div class="card " style="text-align: center;">
+  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
   <hr />
   <br />
@@ -991,9 +989,9 @@ def hbnet_web_service():
                     misc_edit_field_1('script_links', str(script_links), '', '', 0, 0, 0, 0, False, False)
                     #print(script_links)
                     content = content + '''\n
-<div class="panel panel-default" style="text-align: center;">
-  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
-  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+<div class="card" style="text-align: center;">
+  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(gen_passphrase(int(i[0]))) + '''</strong></pre>
   <hr />
   <br />
@@ -1003,9 +1001,9 @@ def hbnet_web_service():
         '''
                 elif i[1] == '':
                     content = content + '''
-<div class="panel panel-default" style="text-align: center;">
-  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
-  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+<div class="card" style="text-align: center;">
+  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + legacy_passphrase + '''</strong></pre>
   <hr />
   <br />
@@ -1015,9 +1013,9 @@ def hbnet_web_service():
             '''
                 else:
                     content = content + '''
-  <div class="panel panel-default" style="text-align: center;">
-  <div class="panel-heading"><h4>''' + str(i[0]) + '''</h4></div>
-  <div class="panel-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
+  <div class="card" style="text-align: center;">
+  <div class="card-header"><h4>''' + str(i[0]) + '''</h4></div>
+  <div class="card-body" style="max-width:300px; word-wrap:break-word; text-align: center;">MMDVM Passphrase:
   <pre><strong>''' + str(i[1]) + '''</strong></pre>
   <hr />
   <br />
@@ -1091,15 +1089,20 @@ def hbnet_web_service():
     def list_users():
         u = User.query.all()
         # Broken for now, link taken out - <h2 style="text-align: center;"><strong>List/edit users:</strong></h2><p>&nbsp;</p><p style="text-align: center;"><a href="edit_user"><strong>Enter Callsign</strong></a></p>
-        u_list = '''<p>&nbsp;</p><table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="width: 107px; text-align: center;"><strong>Callsign</strong></td>
-<td style="width: 107px; text-align: center;"><strong>Name</strong></td>
-<td style="width: 226.683px; text-align: center;"><strong>Enabled</strong></td>
-<td style="width: 522.317px; text-align: center;"><strong>DMR ID:Authentication</strong></td>
-<td style="width: 522.317px; text-align: center;"><strong>Notes</strong></td>
-</tr>'''
+        u_list = '''
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Callsign</th>
+      <th>Name</th>
+      <th>Enabled</th>
+      <th>DMR ID:Authentication</th>
+      <th>Notes</th>
+
+    </tr>
+  </thead>
+  <tbody>
+'''
         for i in u:
             u_list = u_list + '''
 <tr>
@@ -1925,17 +1928,19 @@ def hbnet_web_service():
                 art_count = 1
             if art_count < 16:
                 news_content = news_content + '''
-<div class="well well-sm" s style="text-align: center;"><h3>''' + article.subject + '''</h3>
-<hr />
-<p style="text-align: center;">&nbsp;</p>
-<strong>''' + article.date + '''</strong> - <a href="news/''' + str(article.id) + '''"><button type="button" class="btn btn-primary">Link</button></a>
-<p style="text-align: center;">&nbsp;</p>
-<hr />
-<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
-''' + article.text + '''
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title"><a href="news/''' + str(article.id) + '''">''' + article.subject + '''</h4></a>
+    <hr />
+    <p style="text-align: center;">''' + article.date + '''</p>
+    <hr />
+    &nbsp;
+    <p class="card-text">''' + article.text + '''</p>
+    <p style="text-align: center;"></p>
 </div>
 </div>
-  
+  <p>&nbsp;</p>
+
 
 '''
                 art_count = art_count + 1
@@ -1948,17 +1953,17 @@ def hbnet_web_service():
         view_arti =  News.query.filter_by(id=article).first()
 
         content = '''
-<div class="well well-sm" style="text-align: center;"><h3>''' + view_arti.subject + '''</h3>
-<hr />
-<p>&nbsp;</p>
-<strong>''' + view_arti.date + '''</strong>
-<p>&nbsp;</p>
-<hr />
-<div class="well well-sm" style="max-width:900px; word-wrap:break-word;">
-''' + view_arti.text + '''
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">''' + view_arti.subject + '''</h4>
+    <hr />
+    <p style="text-align: center;">''' + view_arti.date + '''</p>
+    <hr />
+    &nbsp;
+    <p class="card-text">''' + view_arti.text + '''</p>
+    <p style="text-align: center;"></p>
 </div>
 </div>
-  
 
 '''
         return render_template('news.html', markup_content = Markup(content))
@@ -2025,14 +2030,16 @@ def hbnet_web_service():
 <p style="text-align: center;"><a href="add_news"><strong><button type="button" class="btn btn-success">Add News Article</button></strong></a></p>
 <p>&nbsp;</p>
 
-<table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;"><strong>Subject</strong></td>
-<td style="text-align: center;"><strong>Date</strong></td>
-<td style="text-align: center;"><strong>ID</strong></td>
-
-</tr>'''
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Subject</th>
+      <th>Date</th>
+      <th>ID</th>
+    </tr>
+  </thead>
+  <tbody>
+'''
             for a in view_news:
                 content = content + '''
             
@@ -2198,83 +2205,83 @@ def hbnet_web_service():
 '''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-    @app.route('/user_tg')
-    def tg_status():
-        cu = current_user
-        u = User.query.filter_by(username=cu.username).first()
-        sl = ServerList.query.all()
-        user_ids = ast.literal_eval(u.dmr_ids)
-        content = '<p style="text-align: center;">Currently active talkgroups. Updated every 2 minutes.</p>'
-##        print(active_tgs)
-        for s in sl:
-            for i in user_ids.items():
-                for ts in active_tgs[s.name].items():
-##                    print(ts)
-##                    print(ts[1][3]['peer_id'])
-                    if i[0] == ts[1][3]['peer_id']:
-##                        print(i[0])
-                        print(ts)
-##                    if i[0] in active_tgs[s.name]:
-##                        for x in ts[1]:
-##                            print(x)
-##    ##                            if i[0] != ts[1][x][3]['peer_id']:
-##    ##                                print('nope')
-##    ##                                pass
-##    ##                            elif i[0] == ts[1][x][3]['peer_id']:
-##    ##                            print(x)
-##    ##                            print(s.name)
-##    ##                            print('-----ts-----')
-##    ##                            print(ts[1][x][3]['peer_id']) #[s.name][3]['peer_id'])
-##    ##                            print(active_tgs)
-##                            
-##        ##                    print(active_tgs[s.name])
-##        ##                        print(str(active_tgs[ts[1]]))
-##                        # Remove 0 from TG list
-                        try:
-                            active_tgs[s.name][ts[0]][0]['1'].remove(0)
-                            active_tgs[s.name][ts[0]][1]['2'].remove(0)
-                        except:
-                            pass
-####                try:
-                        content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;">
-<h3><strong>Server:</strong> ''' + str(s.name) + '''</h3>
-<p><strong>DMR ID:</strong> ''' + str(i[0]) + '''</p>
-</td>
-</tr>
-<tr>
-<td>&nbsp;
-<table style="width: 499px; float: left;" border="1">
-<tbody>
-<tr>
-<td style="width: 85.7px;"><strong>Timeslot 1</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][0]['1'])[1:-1] + '''</td>
-</tr>
-<tr>
-<td style="width: 85.7px;"><strong>Timeslot 2</strong></td>
-<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][1]['2'])[1:-1] + '''</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</tbody>
-</table>'''
-##                except:
-##                    pass
-           
-       
-##                #TS1
-##                for tg in active_tgs[s.name][i[0]][1]['2']:
-##                    content = content + '''<td style="width: 377.3px;">&nbsp;''' + str(tg) + '''</td>
-##'''
-##                print(active_tgs[s.name][i[0]])
-##                content = active_tgs[s.name][i[0]][1]['2']
-##        content = 'hji'
-        
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+##    @app.route('/user_tg')
+##    def tg_status():
+##        cu = current_user
+##        u = User.query.filter_by(username=cu.username).first()
+##        sl = ServerList.query.all()
+##        user_ids = ast.literal_eval(u.dmr_ids)
+##        content = '<p style="text-align: center;">Currently active talkgroups. Updated every 2 minutes.</p>'
+####        print(active_tgs)
+##        for s in sl:
+##            for i in user_ids.items():
+##                for ts in active_tgs[s.name].items():
+####                    print(ts)
+####                    print(ts[1][3]['peer_id'])
+##                    if i[0] == ts[1][3]['peer_id']:
+####                        print(i[0])
+##                        print(ts)
+####                    if i[0] in active_tgs[s.name]:
+####                        for x in ts[1]:
+####                            print(x)
+####    ##                            if i[0] != ts[1][x][3]['peer_id']:
+####    ##                                print('nope')
+####    ##                                pass
+####    ##                            elif i[0] == ts[1][x][3]['peer_id']:
+####    ##                            print(x)
+####    ##                            print(s.name)
+####    ##                            print('-----ts-----')
+####    ##                            print(ts[1][x][3]['peer_id']) #[s.name][3]['peer_id'])
+####    ##                            print(active_tgs)
+####                            
+####        ##                    print(active_tgs[s.name])
+####        ##                        print(str(active_tgs[ts[1]]))
+####                        # Remove 0 from TG list
+##                        try:
+##                            active_tgs[s.name][ts[0]][0]['1'].remove(0)
+##                            active_tgs[s.name][ts[0]][1]['2'].remove(0)
+##                        except:
+##                            pass
+######                try:
+##                        content = content + ''' <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+##<tbody>
+##<tr>
+##<td style="text-align: center;">
+##<h3><strong>Server:</strong> ''' + str(s.name) + '''</h3>
+##<p><strong>DMR ID:</strong> ''' + str(i[0]) + '''</p>
+##</td>
+##</tr>
+##<tr>
+##<td>&nbsp;
+##<table style="width: 499px; float: left;" border="1">
+##<tbody>
+##<tr>
+##<td style="width: 85.7px;"><strong>Timeslot 1</strong></td>
+##<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][0]['1'])[1:-1] + '''</td>
+##</tr>
+##<tr>
+##<td style="width: 85.7px;"><strong>Timeslot 2</strong></td>
+##<td style="width: 377.3px;">&nbsp;''' + str(active_tgs[s.name][ts[0]][1]['2'])[1:-1] + '''</td>
+##</tr>
+##</tbody>
+##</table>
+##</td>
+##</tr>
+##</tbody>
+##</table>'''
+####                except:
+####                    pass
+##           
+##       
+####                #TS1
+####                for tg in active_tgs[s.name][i[0]][1]['2']:
+####                    content = content + '''<td style="width: 377.3px;">&nbsp;''' + str(tg) + '''</td>
+####'''
+####                print(active_tgs[s.name][i[0]])
+####                content = active_tgs[s.name][i[0]][1]['2']
+####        content = 'hji'
+##        
+##        return render_template('flask_user_layout.html', markup_content = Markup(content))
     
     @app.route('/tg/<name>') #, methods=['POST', 'GET'])
 ##    @login_required
@@ -2283,7 +2290,7 @@ def hbnet_web_service():
         content = ''' 
 
 <div class="row">
-    <div class="well well-sm" style="text-align: center;"><h2>''' + tg_d.bridge_name + '''</h2>
+    <div class="card " style="text-align: center;"><h2>''' + tg_d.bridge_name + '''</h2>
 <hr />
 TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <hr />
@@ -5836,15 +5843,17 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 </table>
 <p>&nbsp;</p>
 
-<table style="width: 700px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center; width: 187px;"><strong>Name</strong></td>
-<td style="text-align: center; width: 61.55px;"><strong>Public</strong></td>
-<td style="text-align: center; width: 227.45px;"><strong>Description</strong></td>
-<td style="text-align: center; width: 88px;"><strong>TGID</strong></td>
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Public</th>
+      <th>Description</th>
+      <th>TGID</th>
+    </tr>
+  </thead>
+  <tbody>
 
-</tr>
 '''
             for i in all_b:
                 b_list = b_list + '''

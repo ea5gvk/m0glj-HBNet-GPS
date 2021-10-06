@@ -5,27 +5,21 @@
 <div class="row container-fluid" >
   <div class="col-sm-12">
   <h1 style="text-align: center;">Last Known Location</h1>
-<table style="border-color: black; margin-left: auto; margin-right: auto;" border="2" cellspacing="6" cellpadding="2"><tbody>
 
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
     <tr>
-    <td style="text-align: center;">
-    <h2><strong>&nbsp;Callsign&nbsp;</strong></h2>
-    </td>
-    <td style="text-align: center;">
-    <h2>&nbsp;<strong>Latitude</strong>&nbsp; </h2>
-    </td>
-    <td style="text-align: center;">
-    <h2>&nbsp;<strong>Longitude</strong>&nbsp;</h2>
-    </td>
-    <td style="text-align: center;">
-    <h2>&nbsp;<strong>Time</strong>&nbsp;</h2>
-    </td>
+      <th>Callsign</th>
+      <th>Latitude</th>
+      <th>Longitude</th>
+      <th>Time</th>
     </tr>
+  </thead>
+  <tbody>
   {{markup_content}}
-      </tbody>
+
+    </tbody>
 </table>
-</div>
-</div>
 
 <p>&nbsp;</p>
 {% endblock %}

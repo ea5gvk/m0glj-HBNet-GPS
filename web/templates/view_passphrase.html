@@ -1,26 +1,35 @@
 {% extends 'flask_user/_public_base.html' %}
 {% block content %}
 <p>&nbsp;</p>
-<div class="well"><h4 style="text-align: center;"><a href="/generate_passphrase/pi-star"><button type="button" class="btn btn-warning">Automatic Pi-Star Setup Script</button></a> </h4><br />
-<h4 style="text-align: center;"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#mmdvm_options">Available MMDVM Options</button></h4></div>
+<div class="card bg-light card-body mb-3">
+    <h4 style="text-align: center;"><a href="/generate_passphrase/pi-star"><button type="button" class="btn btn-warning">Automatic Pi-Star Setup Script</button></a> </h4>
+    <br>
+    
+<h4 style="text-align: center;"><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#options_modal">
+  MMDVM Options
+</button></h4>
+</div>
 
 <div class="row">
-  <div class="col-xs-6">{{server_content}}</div>
-  <div class="col-xs-6">{{passphrase_content}}</div>
+  <div class="col-sm-6">{{server_content}}</div>
+  <div class="col-sm-6">{{passphrase_content}}</div>
 </div>
 
 
 <!-- Options Modal -->
-<div id="mmdvm_options" class="modal fade" role="dialog">
+<div class="modal fade" id="options_modal">
   <div class="modal-dialog">
-
-    <!-- Modal content-->
     <div class="modal-content">
+
+      <!-- Modal Header -->
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">MMDVM Options</h4>
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
+
+      <!-- Modal body -->
       <div class="modal-body">
+
 
 <div class="container-fluid">          
   <table class="table table-striped">
@@ -40,13 +49,15 @@
   </table>
 </div>
 
-        
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div>
 
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
   </div>
 </div>
 <p>&nbsp;</p>
