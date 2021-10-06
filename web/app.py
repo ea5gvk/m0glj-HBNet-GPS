@@ -2340,6 +2340,19 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
       </tr>'''
         
         return render_template('tg_all.html', markup_content = Markup(content))
+    
+    @app.route('/sms')
+    def all_sms():
+        smsl = SMSLog.query.order_by(SMSLog.time.desc()).all()
+        content = ''' '''
+        for i in smsl:
+            content = content + '''
+    <tr>
+      <td>''' + i.snd_callsign + ''' \n ''' + str(i.snd_id) + '''</td>
+      <td>''' + i.rcv_callsign + ''' \n ''' + str(i.rcv_id) + '''</td>
+      <td>''' + i.message + '''</td>
+    </tr>'''
+        return render_template('sms.html', markup_content = Markup(content))
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
     @login_required
@@ -2575,7 +2588,30 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             )
         db.session.add(add_loc)
         db.session.commit()
+
+    def sms_log_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):
+        add_sms = SMSLog(
+            snd_callsign = _snd_call,
+            rcv_callsign = _rcv_call,
+            message = _msg,
+            time = datetime.datetime.utcnow(),
+            snd_id = _snd_id,
+            rcv_id = _rcv_id,
+            server = _server,
+            system_name = ''
+            )
+        db.session.add(add_sms)
+        db.session.commit()
         
+    def trim_sms_log():
+        trim_sms = SMSLog.query.all()
+
+        for i in trim_sms:
+            elap_time = int(datetime.datetime.utcnow().strftime('%s')) - int(i.time.strftime('%s'))
+            # Remove entries more than 1 month old
+            if elap_time > 2678400:
+                db.session.delete(i)
+                
     def trim_dash_loc():
         trim_dash = GPS_LocLog.query.all()
 ##        db.session.delete(delete_b)
@@ -5937,7 +5973,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     def data_dash():
 
 ##        dev_loc = GPS_LocLog.query.order_by(time).limit(3).all()
-        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(20).all()
+        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(50).all()
         content = ''
         dev_lst = []
         for i in dev_loc:
@@ -5959,7 +5995,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     def svr_endpoint():
         hblink_req = request.json
         print((hblink_req))
-        print(peer_locations)
         if hblink_req['secret'] in shared_secrets():
             try:
                 if hblink_req['ping']:
@@ -6059,7 +6094,10 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     dash_loc_add(hblink_req['call'], hblink_req['lat'], hblink_req['lon'], hblink_req['comment'], hblink_req['dmr_id'], hblink_req['dashboard'])
                     trim_dash_loc()
                     response = 'yes'
-                    
+            elif 'log_sms' in hblink_req:
+                    sms_log_add(hblink_req['snd_call'], hblink_req['rcv_call'], hblink_req['message'], hblink_req['snd_id'], hblink_req['rcv_id'], '', '')
+                    trim_sms_log()
+                    response = 'rcvd'
                     
 
             elif 'get_config' in hblink_req:

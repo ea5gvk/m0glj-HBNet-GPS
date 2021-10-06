@@ -130,7 +130,7 @@ def ping(CONFIG):
 def send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
-    ping_data = {
+    loc_data = {
     'dashboard': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret,
     'call': call,
@@ -139,7 +139,29 @@ def send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id):
     'comment' : comment,
     'dmr_id' : dmr_id
     }
-    json_object = json.dumps(ping_data, indent = 4)
+    json_object = json.dumps(loc_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
+def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_data = {
+    'log_sms': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'snd_call': snd_call,
+    'rcv_call': rcv_call,
+    'message' : msg,
+    'snd_id' : snd_id,
+    'rcv_id' : rcv_id
+    }
+    json_object = json.dumps(sms_data, indent = 4)
     
     try:
         req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
@@ -149,6 +171,8 @@ def send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 ##        return config.build_config(cli_file)
+
+
 
 
 ##################################################################################################
@@ -246,15 +270,18 @@ def dashboard_bb_write(call, dmr_id, time, bulletin):
     #logger.info(dash_bb)
 
 def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time):
-    #try:
-    dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
-   # except:
-    #    dash_entries = []
-    dash_sms.insert(0, {'snd_call': snd_call, 'rcv_call':rcv_call, 'snd_dmr_id': snd_dmr_id, 'rcv_dmr_id':rcv_dmr_id, 'time': time, 'sms':sms})
-    with open(sms_file, 'w') as user_sms_file:
-            user_sms_file.write(str(dash_sms[:25]))
-            user_sms_file.close()
-    logger.info('User SMS entry saved.')
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id)
+    else:
+        #try:
+        dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
+       # except:
+        #    dash_entries = []
+        dash_sms.insert(0, {'snd_call': snd_call, 'rcv_call':rcv_call, 'snd_dmr_id': snd_dmr_id, 'rcv_dmr_id':rcv_dmr_id, 'time': time, 'sms':sms})
+        with open(sms_file, 'w') as user_sms_file:
+                user_sms_file.write(str(dash_sms[:25]))
+                user_sms_file.close()
+        logger.info('User SMS entry saved.')
 
 
 def mailbox_write(call, dmr_id, time, message, recipient):
@@ -1201,6 +1228,7 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
                         if int_id(_dst_id) == data_id:
                             process_sms(_rf_src, msg_found, _call_type)
+                        dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time())
                         #packet_assembly = ''
                         pass
                         #logger.info(bitarray(re.sub("\)|\(|bitarray|'", '', str(bptc_decode(_data)).tobytes().decode('utf-8', 'ignore'))))
