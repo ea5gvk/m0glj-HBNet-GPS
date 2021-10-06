@@ -2371,6 +2371,28 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     </tr>'''
         return render_template('bb.html', markup_content = Markup(content))
 
+    @app.route('/ss')
+    def get_all_ss():
+        ss_all = Social.query.order_by(Social.time.desc()).all()
+        content = ''
+        disp_list = []
+        for i in ss_all:
+            print(i.dmr_id)
+            print(disp_list)
+            if i.dmr_id not in disp_list:
+                content = content + '''
+<tr>
+    <td><p style="text-align: center;"><strong>''' + i.callsign + '''<strong></p> \n <a href="/ss/''' + str(i.dmr_id) + '''"><p style="text-align: center;"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></p></a></td>
+      <td>''' + i.message + '''</td>
+    </tr>
+'''
+                disp_list.append(i.dmr_id)
+            elif i.dmr_id in disp_list:
+                pass
+            
+        print(content)
+        return render_template('ss_all.html', markup_content = Markup(content))
+
     @app.route('/ss/<dmr_id>')
     def get_ss(dmr_id):
         try:
@@ -2385,8 +2407,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     <br /><hr /><br />
     <p class="card-text" style="text-align: center;"><strong>''' + ssd.message + '''</strong></p>
 <br /><hr /><br />
-
-
     '''
             for i in ss_all:
                 post_content = post_content + '''
@@ -6073,7 +6093,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 dev_lst.append(i.callsign)
                 content = content + '''
     <tr>
-    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><strong>''' + i.callsign + '''</strong></a></td>
+    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong><button></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + str(i.time.strftime(time_format)) + '''&nbsp;</td>
