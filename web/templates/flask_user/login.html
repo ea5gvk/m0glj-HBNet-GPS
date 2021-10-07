@@ -33,6 +33,7 @@
             {% endfor %}
         {% endif %}
     </div>
+        &nbsp;
 
     {# Password field #}
     {% set field = form.password %}
@@ -52,11 +53,13 @@
         {{ field(class_='form-control', tabindex=120) }}
         {% if field.errors %}
             {% for e in field.errors %}
-                <p class="help-block">{{ e }}</p>
+        &nbsp;
+
+                <p class="help-block"><strong>{{ e }}</strong></p>
             {% endfor %}
         {% endif %}
     </div>
-
+&nbsp;
     {# Remember me #}
     {% if user_manager.USER_ENABLE_REMEMBER_ME %}
     {{ render_checkbox_field(login_form.remember_me, tabindex=130) }}

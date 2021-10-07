@@ -715,6 +715,7 @@ def hbnet_web_service():
   <div class="card-body">
     <h4 class="card-title"><a href="news/''' + str(l_news.id) + '''">''' + l_news.subject + '''</h4></a>
     <hr />
+        &nbsp;
     <p style="text-align: center;">''' + l_news.date + '''</p>
     <hr />
     &nbsp;
@@ -1932,6 +1933,7 @@ def hbnet_web_service():
   <div class="card-body">
     <h4 class="card-title"><a href="news/''' + str(article.id) + '''">''' + article.subject + '''</h4></a>
     <hr />
+        &nbsp;
     <p style="text-align: center;">''' + article.date + '''</p>
     <hr />
     &nbsp;
@@ -1957,6 +1959,7 @@ def hbnet_web_service():
   <div class="card-body">
     <h4 class="card-title">''' + view_arti.subject + '''</h4>
     <hr />
+        &nbsp;
     <p style="text-align: center;">''' + view_arti.date + '''</p>
     <hr />
     &nbsp;
@@ -4123,7 +4126,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong><a href="manage_servers?add=new">Add Server Config</a></strong></td>
+<td style="text-align: center;"><a href="manage_servers?add=new"><button type="button" class="btn btn-success">Add Server Config</button></a></td>
 </tr>
 </tbody>
 </table>
@@ -4139,24 +4142,24 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 try:
                     if time.time() - ping_list[s.name] < 30:
                         svr_status = '''<div class="alert alert-success">
-          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
-           </div>'''
+          <a href="manage_servers?edit_server=''' + str(s.name) + '''"><button type="button" class="btn btn-success">''' + str(s.name) + '''</button></a>
+           \n<a href="/unit/''' + s.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></div>'''
                     elif time.time() - ping_list[s.name] <= 300:
                         svr_status = '''<div class="alert alert-warning">
-          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
-           </div>'''
+          <a href="manage_servers?edit_server=''' + str(s.name) + '''"><button type="button" class="btn btn-warning">''' + str(s.name) + '''</button></a>
+           \n<a href="/unit/''' + s.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></div>'''
                     elif time.time() - ping_list[s.name] > 300:
                         svr_status = '''<div class="alert alert-danger">
-          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
-           </div>'''
+          <a href="manage_servers?edit_server=''' + str(s.name) + '''"><button type="button" class="btn btn-danger">''' + str(s.name) + '''</button></a>
+           \n<a href="/unit/''' + s.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></div>'''
                     else:
                         svr_status = '''<div class="alert alert-warning">
-          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
-           </div>'''
+          <a href="manage_servers?edit_server=''' + str(s.name) + '''"><button type="button" class="btn btn-warning">''' + str(s.name) + '''</button></a>
+           \n<a href="/unit/''' + s.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></div>'''
                 except:
                     svr_status = '''<div class="alert alert-warning">
-          <strong><strong><a href="manage_servers?edit_server=''' + str(s.name) + '''">''' + str(s.name) + '''</a></strong>
-           </div>'''
+          <a href="manage_servers?edit_server=''' + str(s.name) + '''"><button type="button" class="btn btn-warning">''' + str(s.name) + '''</button></a>
+           \n<a href="/unit/''' + s.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></div>'''
                 p_list = p_list + '''
 <tr>
 <td style="text-align: center;">''' + svr_status + '''</td>
@@ -5977,12 +5980,12 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             all_b = BridgeList.query.all()
             s = ServerList.query.all()
             b_list = '''
-<h3 style="text-align: center;">View/Edit Bridges (Talk Groups)</h3>
+<h3 style="text-align: center;">View/Edit Talk Groups</h3>
 
 <table style="width: 400px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;"><strong><a href="manage_rules?add_bridge=yes">Add Bridge</a></strong></td>
+<td style="text-align: center;"><a href="manage_rules?add_bridge=yes"><button type="button" class="btn btn-success">Add Talk Group</button></a></td>
 
 </tr>
 </tbody>
@@ -6012,8 +6015,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 </tr>
 '''
             b_list = b_list + '''</tbody></table>
-<h3 style="text-align: center;">View/Edit Rules</h3>
-
+<h3 style="text-align: center;">View/Edit Rules (Bridges)</h3>
+/
 '''
             r_list = ''
             for i in s:
@@ -6022,7 +6025,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
   <tbody>
     <tr>
-<td style="text-align: center;"><a href="manage_rules?add_rule=''' + str(i.name) + '''"><button type="button" class="btn btn-success">Add rule to <strong>''' + str(i.name) + '''</strong></button></a> - <a href="/unit/''' + i.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></td> 
+<td style="text-align: center;"><a href="manage_rules?add_rule=''' + str(i.name) + '''"><button type="button" class="btn btn-success">Add rule to <strong>''' + str(i.name) + '''</strong></button></a></td> 
       </tr>
   </tbody>
 </table>

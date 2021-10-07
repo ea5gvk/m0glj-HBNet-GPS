@@ -34,6 +34,7 @@ By registering, you acknowledge that you agree to the Terms of Use.
                 {% endif %}
             </div>
         </div>
+        
         {{ field(class_='form-control', tabindex=210) }}
         {% if field.errors %}
             {% for e in field.errors %}
@@ -41,9 +42,11 @@ By registering, you acknowledge that you agree to the Terms of Use.
             {% endfor %}
         {% endif %}
     </div>
+        &nbsp;
 
     {% if user_manager.USER_ENABLE_EMAIL and user_manager.USER_ENABLE_USERNAME %}
         {{ render_field(form.email, tabindex=220) }}
+        &nbsp;
     {% endif %}
 
     {{ render_field(form.password, tabindex=230) }}
@@ -51,7 +54,7 @@ By registering, you acknowledge that you agree to the Terms of Use.
     {% if user_manager.USER_REQUIRE_RETYPE_PASSWORD %}
         {{ render_field(form.retype_password, tabindex=240) }}
     {% endif %}
-
+        
     {{ render_submit_field(form.submit, tabindex=280) }}
 </form>
 
