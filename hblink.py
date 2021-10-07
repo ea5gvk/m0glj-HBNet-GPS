@@ -119,6 +119,15 @@ def hblink_handler(_signal, _frame):
 # on matching and the action specified.
 def acl_check(_id, _acl):
     id = int_id(_id)
+
+    print()
+    print(type(entry[0]))
+    print(entry[0])
+    print(type(entry[0]))
+    print(entry[1])
+    print(id)
+    print()
+    
     for entry in _acl[1]:
         if entry[0] <= id <= entry[1]:
             return _acl[0]
@@ -346,10 +355,11 @@ class HBSYSTEM(DatagramProtocol):
         try:
             req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
             resp = json.loads(req.text)
-##            print(resp)
+            print(resp)
             return resp
         except requests.ConnectionError:
             return {'allow':True}
+        
 # Sends login confirmation for log
     def send_login_conf(self, _id, server_name, peer_ip, old_auth):
         #Change this to a config value
