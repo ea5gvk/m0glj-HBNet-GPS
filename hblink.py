@@ -120,13 +120,9 @@ def hblink_handler(_signal, _frame):
 def acl_check(_id, _acl):
     id = int_id(_id)
 
-    print()
-    print(type(entry[0]))
-    print(entry[0])
-    print(type(entry[0]))
-    print(entry[1])
-    print(id)
-    print()
+    # if acl string, build tuple
+    if type(_acl) == str:
+        _acl = acl_build(_acl, 4294967295)
     
     for entry in _acl[1]:
         if entry[0] <= id <= entry[1]:
