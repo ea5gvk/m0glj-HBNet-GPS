@@ -110,6 +110,25 @@ def update_tg(CONFIG, mode, dmr_id, data):
 ##        return config.build_config(cli_file)
 
 
+def send_unit_table(CONFIG, _data):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_data = {
+    'unit_table': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'data': str(_data),
+
+    }
+    json_object = json.dumps(sms_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
 def ping(CONFIG):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
@@ -436,6 +455,7 @@ def rule_timer_loop(unit_flood_time):
 
     for unit in remove_list:
         del UNIT_MAP[unit]
+    send_unit_table(CONFIG, UNIT_MAP)
 
     logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
 

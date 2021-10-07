@@ -2377,8 +2377,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         content = ''
         disp_list = []
         for i in ss_all:
-            print(i.dmr_id)
-            print(disp_list)
             if i.dmr_id not in disp_list:
                 content = content + '''
 <tr>
@@ -2415,7 +2413,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
           <td>''' + str(i.time.strftime(time_format)) + '''</td>
         </tr>'''
         except:
-            content = '<h4><p style="text-align: center;">Not posts by user.</p></h4>'
+            content = '<h4><p style="text-align: center;">No posts by user.</p></h4>'
             all_post = ''
         return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content))
 
@@ -2681,7 +2679,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         except:
             print('Social Status not in DB')
             pass
-    
+   
     def ss_add(_callsign, _message, _dmr_id):
         add_ss = Social(
             callsign = _callsign,
@@ -2758,7 +2756,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         db.session.add(auth_log_add)
         db.session.commit()
 
-    def misc_add(_field_1, _field_2, _field_3, _field_4, int_1, _int_2, _int_3, _int_4, _boo_1, _boo_2):
+    def misc_add(_field_1, _field_2, _field_3, _field_4, _int_1, _int_2, _int_3, _int_4, _boo_1, _boo_2):
         misc_entry_add = Misc(
             field_1 = _field_1,
             field_2 = _field_2,
@@ -6024,7 +6022,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
   <tbody>
     <tr>
-<td style="text-align: center;"><strong>Add a rule to server: <a href="manage_rules?add_rule=''' + str(i.name) + '''">''' + str(i.name) + '''</a></strong></td> 
+<td style="text-align: center;"><a href="manage_rules?add_rule=''' + str(i.name) + '''"><button type="button" class="btn btn-success">Add rule to <strong>''' + str(i.name) + '''</strong></button></a> - <a href="/unit/''' + i.name + '''"><button type="button" class="btn btn-primary">View UNIT Table</button></a></td> 
       </tr>
   </tbody>
 </table>
@@ -6053,6 +6051,45 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             content = b_list + r_list + '''</tbody></table>'''
             
         return render_template('flask_user_layout.html', markup_content = Markup(content))
+
+
+    @login_required
+    @roles_required('Admin')
+    @app.route('/unit/<server>')
+    def get_unit_table(server):
+        unit_table = Misc.query.filter_by(field_1='unit_table_' + server).first()
+        table_dict = ast.literal_eval(unit_table.field_2)
+        print(table_dict)
+        content = '''
+<h3 style="text-align: center;">UNIT Call Routing Table for ''' + server + '''</h3>
+<p>&nbsp;</p>
+
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>System</th>
+      <th>Expiration</th>
+    </tr>
+  </thead>
+  <tbody>
+
+'''
+        try:
+            for i in table_dict.items():
+                content = content + '''
+<tr>
+      <td>''' + str(int_id(i[0])) + '''</td>
+      <td>''' + str((i[1][0])) + '''</td>
+      <td>''' + str(i[1][1]) + '''</td>
+    </tr>
+'''
+
+            content = content + '</tbody></table>'
+        except:
+            content = '<h4><p style="text-align: center;">No UNIT table.</p></h4>'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+    
 
     @login_required
     @roles_required('Admin')
@@ -6218,6 +6255,16 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                     del_ss(hblink_req['dmr_id'])
                     ss_add(hblink_req['callsign'], str(hblink_req['message']), hblink_req['dmr_id'])
                     response = 'rcvd'
+            elif 'unit_table' in hblink_req:
+##                    del_unit_table(hblink_req['unit_table'])
+                try:
+                    delete_misc_field_1('unit_table_' + hblink_req['unit_table'])
+                except:
+                    print('entry error')
+                misc_add('unit_table_' + hblink_req['unit_table'], str(hblink_req['data']), '', '', 0, 0, 0, 0, False, False)
+##                    unit_table_add(hblink_req['data'])
+                response = 'rcvd'
+
 
             elif 'get_config' in hblink_req:
                 if hblink_req['get_config']: 

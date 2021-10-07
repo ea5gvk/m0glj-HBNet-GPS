@@ -215,6 +215,25 @@ def send_ss(CONFIG, callsign, message, dmr_id):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
+def send_unit_table(CONFIG, _data):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_data = {
+    'unit_table': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'data': str(_data),
+
+    }
+    json_object = json.dumps(sms_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
 
 
 
@@ -1324,6 +1343,7 @@ def rule_timer_loop():
 
     logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
     ping(CONFIG)
+    send_unit_table(CONFIG, UNIT_MAP)
 
     
 class OBP(OPENBRIDGE):
