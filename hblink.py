@@ -621,6 +621,9 @@ class HBSYSTEM(DatagramProtocol):
 
         elif _command == RPTL:    # RPTLogin -- a repeater wants to login
             _peer_id = _data[4:8]
+            print()
+            print((self._config['REG_ACL']))
+            print()
             # Check to see if we've reached the maximum number of allowed peers
             if len(self._peers) < self._config['MAX_PEERS']:
                 # Check for valid Radio ID
@@ -635,15 +638,20 @@ class HBSYSTEM(DatagramProtocol):
                     else:
                         user_auth = False
                 elif self._config['USE_USER_MAN'] == False:
-##                    print('False')
-####                    print(self._config['REG_ACL'])
-##                    print(self._CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'])
+                    print('False')
                     b_acl = self._config['REG_ACL']
                     if self._CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-                        b_acl = acl_build(self._config['REG_ACL'], 4294967295)
-                    print(b_acl)
-                    if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):#acl_check(_peer_id, b_acl):
-                        user_auth = True
+                        # If UMS is False, and Rmote Confir True
+                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, self._config['REG_ACL']):
+                            user_auth = True
+                            print(self._CONFIG['GLOBAL']['REG_ACL'])
+                        else:
+                            user_auth = False
+                    #If UMS and Remot Config False        
+                    elif self._CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
+                        user_auth = False
+                        if acl_check(_peer_id, self._CONFIG['GLOBAL']['REG_ACL']) and acl_check(_peer_id, b_acl):#acl_check(_peer_id, b_acl):
+                            user_auth = True
                 if user_auth == True:
                 # Build the configuration data strcuture for the peer
                     self._peers.update({_peer_id: {

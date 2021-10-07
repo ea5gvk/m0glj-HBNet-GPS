@@ -68,7 +68,6 @@ def acl_build(_acl, _max):
         return(True, set((const.ID_MIN, _max)))
 
     acl = [] #set()
-    print(type(_acl))
     if type(_acl) == tuple:
         _acl = ''.join(_acl)
     sections = _acl.split(':')
@@ -319,6 +318,7 @@ def build_config(_config_file):
                         'ENABLED': config.getboolean(section, 'ENABLED'),
                         'EXTERNAL_PROXY_SCRIPT': config.getboolean(section, 'EXTERNAL_PROXY_SCRIPT'),
                         'STATIC_APRS_POSITION_ENABLED': config.getboolean(section, 'STATIC_APRS_POSITION_ENABLED'),
+                        'USE_USER_MAN': config.getboolean(section, 'USE_USER_MAN'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'PASSPHRASE': bytes(config.get(section, 'PASSPHRASE'), 'utf-8'),
                         'EXTERNAL_PORT': config.getint(section, 'EXTERNAL_PORT'),

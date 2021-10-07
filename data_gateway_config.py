@@ -68,6 +68,8 @@ def acl_build(_acl, _max):
         return(True, set((const.ID_MIN, _max)))
 
     acl = [] #set()
+    if type(_acl) == tuple:
+        _acl = ''.join(_acl)
     sections = _acl.split(':')
 
     if sections[0] == 'PERMIT':

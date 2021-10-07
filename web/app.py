@@ -919,29 +919,32 @@ def hbnet_web_service():
         script_links = ast.literal_eval(script_l.field_2)
         svr_content = ''
         for i in sl:
-            try:
-                if time.time() - ping_list[i.name] < 20:
-                    svr_status = '''<div class="alert alert-success">
-      <strong>Online</strong>
-       </div> '''
-                elif time.time() - ping_list[i.name] <= 300:
+            if i.ip == '':
+                break
+            elif i.ip != '':
+                try:
+                    if time.time() - ping_list[i.name] < 20:
+                        svr_status = '''<div class="alert alert-success">
+          <strong>Online</strong>
+           </div> '''
+                    elif time.time() - ping_list[i.name] <= 300:
+                        svr_status = '''<div class="alert alert-warning">
+          <strong>Unknown <br /> (No pings, less than 5 min.)</strong>
+           </div> '''
+                    elif time.time() - ping_list[i.name] > 300:
+                        svr_status = '''<div class="alert alert-danger">
+          <strong>Offline</strong>
+           </div> '''
+                    else:
+                        svr_status = '''<div class="alert alert-warning">
+          <strong>Unknown Condition</strong>
+           </div> '''
+                        print(ping_list)
+                        print(time.time())
+                except:
                     svr_status = '''<div class="alert alert-warning">
-      <strong>Unknown <br /> (No pings, less than 5 min.)</strong>
-       </div> '''
-                elif time.time() - ping_list[i.name] > 300:
-                    svr_status = '''<div class="alert alert-danger">
-      <strong>Offline</strong>
-       </div> '''
-                else:
-                    svr_status = '''<div class="alert alert-warning">
-      <strong>Unknown Condition</strong>
-       </div> '''
-                    print(ping_list)
-                    print(time.time())
-            except:
-                svr_status = '''<div class="alert alert-warning">
-      <strong>Unknown</strong>
-       </div> '''
+          <strong>Unknown</strong>
+           </div> '''
                
             svr_content = svr_content + '''
 <div class="card">
@@ -3731,7 +3734,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="width: 78.7895%;">&nbsp;<input name="dash_url" type="text" value="''' + str(s.dash_url) + '''"/></td>
 </tr>
 <tr>
-<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, for listing on passphrase page):</strong></td>
+<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, for listing on passphrase page, blank to not list):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" value="''' + str(s.ip) + '''"/></td>
 </tr>
 
@@ -3938,7 +3941,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="width: 70%;">&nbsp;<input name="dash_url" type="text" /></td>
 </tr>
 <tr>
-<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS):</strong></td>
+<td style="width: 16.0381%;"><strong>&nbsp;Host (IP/DNS, blank to not list):</strong></td>
 <td style="width: 78.7895%;">&nbsp;<input name="server_ip" type="text" /></td>
 </tr>
 
