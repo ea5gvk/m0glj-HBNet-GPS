@@ -9,23 +9,23 @@
 <div id="demo" class="collapse">
 
 <div class="card">
-  <div class="card-header">Send Internal Message</div>
+  <div class="card-header">Send internal message to another user</div>
   <div class="card-body">
   
   <form action="{{ current_user.username or current_user.email }}?send_mail=true" method="post">
 
 <div class="input-group mb-3">
   <span class="input-group-text" id="basic-addon1">Username</span>
-  <input type="text" id="username" name="username" class="form-control" placeholder="username" aria-label="username" aria-describedby="basic-addon1">
+  <input type="text" id="username" name="username" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
 </div>
 
 <div class="input-group">
   <span class="input-group-text">Message</span>
   <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>
 </div>
-  
-  
-  <p style="text-align: center;"><input type="submit" value="Send" /></form></p>
+
+<br />  
+  <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Send" /></form></p>
 
   </div>
 </div>
