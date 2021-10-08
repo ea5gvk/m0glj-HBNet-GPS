@@ -4,23 +4,24 @@
   <h1 style="text-align: center;">Mail</h1>
 
 
-<button data-bs-toggle="collapse" data-bs-target="#demo" class="btn btn-primary">Compose</button>
+<p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#demo" class="btn btn-primary">Compose</button></p>
 
 <div id="demo" class="collapse">
 
 <div class="card">
-  <div class="card-header">Send Message</div>
+  <div class="card-header">Send Internal Message</div>
   <div class="card-body">
-  <form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
+  
+  <form action="{{ current_user.username or current_user.email }}?send_mail=true" method="post">
 
 <div class="input-group mb-3">
   <span class="input-group-text" id="basic-addon1">Username</span>
-  <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+  <input type="text" id="username" name="username" class="form-control" placeholder="username" aria-label="username" aria-describedby="basic-addon1">
 </div>
 
 <div class="input-group">
   <span class="input-group-text">Message</span>
-  <textarea class="form-control" aria-label="With textarea"></textarea>
+  <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>
 </div>
   
   

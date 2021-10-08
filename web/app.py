@@ -2496,13 +2496,16 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             if request.args.get('delete_mail'):
                 mailbox_del(int(request.args.get('delete_mail')))
                 content = '''<h3 style="text-align: center;">Deleted message.</h3>
-                <p style="text-align: center;">Redirecting in 3 seconds.</p>
-                <meta http-equiv="refresh" content="3; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+                <p style="text-align: center;">Redirecting in 1 seconds.</p>
+                <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+                
             elif request.args.get('send_mail'):
-                mailbox_del(int(request.args.get('delete_mail')))
+                print(request.form.get('username'))
+                print(request.form.get('message'))
+                mailbox_add(user, request.form.get('username').upper(), '<p><strong>Sent via portal:</strong></p></ br>' + request.form.get('message'), 0, 0, '', '')
                 content = '''<h3 style="text-align: center;">Message sent.</h3>
-                <p style="text-align: center;">Redirecting in 3 seconds.</p>
-                <meta http-equiv="refresh" content="3; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+                <p style="text-align: center;">Redirecting in 1 seconds.</p>
+                <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
 
             else:
                 mail_all = MailBox.query.filter_by(rcv_callsign=user.upper()).order_by(MailBox.time.desc()).all()
