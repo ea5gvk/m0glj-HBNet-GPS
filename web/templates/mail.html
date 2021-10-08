@@ -4,6 +4,34 @@
   <h1 style="text-align: center;">Mail</h1>
 
 
+<button data-bs-toggle="collapse" data-bs-target="#demo" class="btn btn-primary">Compose</button>
+
+<div id="demo" class="collapse">
+
+<div class="card">
+  <div class="card-header">Send Message</div>
+  <div class="card-body">
+  <form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Username</span>
+  <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+
+<div class="input-group">
+  <span class="input-group-text">Message</span>
+  <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+  
+  
+  <p style="text-align: center;"><input type="submit" value="Send" /></form></p>
+
+  </div>
+</div>
+
+</div> 
+
+
 <div class="row">
   <div class="col-lg-12">
 
@@ -25,6 +53,8 @@
 
   </div>
 </div>
+
+
 
 <p>&nbsp;</p>
 {% endblock %}
