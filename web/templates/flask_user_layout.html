@@ -110,6 +110,9 @@
         {% endif %}
 
             <li class="nav-item">
+        <a class="nav-link" href="{{url}}/mail/{{ current_user.username or current_user.email }}"><i class="bi bi-mailbox"></i> Mailbox </a>
+      </li>
+            <li class="nav-item">
         <a class="nav-link" href="{{url}}/generate_passphrase"><i class="bi bi-info-square"></i> Passphrase(s) </a>
       </li>
                 <li class="nav-item">

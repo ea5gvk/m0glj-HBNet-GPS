@@ -2488,6 +2488,30 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             content = '<h4><p style="text-align: center;">No posts by user.</p></h4>'
             all_post = ''
         return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content), user_id = dmr_id)
+
+    @app.route('/mail/<user>', methods=['GET'])
+    @login_required
+    def get_mail(user):
+        if current_user.username == user:
+            if request.args.get('delete_mail'):
+                mailbox_del(int(request.args.get('delete_mail')))
+                content = '''<h3 style="text-align: center;">Deleted message.</h3>
+                <p style="text-align: center;">Redirecting in 3 seconds.</p>
+                <meta http-equiv="refresh" content="3; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+            else:
+                mail_all = MailBox.query.filter_by(rcv_callsign=user.upper()).order_by(MailBox.time.desc()).all()
+                content = ''
+                for i in mail_all:
+                    content = content + '''
+            <tr>
+              <td>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''</td>
+              <td>''' + i.message + '''</td>
+              <td>''' + str(i.time.strftime(time_format)) + '''</td>
+              <td><a href="/mail/''' + current_user.username + '''?delete_mail=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
+            </tr>'''
+        else:
+            content = '<h4><p style="text-align: center;">Not your mailbox.</p></h4>'
+        return render_template('mail.html', markup_content = Markup(content), user_id = user)
     
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
@@ -2797,8 +2821,39 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             server = _server,
             system_name = _system_name
             )
+        add_sms_mail = MailBox(
+            snd_callsign = _snd_call,
+            rcv_callsign = _rcv_call,
+            message = _msg,
+            time = datetime.datetime.utcnow(),
+            snd_id = _snd_id,
+            rcv_id = _rcv_id,
+            server = _server,
+            system_name = _system_name
+            )
         db.session.add(add_sms)
+        db.session.add(add_sms_mail)
         db.session.commit()
+
+    def mailbox_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):
+        add_sms_mail = MailBox(
+            snd_callsign = _snd_call,
+            rcv_callsign = _rcv_call,
+            message = _msg,
+            time = datetime.datetime.utcnow(),
+            snd_id = _snd_id,
+            rcv_id = _rcv_id,
+            server = _server,
+            system_name = _system_name
+            )
+        db.session.add(add_sms_mail)
+        db.session.commit()
+        
+    def mailbox_del(_id):
+        mbd = MailBox.query.filter_by(id=_id).first()
+        db.session.delete(mbd)
+        db.session.commit()
+        
         
     def trim_bb():
         trim_bb = BulletinBoard.query.all()

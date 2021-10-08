@@ -1,0 +1,30 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">Mail</h1>
+
+
+<div class="row">
+  <div class="col-lg-12">
+
+  <table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>From</th>
+      <th>Message</th>
+      <th>Time</th>
+      <th>Options</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  {{markup_content}}
+
+  </tbody></table>
+
+
+  </div>
+</div>
+
+<p>&nbsp;</p>
+{% endblock %}
