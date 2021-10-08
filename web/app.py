@@ -735,8 +735,8 @@ def hbnet_web_service():
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
-    @app.route('/map/<dmr_id>')
-    @login_required
+    @app.route('/map_info/<dmr_id>')
+##    @login_required
     def single_peer(dmr_id):
         try:
             l = PeerLoc.query.filter_by(dmr_id=dmr_id).first()
@@ -851,7 +851,7 @@ def hbnet_web_service():
 <tbody>
 <tr>
 <td>
-<p><h4><a href="''' + url + '/map/' + str(l.dmr_id) + '''" target="_blank" rel="noopener"><strong>''' + l.callsign + '''</strong></a></h4></p>
+<p><h4><a href="''' + url + '/map_info/' + str(l.dmr_id) + '''" target="_blank" rel="noopener"><strong>''' + l.callsign + '''</strong></a></h4></p>
 </td>
 </tr>
 <tr>
@@ -2448,7 +2448,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 if m.name == b.system_name and m.server == b.server and bl.public_list == True:
 ##                    print(b.bridge_name)
                     tg_list = tg_list + '''<tr>
-<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
+<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''"><button type="button" class="btn btn-primary">''' + b.bridge_name + '''</button></a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
 <td>&nbsp;''' + str(b.ts) + '''</td>
 <td>&nbsp;''' + b.to_type + '''</td>
@@ -2459,20 +2459,33 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;">Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(m.port) + '''</strong></td>
+<td style="text-align: center;">
+<div class="card">
+  <div class="card-body">
+Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(m.port) + '''</strong>
+  </div>
+</div>
+</td>
 </tr>
-<table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center; width: 267.767px;">&nbsp;<strong>Name</strong></td>
-<td style="text-align: center; width: 74.2333px;">&nbsp;<strong>TG</strong></td>
-<td style="text-align: center; width: 87px;"><strong><strong>&nbsp;TS</strong></td>
-<td style="text-align: center; width: 128px;"><strong>Timer Type</strong></td>
-<td style="text-align: center; width: 77px;"><strong>Time (Min)</strong></td>
-</tr>
+
+
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>TG</th>
+      <th>TS</th>
+      <th>Timer Type</th>
+      <th>Time (Min)</th>
+    </tr>
+  </thead>
+  <tbody>
+
 ''' + tg_list + '''
 </tbody>
-</table> ''' + '''</td>'''
+</table>
+<br />
+''' + '''</td>'''
             tg_list = ''
             
         for p in p_list:
@@ -2483,7 +2496,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 if p.name == b.system_name and p.server == b.server and bl.public_list == True:
 ##                    print(b.bridge_name)
                     tg_list = tg_list + '''<tr>
-<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''">''' + b.bridge_name + '''</a></td>
+<td>&nbsp;<a href="/tg/''' + b.bridge_name + '''"><button type="button" class="btn btn-primary">''' + b.bridge_name + '''</button></a></td>
 <td>&nbsp;''' + str(b.tg) + '''</td>
 <td>&nbsp;''' + str(b.ts) + '''</td>
 <td>&nbsp;''' + b.to_type + '''</td>
@@ -2493,20 +2506,29 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="height: 48.2px;">''' + ''' <table style="width: 690px; margin-left: auto; margin-right: auto;" border="1">
 <tbody>
 <tr>
-<td style="text-align: center;">Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(p.external_port) + '''</strong></td>
+<td style="text-align: center;">
+<div class="card">
+  <div class="card-body">
+Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(p.external_port) + '''</strong>
+  </div>
+</div>
+</td>
 </tr>
-<table style="width: 680px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center; width: 267.767px;">&nbsp;<strong>Name</strong></td>
-<td style="text-align: center; width: 74.2333px;">&nbsp;<strong>TG</strong></td>
-<td style="text-align: center; width: 87px;"><strong><strong>&nbsp;TS</strong></td>
-<td style="text-align: center; width: 128px;"><strong>Timer Type</strong></td>
-<td style="text-align: center; width: 77px;"><strong>Time (Min)</strong></td>
-</tr>
+
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>TG</th>
+      <th>TS</th>
+      <th>Timer Type</th>
+      <th>Time (Min)</th>
+    </tr>
+  </thead>
+  <tbody>
 ''' + tg_list + '''
-<td>&nbsp;Disconnect from all activated TGs.</td>
-<td>&nbsp;4000</td>
+<td>&nbsp;<strong>Disconnect from all activated TGs.</strong></td>
+<td>&nbsp;<strong>4000</strong></td>
 <td>&nbsp;</td>
 </tbody>
 </table> ''' + '''</td>'''
@@ -2514,6 +2536,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         content = content + ''' </tr>
 </tbody>
 </table>
+<br />
 <p>&nbsp;</p> '''
 
         return render_template('flask_user_layout.html', markup_content = Markup(content))
