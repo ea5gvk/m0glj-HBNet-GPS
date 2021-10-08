@@ -2345,6 +2345,29 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
       </tr>'''
         
         return render_template('tg_all.html', markup_content = Markup(content))
+
+    @app.route('/sms.xml')
+    def rss_sms():
+        rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
+      <rss version="2.0">
+      <channel>
+      <title>""" + title + """ - SMS Feed</title>
+      <link>""" + url + """/sms</link>
+      <description>This is a feed of all SMS received.</description>"""
+        smsl = SMSLog.query.order_by(SMSLog.time.desc()).all()
+        content = ''' '''
+        for i in smsl:
+            content = content + """
+              <item>
+                <title>To: """ + i.rcv_callsign + ' (' + str(i.rcv_id) + ') - From: ' + i.snd_callsign + """ (""" + str(i.snd_id) + """</title>
+                <link>""" + url + """/sms</link>
+                <description>""" + i.message + """ - """ + str(i.time.strftime(time_format)) + """</description>
+                <pubDate>""" + i.time.strftime('%a, %d %b %y') +"""</pubDate>
+              </item>
+
+"""
+           
+        return Response(rss_header + content + "\n</channel>\n</rss>", mimetype='text/xml')
     
     @app.route('/sms')
     def all_sms():
