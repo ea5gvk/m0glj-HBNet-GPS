@@ -2361,6 +2361,29 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     </tr>'''
         return render_template('sms.html', markup_content = Markup(content))
 
+    @app.route('/bulletin_rss.xml')
+    def rss_bb():
+        rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
+      <rss version="2.0">
+      <channel>
+      <title>""" + title + """ - Bulletin Board Feed</title>
+      <link>""" + url + """/bb</link>
+      <description>This is a feed of all posts from the Bulletin Board.</description>"""
+        bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).all()
+        bb_content = ''' '''
+        for i in bbl:
+            bb_content = bb_content + """
+              <item>
+                <title>""" + i.callsign + ' - ' + str(i.dmr_id) + """</title>
+                <link>""" + url + """/bb</link>
+                <description>""" + i.bulletin + """ - """ + str(i.time.strftime(time_format)) + """</description>
+                <pubDate>""" + i.time.strftime('%a, %d %b %y') +"""</pubDate>
+              </item>
+
+"""
+           
+        return Response(rss_header + bb_content + "\n</channel>\n</rss>", mimetype='text/xml')
+
     @app.route('/bb')
     def all_bb():
         bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).all()
@@ -2396,12 +2419,33 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         print(content)
         return render_template('ss_all.html', markup_content = Markup(content))
 
+    @app.route('/ss/<dmr_id>.xml')
+    def get_ss_rss(dmr_id):
+        rss_header = """<?xml version="1.0" encoding="UTF-8" ?>
+      <rss version="2.0">
+      <channel>
+      <title>""" + title + """ - Social Status Feed for """ + str(dmr_id) + """</title>
+      <link>""" + url + """/ss/""" + dmr_id + """</link>
+      <description>This is a feed of all posts from """ + dmr_id + """</description>"""
+        ss_all = Social.query.filter_by(dmr_id=dmr_id).order_by(Social.time.desc()).all()
+        ss_content = ''
+        for i in ss_all:
+            ss_content = ss_content + """
+              <item>
+                <title>""" + str(dmr_id) + ' - ' + str(i.time.strftime(time_format)) + """</title>
+                <link>""" + url + """/ss/""" + dmr_id + """</link>
+                <description>""" + str(i.message) + """ - """ + str(i.time.strftime(time_format)) + """</description>
+                <pubDate>""" + str(i.time.strftime('%a, %d %b %y')) + """</pubDate>
+              </item>
+"""
+           
+        return Response(rss_header + ss_content + "\n</channel>\n</rss>", mimetype='text/xml')
+
     @app.route('/ss/<dmr_id>')
     def get_ss(dmr_id):
         try:
             ssd = Social.query.filter_by(dmr_id=dmr_id).order_by(Social.time.desc()).first() 
             ss_all = Social.query.filter_by(dmr_id=dmr_id).order_by(Social.time.desc()).all()
-            print(ss_all)
             post_content = ''
             content = '''
     <div class="card" style="width: 400px;">
@@ -2420,7 +2464,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         except:
             content = '<h4><p style="text-align: center;">No posts by user.</p></h4>'
             all_post = ''
-        return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content))
+        return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content), user_id = dmr_id)
+    
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
     @login_required
