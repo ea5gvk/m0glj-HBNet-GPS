@@ -1,0 +1,70 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">Manage Mail</h1>
+
+  Use <strong>*all</strong> to send an internal message to all users. To send a message to multiple users, use a comma (<strong>,</strong>) to separate usernames.
+
+
+
+<div id="compose" class="collapse">
+
+<div class="card">
+  <div class="card-header">Send internal message to another user</div>
+  <div class="card-body">
+  
+  <form action="{{ current_user.username or current_user.email }}?send_mail=true" method="post">
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Username</span>
+  <input type="text" id="username" name="username" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+
+<div class="input-group">
+  <span class="input-group-text">Message</span>
+  <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>
+</div>
+
+<br />  
+  <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Send" /></form></p>
+
+  </div>
+</div>
+
+</div> 
+
+{% if show_mail %}
+<div class="row">
+  <div class="col-lg-12">
+<p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#compose" class="btn btn-primary">Compose</button></p>
+
+  <table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>From</th>
+      <th>Message</th>
+      <th>Time</th>
+      <th>Options</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  {{markup_content}}
+
+  </tbody></table>
+
+
+  </div>
+</div>
+{% endif %}
+
+{% if not show_mail %}
+  {{markup_content}}
+
+{% endif %}
+
+
+
+
+<p>&nbsp;</p>
+{% endblock %}
