@@ -158,7 +158,7 @@ def hbnet_web_service():
         username = db.Column(db.String(100,), nullable=False, unique=True)
         password = db.Column(db.String(255), nullable=False, server_default='')
         email_confirmed_at = db.Column(db.DateTime())
-        email = db.Column(db.String(255), nullable=True, unique=True, server_default='')
+        email = db.Column(db.String(255), nullable=True, unique=False, server_default='')
         
         # User information
         first_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -1117,7 +1117,7 @@ def hbnet_web_service():
         for i in u:
             u_list = u_list + '''
 <tr>
-<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><strong>&nbsp;''' + str(i.username) + '''&nbsp;</strong></a></td>
+<td style="width: 107px;"><a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''"><button  type="button" class="btn btn-success btn-block" ><strong>&nbsp;''' + str(i.username) + '''&nbsp;</strong></button></a></td>
 <td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.first_name) + ' ' + str(i.last_name) + '''&nbsp;</td>
 <td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.active) + '''&nbsp;</td>
 <td style="width: 522.317px;">&nbsp;''' + str(i.dmr_ids) + '''&nbsp;</td>
@@ -1154,7 +1154,7 @@ def hbnet_web_service():
             if i.initial_admin_approved == False:
                 wait_list = wait_list+ '''
 <tr>
-<td style="width: 107px;">&nbsp;<a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''&admin_approve=true"><strong>''' + str(i.username) + '''</strong></a>&nbsp;</td>
+<td style="width: 107px;">&nbsp;<a href="''' + url + '/edit_user?callsign=' + str(i.username) +'''&admin_approve=true"><button  type="button" class="btn btn-success btn-block" ><strong>''' + str(i.username) + '''</strong></button></a>&nbsp;</td>
 <td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.first_name) + ' ' + str(i.last_name) + '''&nbsp;</td>
 <td style="width: 226.683px; text-align: center;">&nbsp;''' + str(i.active) + '''&nbsp;</td>
 <td style="width: 522.317px;">&nbsp;''' + str(i.dmr_ids) + '''&nbsp;</td>
@@ -1300,34 +1300,39 @@ def hbnet_web_service():
             u_role = UserRoles.query.filter_by(user_id=u.id).first()
             if u_role.role_id == 2:
                 # Link to promote to Admin
-                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=true&callsign=' + str(u.username) + '''"><strong>Give Admin role: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=true&callsign=' + str(u.username) + '''"><button  type="button" class="btn btn-warning btn-block" ><strong>Give Admin role: ''' + str(u.username) + '''</strong></button></a></p>\n'''
             if u_role.role_id == 1:
                 # Link to promote to User
-                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><strong>Revert to User role: <strong>''' + str(u.username) + '''</strong></strong></a></p>\n'''
+                role_link = '''<p style="text-align: center;"><a href="''' + url + '/edit_user?make_user_admin=false&callsign=' + str(u.username) + '''"><button  type="button" class="btn btn-success btn-block" ><strong>Revert to User role: ''' + str(u.username) + '''</strong></button></a></p>\n'''
             id_dict = ast.literal_eval(u.dmr_ids)
             passphrase_list = '''
-<table style="width: 600px; margin-left: auto; margin-right: auto;" border="1">
-<tbody>
-<tr>
-<td style="text-align: center;"><strong>DMR ID</strong></td>
-<td style="text-align: center;"><strong>Passphrase</strong></td>
-</tr> '''
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>DMR ID</th>
+      <th>Passphrase</th>
+    </tr>
+  </thead>
+
+
+
+'''
             for i in id_dict.items():
 ##                print(i[1])
                 if isinstance(i[1], int) == True: 
                     passphrase_list = passphrase_list + '''
 <tr>
-<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
+<td style="text-align: center;"><a href="auth_log?dmr_id=''' + str(i[0]) + '''"><button  type="button" class="btn btn-dark btn-block" >''' + str(i[0]) + '''</button></a></td>
 <td style="text-align: center;">''' + str(gen_passphrase(int(i[0]))) + '''</td>
 </tr> \n'''
                 if i[1] == '':
                     passphrase_list = passphrase_list + '''<tr>
-<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
+<td style="text-align: center;"><a href="auth_log?pdmr_id=''' + str(i[0]) + '''"><button  type="button" class="btn btn-dark btn-block" >''' + str(i[0]) + '''</button></a></td>
 <td style="text-align: center;">''' + legacy_passphrase + '''</td>
 </tr> \n'''
                 if not isinstance(i[1], int) == True and i[1] != '':
                     passphrase_list = passphrase_list + '''<tr>
-<td style="text-align: center;"><a href="/ss/''' + str(i[0]) + '''">''' + str(i[0]) + '''</a></td>
+<td style="text-align: center;"><a href="auth_log?dmr_id=''' + str(i[0]) + '''"><button  type="button" class="btn btn-dark btn-block" >''' + str(i[0]) + '''</button></a></td>
 <td style="text-align: center;">''' + str(i[1]) + '''</td>
 </tr> \n'''
             
@@ -1361,21 +1366,21 @@ def hbnet_web_service():
 <tbody>
 <tr>
 <td>&nbsp;
-<p style="text-align: center;"><strong><a href="update_ids?callsign=''' + u.username + '''">Update from RadioID.net</a></strong></p>
+<p style="text-align: center;"><a href="update_ids?callsign=''' + u.username + '''"><button  type="button" class="btn btn-success btn-block" >Update from RadioID.net</button></a></p>
 &nbsp;</td>
 <td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at.strftime(time_format)) + '''</strong></p></td>
 </tr>
 <tr>
 <td>&nbsp;
-<p style="text-align: center;"><strong><a href="email_user?callsign=''' + u.username + '''">Send user an email</a></strong></p>
+<p style="text-align: center;"><a href="email_user?callsign=''' + u.username + '''"><button  type="button" class="btn btn-secondary btn-block" ><strong>Send user an email</strong></button></a></p>
 &nbsp;</td>
 <td>&nbsp;''' + role_link + '''&nbsp;</td>
 </tr>
 <tr>
-<td>&nbsp;<p style="text-align: center;"><strong><a href="auth_log?portal_username=''' + u.username + '''">View user auth log</a></strong></p>
+<td>&nbsp;<p style="text-align: center;"><a href="auth_log?portal_username=''' + u.username + '''"><button  type="button" class="btn btn-secondary btn-block" ><strong>View user auth log</strong></button></a></p>
 &nbsp;</td>
 <td>&nbsp;
-<p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&amp;callsign=' + str(u.username) + '''"><strong>Deleted user</strong></strong></a></p>
+<p style="text-align: center;"><a href="''' + url + '/edit_user?delete_user=true&amp;callsign=' + str(u.username) + '''"><button  type="button" class="btn btn-danger btn-block" ><strong>Delete User</strong></button></a></p>
 &nbsp;</td>
 </tr>
 </tbody>
@@ -6314,7 +6319,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                 dev_lst.append(i.callsign)
                 content = content + '''
     <tr>
-    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong><button></a></td>
+    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong></button></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + str(i.time.strftime(time_format)) + '''&nbsp;</td>

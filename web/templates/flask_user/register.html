@@ -38,7 +38,9 @@ By registering, you acknowledge that you agree to the Terms of Use.
         {{ field(class_='form-control', tabindex=210) }}
         {% if field.errors %}
             {% for e in field.errors %}
-                <p class="help-block">{{ e }}</p>
+                &nbsp;
+
+                <p class="help-block"><strong>{{ e }}</strong></p>
             {% endfor %}
         {% endif %}
     </div>
