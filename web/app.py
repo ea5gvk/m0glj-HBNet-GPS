@@ -166,7 +166,7 @@ def hbnet_web_service():
         dmr_ids = db.Column(db.String(1000), nullable=False, server_default='')
         city = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(2000), nullable=False, server_default='')
-        aprs = db.Column(db.String(2000), nullable=False, server_default='')
+        aprs = db.Column(db.String(2000), nullable=False, server_default='{}')
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
@@ -589,7 +589,8 @@ def hbnet_web_service():
             password=user_manager.hash_password('admin'),
             initial_admin_approved = True,
             notes='Default admin account created during installation.',
-            dmr_ids='{}'
+            dmr_ids='{}',
+            aprs = '{}'
         )
         user.roles.append(Role(name='Admin'))
         user.roles.append(Role(name='User'))
@@ -644,6 +645,7 @@ def hbnet_web_service():
     # Query radioid.net for list of DMR IDs, then add to DB
     @user_registered.connect_via(app)
     def _after_user_registered_hook(sender, user, **extra):
+        aprs_dict = {}
         edit_user = User.query.filter(User.username == user.username).first()
         radioid_data = ast.literal_eval(get_ids(user.username))
 ##        edit_user.notes = ''
@@ -651,6 +653,9 @@ def hbnet_web_service():
         edit_user.first_name = str(radioid_data[1])
         edit_user.last_name = str(radioid_data[2])
         edit_user.city = str(radioid_data[3])
+        for i in radioid_data[0].items():
+            aprs_dict[i[0]] = 'default'
+        edit_user.aprs = str(aprs_dict)
         user_role = UserRoles(
             user_id=edit_user.id,
             role_id=2,
@@ -659,6 +664,9 @@ def hbnet_web_service():
         if default_account_state == False:
             edit_user.active = default_account_state
             edit_user.initial_admin_approved = False
+        if USER_ENABLE_CONFIRM_EMAIL == False:
+            edit_user.email_confirmed_at = datetime.datetime.utcnow()
+
         db.session.commit()       
 
     def gen_passphrase(dmr_id):
@@ -1193,6 +1201,12 @@ def hbnet_web_service():
             if request.form.get('email') != edit_user.email:
                 edit_user.email = request.form.get('email')
                 content = content + '''<p style="text-align: center;">Changed email for user: <strong>''' + str(user) + ''' to ''' + request.form.get('email') + '''</strong></p>\n'''
+            if request.form.get('aprs') != edit_user.aprs:
+                edit_user.aprs = request.form.get('aprs')
+                content = content + '''<p style="text-align: center;">Changed APRS settings for user: <strong>''' + str(user) + ''' to ''' + request.form.get('aprs') + '''</strong></p>\n'''
+
+
+                
             if request.form.get('notes') != edit_user.notes:
                 edit_user.notes = request.form.get('notes')
                 content = content + '''<p style="text-align: center;">Changed notes for user: <strong>''' + str(user) + '''</strong>.</p>\n'''
@@ -1411,9 +1425,13 @@ def hbnet_web_service():
 
 <tr style="height: 51.1667px;">
 <td style="height: 51.1667px; text-align: center;">
-<label for="message">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(u.notes) + '''</textarea><br /><br />
+<label for="notes">Notes<br /></label></strong><br /><textarea cols="40" name="notes" rows="5" >''' + str(u.notes) + '''</textarea><br /><br />
 </td></tr>
 
+<tr style="height: 51.1667px;">
+<td style="height: 51.1667px; text-align: center;">
+<label for="notes">APRS Settings<br /></label></strong><br /><textarea cols="40" name="aprs" rows="5" >''' + str(u.aprs) + '''</textarea><br /><br />
+</td></tr>
 
 <tr style="height: 27px;">
 <td style="text-align: center; height: 27px;"><input type="submit" value="Submit" /></td>
@@ -2492,6 +2510,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     @app.route('/mail/<user>', methods=['GET', 'POST'])
     @login_required
     def get_mail(user):
+        show_mailbox = False
         if current_user.username == user:
             if request.args.get('delete_mail'):
                 mailbox_del(int(request.args.get('delete_mail')))
@@ -2508,6 +2527,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
 
             else:
+                show_mailbox = True
                 mail_all = MailBox.query.filter_by(rcv_callsign=user.upper()).order_by(MailBox.time.desc()).all()
                 content = ''
                 for i in mail_all:
@@ -2520,7 +2540,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             </tr>'''
         else:
             content = '<h4><p style="text-align: center;">Not your mailbox.</p></h4>'
-        return render_template('mail.html', markup_content = Markup(content), user_id = user)
+        return render_template('mail.html', markup_content = Markup(content), user_id = user, show_mail = show_mailbox)
     
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
@@ -5817,10 +5837,14 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         elif request.method == 'POST' and request.form.get('username'):
             if not User.query.filter(User.username == request.form.get('username')).first():
                 radioid_data = ast.literal_eval(get_ids(request.form.get('username')))
+                aprs_dict = {}
+                for i in radioid_data[0].items():
+                        aprs_dict[i[0]] = 'default'
                 user = User(
                     username=request.form.get('username'),
                     email=request.form.get('email'),
                     email_confirmed_at=datetime.datetime.utcnow(),
+                    aprs = str(aprs_dict),
                     password=user_manager.hash_password(request.form.get('password')),
                     dmr_ids = str(radioid_data[0]),
                     initial_admin_approved = True,

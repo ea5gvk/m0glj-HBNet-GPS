@@ -29,7 +29,9 @@
         {{ field(class_='form-control', tabindex=110) }}
         {% if field.errors %}
             {% for e in field.errors %}
-                <p class="help-block">{{ e }}</p>
+                &nbsp;
+
+                <p class="help-block"><strong>{{ e }}</strong></p>
             {% endfor %}
         {% endif %}
     </div>
