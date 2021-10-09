@@ -495,6 +495,14 @@ def hbnet_web_service():
         message = db.Column(db.String(150), nullable=False, server_default='')
         time = db.Column(db.DateTime())
         dmr_id = db.Column(db.Integer(), primary_key=False)
+
+    class TinyPage(db.Model):
+        __tablename__ = 'tiny_pages'
+        id = db.Column(db.Integer(), primary_key=True)
+        author = db.Column(db.String(100), nullable=False, server_default='')
+        content = db.Column(db.String(150), nullable=False, server_default='')
+        query = db.Column(db.String(100), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
         
     class Misc(db.Model):
         __tablename__ = 'misc'
@@ -2512,6 +2520,48 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             all_post = ''
         return render_template('ss.html', markup_content = Markup(content), all_post = Markup(post_content), user_id = dmr_id)
 
+    @app.route('/all_mail/<user>', methods=['GET', 'POST'])
+    @roles_required('Admin')
+    @login_required
+    def get_all_mail(user):
+        show_mailbox = False
+        if request.args.get('delete_mail'):
+            mailbox_del(int(request.args.get('delete_mail')))
+            content = '''<h3 style="text-align: center;">Deleted message.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=''' + url + '''/all_mail/''' + user + '''" /> '''
+            
+        elif request.args.get('send_mail'):
+            if request.form.get('username').upper() == '*ALL':
+                all_users = User.query.all()
+                for i in all_users:
+                    mailbox_add(str(i.username), user, '<p><strong>Sent via portal:</strong></p></ br>' + request.form.get('message'), 0, 0, '', '')
+            elif ',' in request.form.get('username').upper():
+                splt_usr = str(request.form.get('username')).split(',')
+                for i in splt_usr:
+                    mailbox_add(i, user, '<p><strong>Sent via portal:</strong></p></ br>' + request.form.get('message'), 0, 0, '', '')
+                
+            else:
+                mailbox_add(user, request.form.get('username').upper(), '<p><strong>Sent via portal:</strong></p></ br>' + request.form.get('message'), 0, 0, '', '')
+            content = '''<h3 style="text-align: center;">Message sent.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=''' + url + '''/all_mail/''' + user + '''" /> '''
+
+        else:
+            show_mailbox = True
+            mail_all_users = MailBox.query.order_by(MailBox.time.desc()).all()
+            content = ''
+            for i in mail_all_users:
+                content = content + '''
+        <tr>
+          <td><strong>To: </strong>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''<br /><strong>From: </strong>''' + i.rcv_callsign + ''' - ''' + str(i.rcv_id) + '''</td>
+          <td>''' + i.message + '''</td>
+          <td>''' + str(i.time.strftime(time_format)) + '''</td>
+          <td><a href="/all_mail/''' + user + '''?delete_mail=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
+        </tr>'''
+        return render_template('all_mail.html', markup_content = Markup(content), show_mail = show_mailbox)
+    
+
     @app.route('/mail/<user>', methods=['GET', 'POST'])
     @login_required
     def get_mail(user):
@@ -2524,8 +2574,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
                 
             elif request.args.get('send_mail'):
-                print(request.form.get('username'))
-                print(request.form.get('message'))
                 mailbox_add(user, request.form.get('username').upper(), '<p><strong>Sent via portal:</strong></p></ br>' + request.form.get('message'), 0, 0, '', '')
                 content = '''<h3 style="text-align: center;">Message sent.</h3>
                 <p style="text-align: center;">Redirecting in 1 seconds.</p>
@@ -2806,6 +2854,15 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         db.session.add(add_loc)
         db.session.commit()
 
+    def tp_add(_callsign, _bulletin, _dmr_id, _server, _system_name):
+        add_tp = BulletinBoard(
+            author = _author,
+            query = _query,
+            content = _content
+            )
+        db.session.add(add_tp)
+        db.session.commit()
+
     def bb_add(_callsign, _bulletin, _dmr_id, _server, _system_name):
         add_bb = BulletinBoard(
             callsign = _callsign,
@@ -2842,6 +2899,11 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             dmr_id = _dmr_id
             )
         db.session.add(add_ss)
+        db.session.commit()
+
+    def tp_del(_id):
+        tpd = TinyPage.query.filter_by(id=_id).first()
+        db.session.delete(tpd)
         db.session.commit()
 
     def sms_log_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):
