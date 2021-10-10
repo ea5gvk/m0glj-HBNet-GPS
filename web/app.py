@@ -501,7 +501,7 @@ def hbnet_web_service():
         id = db.Column(db.Integer(), primary_key=True)
         author = db.Column(db.String(100), nullable=False, server_default='')
         content = db.Column(db.String(150), nullable=False, server_default='')
-        query = db.Column(db.String(100), nullable=False, server_default='')
+        query_term = db.Column(db.String(100), nullable=False, server_default='', unique=False)
         time = db.Column(db.DateTime())
         
     class Misc(db.Model):
@@ -2453,6 +2453,45 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     </tr>'''
         return render_template('bb.html', markup_content = Markup(content))
 
+    @app.route('/tp')
+    def all_tp():
+        tpl = TinyPage.query.order_by(TinyPage.time.desc()).all()
+        content = ''' '''
+        for i in tpl:
+            content = content + '''
+    <tr>
+      <td><strong>''' + i.query_term + '''</strong></td>
+      <td>''' + i.content + '''</td>
+      <td>''' + i.author + '''</td>
+      <td></td>
+    </tr>'''
+        return render_template('tp_all.html', markup_content = Markup(content))
+
+    @app.route('/add_tp', methods=['POST', 'GET'])
+##    @app.route('/add_tp')
+    def new_tp():
+        u = current_user
+        print(u.username)
+        if request.args.get('add_page'):
+            tp_add(u.username, request.form.get('query'), request.form.get('content'))
+            content = '''<h3 style="text-align: center;">Saved Tiny Page.</h3>
+                <p style="text-align: center;">Redirecting in 1 seconds.</p>
+                <meta http-equiv="refresh" content="1; URL=''' + url + '''/tp" /> '''
+            
+        else:
+            content = ''
+##        tpl = TinyPage.query.order_by(TinyPage.time.desc()).all()
+##        content = ''' '''
+##        for i in tpl:
+##            content = content + '''
+##    <tr>
+##      <td><strong>''' + i.query_term + '''</strong></td>
+##      <td>''' + i.content + '''</td>
+##      <td>''' + i.author + '''</td>
+##
+##    </tr>'''
+        return render_template('tp_add.html', markup_content = Markup(content), url = url)
+
     @app.route('/ss')
     def get_all_ss():
         ss_all = Social.query.order_by(Social.time.desc()).all()
@@ -2854,11 +2893,12 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         db.session.add(add_loc)
         db.session.commit()
 
-    def tp_add(_callsign, _bulletin, _dmr_id, _server, _system_name):
-        add_tp = BulletinBoard(
+    def tp_add(_author, _query_term, _content):
+        add_tp = TinyPage(
             author = _author,
-            query = _query,
-            content = _content
+            query_term = _query_term,
+            content = _content,
+            time = datetime.datetime.utcnow(),
             )
         db.session.add(add_tp)
         db.session.commit()

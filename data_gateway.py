@@ -998,45 +998,74 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
 def data_que_check():
     l=task.LoopingCall(data_que_send)
     l.start(1)
-def data_que_send():
-    #logger.info('Check SMS que')
-    try:
-        #logger.info(UNIT_MAP)
-        for packet_file in os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/'):
-            logger.info('Sending SMS')
-            logger.info(os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/'))
-            snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + packet_file).read())
-            for data in snd_seq:
-                # Get dest id
-                dst_id = bytes.fromhex(str(data[10:16])[2:-1])
-                call_type = hex2bits(data)[121:122]
-                # Handle UNIT calls
-                if call_type[0] == True:
-                # If destination ID in map, route call only there
-                    if dst_id in UNIT_MAP:
-                        data_target = UNIT_MAP[dst_id][0]
-                        reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-                        logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
-                    # Flood all systems
-                    elif dst_id not in UNIT_MAP:
-                        for i in UNIT:
-                            reactor.callFromThread(systems[i].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-                            logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + i)
-                # Handle group calls
-                elif call_type[0] == False:
-                    for i in BRIDGES.items():
-                        for d in i[1]:
-                            if dst_id == d['TGID']:
-                                data_target = d['SYSTEM']
-                                reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
-                                logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
-      
-            os.system('rm /tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + packet_file)
+##def data_que_send():
+##    #logger.info('Check SMS que')
+##    try:
+##        #logger.info(UNIT_MAP)
+##        for packet_file in os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/'):
+##            logger.info('Sending SMS')
+##            logger.info(os.listdir('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/'))
+##            snd_seq = ast.literal_eval(os.popen('cat /tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + packet_file).read())
+##            for data in snd_seq:
+##                # Get dest id
+##                dst_id = bytes.fromhex(str(data[10:16])[2:-1])
+##                call_type = hex2bits(data)[121:122]
+##                # Handle UNIT calls
+##                if call_type[0] == True:
+##                # If destination ID in map, route call only there
+##                    if dst_id in UNIT_MAP:
+##                        data_target = UNIT_MAP[dst_id][0]
+##                        reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
+##                        logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
+##                    # Flood all systems
+##                    elif dst_id not in UNIT_MAP:
+##                        for i in UNIT:
+##                            reactor.callFromThread(systems[i].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
+##                            logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + i)
+##                # Handle group calls
+##                elif call_type[0] == False:
+##                    for i in BRIDGES.items():
+##                        for d in i[1]:
+##                            if dst_id == d['TGID']:
+##                                data_target = d['SYSTEM']
+##                                reactor.callFromThread(systems[data_target].send_system,bytes.fromhex(re.sub("b'|'", '', str(data))))
+##                                logger.info('Sending data to ' + str(data[10:16])[2:-1] + ' on system ' + data_target)
+##      
+##            os.system('rm /tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + packet_file)
+##
+##                    #routerHBP.send_peer('MASTER-2', bytes.fromhex(re.sub("b'|'", '', str(data))))
+##    ##            os.system('rm /tmp/.hblink_data_que/' + packet_file)
+##    except Exception as e:
+##        logger.info(e)
 
-                    #routerHBP.send_peer('MASTER-2', bytes.fromhex(re.sub("b'|'", '', str(data))))
-    ##            os.system('rm /tmp/.hblink_data_que/' + packet_file)
-    except Exception as e:
-        logger.info(e)
+def aprs_process(packet):
+    try:
+        if 'addresse' in aprslib.parse(packet):
+            #print(aprslib.parse(packet))
+            recipient = re.sub('-.*','', aprslib.parse(packet)['addresse'])
+            recipient_ssid = re.sub('.*-','', aprslib.parse(packet)['addresse']) 
+            if recipient == '':
+                pass
+            else:
+                user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+                for i in user_settings.items():
+                    sms_id = i[0]
+                    ssid = i[1][1]['ssid']
+                    if i[1][1]['ssid'] == '':
+                        ssid = user_ssid
+                    if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
+                        mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
+                        send_sms(False, sms_id, 0000, 0000, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
+                        try:
+                            if 'msgNo' in aprslib.parse(packet):
+                                #sleep(1)
+                                logger.info(str(aprslib.parse(packet)['addresse']) + '>APHBL3,TCPIP*:' + ':' + str(aprslib.parse(packet)['from'].ljust(9)) +':ack' + str(aprslib.parse(packet)['msgNo']))
+                                aprs_send(str(aprslib.parse(packet)['addresse']) + '>APHBL3,TCPIP*:' + ':' + str(aprslib.parse(packet)['from'].ljust(9)) +':ack' + str(aprslib.parse(packet)['msgNo']))
+                                logger.info('Send ACK')
+                        except Exception as e:
+                            logger.info(e)
+    except:
+        logger.info('aprs except')
 
 # the APRS RX process
 def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid):
@@ -1061,6 +1090,11 @@ def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, u
             AIS.consumer(aprs_process, raw=True, immortal=False)
     except Exception as e:
         logger.info(e)
+        
+def aprs_beacon_send():
+    beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT']
+    aprs_send(beacon_packet)
+    logger.info(beacon_packet)
 
 ##### DMR data function ####
 def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
