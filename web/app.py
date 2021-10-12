@@ -511,6 +511,20 @@ def hbnet_web_service():
         text = db.Column(db.String(5000), nullable=False, server_default='')
         time = db.Column(db.DateTime())
 
+    class SMS_Que(db.Model):
+        __tablename__ = 'sms_que'
+        id = db.Column(db.Integer(), primary_key=True)
+        snd_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        rcv_callsign = db.Column(db.String(100), nullable=False, server_default='')
+        message = db.Column(db.String(300), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+        server = db.Column(db.String(100), nullable=False, server_default='')
+        system_name = db.Column(db.String(100), nullable=False, server_default='')
+        snd_id = db.Column(db.Integer(), primary_key=False)
+        rcv_id = db.Column(db.Integer(), primary_key=False)
+        msg_type = db.Column(db.String(100), nullable=False, server_default='')
+        call_type = db.Column(db.String(100), nullable=False, server_default='')
+
 
     class Misc(db.Model):
         __tablename__ = 'misc'
@@ -2545,7 +2559,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         for i in tpl:
             try:
                 options_l = ''
-                if str(current_user.username).upper() == str(i.author).upper():
+                if str(current_user.username).upper() == str(i.author).upper() or current_user.has_roles('Admin'):
                     options_l = '''<a href="/add_tp?delete_page=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a>'''
             except:
                 options_l = ''
@@ -2561,8 +2575,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 
     @app.route('/discussion', methods=['POST', 'GET'])
     def portal_discussion():
-##        dl = Disc.query.order_by(Disc.time.desc()).limit(30).all()
-        dl = Disc.query.order_by(Disc.time.desc()).all()
+        dl = Disc.query.order_by(Disc.time.desc()).limit(100).all()
+##        dl = Disc.query.order_by(Disc.time.desc()).all()
         content = ''' '''
         show_table = True
         if request.args.get('post'):
@@ -2584,16 +2598,30 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             for i in dl:
                 try:
                     options_l = ''
-                    if str(current_user.username).upper() == str(i.poster).upper():
+                    if str(current_user.username).upper() == str(i.poster).upper() or current_user.has_roles('Admin'):
                         options_l = '''<a href="/discussion?delete=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a>'''
                 except:
                     options_l = ''
+##                content = content + '''
+##        <tr>
+##          <td><strong>''' + i.poster + '''</strong></td>
+##          <td>''' + i.text + '''</td>
+##          <td>''' + options_l + '''</td>
+##        </tr>'''
                 content = content + '''
-        <tr>
-          <td><strong>''' + i.poster + '''</strong></td>
-          <td>''' + i.text + '''</td>
-          <td>''' + options_l + '''</td>
-        </tr>'''
+<tr>
+<td>
+<div class="card" style="width:300px">
+  <div class="card-header"><strong>''' + i.poster + '''</strong></div>
+  <div class="card-body">''' + i.text + '''</div>
+  <div class="card-footer">''' + str(i.time.strftime(time_format)) + '''</div>
+</div>
+</td>
+<td>
+''' + options_l + '''
+</td>
+</tr>
+'''
         return render_template('disc.html', markup_content = Markup(content), table = show_table)
 
 
@@ -2902,6 +2930,17 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
 ###### DB functions #############################
+
+    def sms_que(_server):
+        que_db = SMS_Que.query.filter_by(server=_server).all()
+        que_list = []
+        for i in que_db:
+            print(i)
+
+    def sms_que_add():
+        pass
+    def sms_que_purge():
+        pass
     
     def get_peer_configs(_server_name):
         mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).filter_by(enabled=True).all()
@@ -6744,6 +6783,16 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     ##                except:
     ##                    message = jsonify(message='Config error')
     ##                    response = make_response(message, 401)
+                    .
+
+            elif 'get_sms_que' in hblink_req:
+                if hblink_req['get_sms_que']: 
+
+                    response = jsonify(
+                            que=server_get(hblink_req['get_config'])
+    ##                        OBP=get_OBP(hblink_req['get_config'])
+
+                            )      
             elif 'get_rules' in hblink_req:
                 if hblink_req['get_rules']: # == 'burn_list':
                     
