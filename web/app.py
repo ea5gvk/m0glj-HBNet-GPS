@@ -446,7 +446,7 @@ def hbnet_web_service():
         id = db.Column(db.Integer(), primary_key=True)
         snd_callsign = db.Column(db.String(100), nullable=False, server_default='')
         rcv_callsign = db.Column(db.String(100), nullable=False, server_default='')
-        message = db.Column(db.String(150), nullable=False, server_default='')
+        message = db.Column(db.String(300), nullable=False, server_default='')
         time = db.Column(db.DateTime())
         server = db.Column(db.String(100), nullable=False, server_default='')
         system_name = db.Column(db.String(100), nullable=False, server_default='')
@@ -456,7 +456,7 @@ def hbnet_web_service():
     class News(db.Model):
         __tablename__ = 'news'
         id = db.Column(db.Integer(), primary_key=True)
-        subject = db.Column(db.String(100), nullable=False, server_default='')
+        subject = db.Column(db.String(200), nullable=False, server_default='')
         text = db.Column(db.String(5000), nullable=False, server_default='')
         date = db.Column(db.String(100), nullable=False, server_default='')
         time = db.Column(db.DateTime())
@@ -507,10 +507,10 @@ def hbnet_web_service():
     class Misc(db.Model):
         __tablename__ = 'misc'
         id = db.Column(db.Integer(), primary_key=True)
-        field_1 = db.Column(db.String(500), nullable=True, server_default='')
-        field_2 = db.Column(db.String(500), nullable=True, server_default='')
-        field_3 = db.Column(db.String(500), nullable=True, server_default='')
-        field_4 = db.Column(db.String(500), nullable=True, server_default='')
+        field_1 = db.Column(db.String(5000), nullable=True, server_default='')
+        field_2 = db.Column(db.String(5000), nullable=True, server_default='')
+        field_3 = db.Column(db.String(5000), nullable=True, server_default='')
+        field_4 = db.Column(db.String(5000), nullable=True, server_default='')
         int_1 = db.Column(db.Integer(), nullable=True)
         int_2 = db.Column(db.Integer(), nullable=True)
         int_3 = db.Column(db.Integer(), nullable=True)
@@ -2361,6 +2361,83 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         response = Response(gen_csv, mimetype="text/csv")
         return response
 
+    @app.route('/aprs_settings')
+    def aprs_settings():
+        user_aprs = User.query.filter_by(username=current_user.username).first()
+        print(user_aprs.aprs)
+        settings = ast.literal_eval(user_aprs.aprs)
+        content = '''
+  <h1 style="text-align: center;">APRS Settings</h1>
+
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>DMR ID</th>
+      <th>Callsign</th>
+      <th>SSID</th>
+      <th>Icon</th>
+      <th>Comment</th>
+      <th>PIN</th>
+      <th>APRS MSG?</th>
+      <th>Options</th>
+
+    </tr>
+  </thead>
+  <tbody>
+'''
+        show_form = True
+        for i in settings.items():
+            content = content + '''
+<form action="aprs_settings?save_id=''' + str(i[0]) + '''" method="post">
+      <th>''' + str(i[0]) + '''</th>
+      <th>''' + i[1][0]['call'] + '''</th>
+      <th><select class="form-select" aria-label="SSID" id="ssid">
+  <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+  <option value="11">11</option>
+  <option value="12">12</option>
+  <option value="13">13</option>
+  <option value="14">14</option>
+  <option value="15">15</option>
+</select></th>
+
+      <th><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></th>
+      <th><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></th>
+      <th><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></th>
+      <th>''' + str(i[1][5]['APRS']) + '''</th>
+</form>
+'''
+        
+##        for i in bbl:
+##            content = content + '''
+##    <tr>
+##      <td><p style="text-align: center;"><strong>''' + i.callsign + '''<strong></p> \n <a href="/ss/''' + str(i.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></td>
+##      <td>''' + i.bulletin + '''</td>
+##      <td>''' + str(i.time.strftime(time_format)) + '''</td>
+##      <td>''' + i.server + ' - ' + i.system_name + '''</td>
+##
+##    </tr>'''
+        content = content + '</tbody></table>'
+        return render_template('flask_user_layout.html', markup_content = Markup(content))
+
     @app.route('/talkgroups')
 ##    @login_required
     def tg_list():
@@ -2458,28 +2535,51 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         tpl = TinyPage.query.order_by(TinyPage.time.desc()).all()
         content = ''' '''
         for i in tpl:
+            try:
+                options_l = ''
+                if str(current_user.username).upper() == str(i.author).upper():
+                    options_l = '''<a href="/add_tp?delete_page=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a>'''
+            except:
+                options_l = ''
             content = content + '''
     <tr>
       <td><strong>''' + i.query_term + '''</strong></td>
       <td>''' + i.content + '''</td>
       <td>''' + i.author + '''</td>
-      <td></td>
+      <td>''' + options_l + '''</td>
     </tr>'''
         return render_template('tp_all.html', markup_content = Markup(content))
 
     @app.route('/add_tp', methods=['POST', 'GET'])
-##    @app.route('/add_tp')
+    @login_required
     def new_tp():
         u = current_user
-        print(u.username)
+        content = ''
+        show_form = True
         if request.args.get('add_page'):
             tp_add(u.username, request.form.get('query'), request.form.get('content'))
-            content = '''<h3 style="text-align: center;">Saved Tiny Page.</h3>
-                <p style="text-align: center;">Redirecting in 1 seconds.</p>
-                <meta http-equiv="refresh" content="1; URL=''' + url + '''/tp" /> '''
-            
+            show_form = False
+
+            content = '''<h3 style="text-align: center;">Added page.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=''' + url + '''/tp" /> '''
+        elif request.args.get('delete_page'):
+            show_form = False
+            tpd = TinyPage.query.filter_by(id=int(request.args.get('delete_page'))).first()
+            if str(current_user.username).upper() == str(tpd.author).upper():
+                tp_del(int(request.args.get('delete_page')))
+                content = '''<h3 style="text-align: center;">Deleted page.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=''' + url + '''/tp" /> '''
+            else:
+                content = '''<h3 style="text-align: center;">Not authorized.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=''' + url + '''/tp" /> '''
         else:
             content = ''
+            
+##        if not request.args.get('add_page') or not request.args.get('delete_page'):
+##            content = ''
 ##        tpl = TinyPage.query.order_by(TinyPage.time.desc()).all()
 ##        content = ''' '''
 ##        for i in tpl:
@@ -2490,7 +2590,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##      <td>''' + i.author + '''</td>
 ##
 ##    </tr>'''
-        return render_template('tp_add.html', markup_content = Markup(content), url = url)
+        return render_template('tp_add.html', markup_content = Markup(content), url = url, form = show_form)
 
     @app.route('/ss')
     def get_all_ss():
@@ -6550,9 +6650,10 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 ##                    del_unit_table(hblink_req['unit_table'])
                 try:
                     delete_misc_field_1('unit_table_' + hblink_req['unit_table'])
+                    misc_add('unit_table_' + hblink_req['unit_table'], str(hblink_req['data']), '', '', 0, 0, 0, 0, False, False)
                 except:
                     print('entry error')
-                misc_add('unit_table_' + hblink_req['unit_table'], str(hblink_req['data']), '', '', 0, 0, 0, 0, False, False)
+                    misc_add('unit_table_' + hblink_req['unit_table'], str(hblink_req['data']), '', '', 0, 0, 0, 0, False, False)
 ##                    unit_table_add(hblink_req['data'])
                 response = 'rcvd'
 

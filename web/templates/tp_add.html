@@ -7,6 +7,9 @@
 <div class="row">
   <div class="col-lg-12">
 
+{{markup_content}}
+
+{% if form %}
   
 <form action="?add_page=true" method="post">
 
@@ -22,9 +25,9 @@
 
 <br />  
   <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Add" /></form></p>
+{% endif %}
 
   </div>
 </div>
-
 <p>&nbsp;</p>
 {% endblock %}
