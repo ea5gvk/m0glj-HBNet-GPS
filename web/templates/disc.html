@@ -1,0 +1,58 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">Discussion</h1>
+
+
+<div id="post" class="collapse">
+
+<div class="card">
+  <div class="card-header">Post to the discussion</div>
+  <div class="card-body">
+  
+  <form action="discussion?post=true" method="post">
+
+<div class="input-group">
+  <span class="input-group-text">Message</span>
+  <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>
+</div>
+
+<br />  
+  <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Post" /></form></p>
+
+  </div>
+</div>
+
+</div> 
+
+{% if table %}
+
+<div class="row">
+  <div class="col-lg-12">
+  {% if call_or_get(current_user.is_authenticated) %}
+<p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#post" class="btn btn-primary">Add Post</button></p>
+{% endif %}
+  <table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Author</th>
+      <th>Post</th>
+      <th>Options</th>
+    </tr>
+  </thead>
+  <tbody>
+{% endif %}
+
+  {{markup_content}}
+{% if table %}
+
+  </tbody></table>
+
+
+  </div>
+</div>
+
+{% endif %}
+
+<p>&nbsp;</p>
+{% endblock %}

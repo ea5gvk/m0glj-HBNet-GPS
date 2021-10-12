@@ -504,6 +504,14 @@ def hbnet_web_service():
         query_term = db.Column(db.String(100), nullable=False, server_default='', unique=False)
         time = db.Column(db.DateTime())
         
+    class Disc(db.Model):
+        __tablename__ = 'discussion'
+        id = db.Column(db.Integer(), primary_key=True)
+        poster = db.Column(db.String(200), nullable=False, server_default='')
+        text = db.Column(db.String(5000), nullable=False, server_default='')
+        time = db.Column(db.DateTime())
+
+
     class Misc(db.Model):
         __tablename__ = 'misc'
         id = db.Column(db.Integer(), primary_key=True)
@@ -2550,6 +2558,45 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     </tr>'''
         return render_template('tp_all.html', markup_content = Markup(content))
 
+
+    @app.route('/discussion', methods=['POST', 'GET'])
+    def portal_discussion():
+##        dl = Disc.query.order_by(Disc.time.desc()).limit(30).all()
+        dl = Disc.query.order_by(Disc.time.desc()).all()
+        content = ''' '''
+        show_table = True
+        if request.args.get('post'):
+##            tp_add(u.username, request.form.get('query'), request.form.get('content'))
+            disc_add(current_user.username, request.form.get('message'))
+            show_table = False
+            content = '''<h3 style="text-align: center;">Added post.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=/discussion" /> '''
+        elif request.args.get('delete'):
+##            tp_add(u.username, request.form.get('query'), request.form.get('content'))
+            disc_del(request.args.get('delete'))
+            show_table = False
+            content = '''<h3 style="text-align: center;">Deleted post.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=/discussion" /> '''
+        else:
+            
+            for i in dl:
+                try:
+                    options_l = ''
+                    if str(current_user.username).upper() == str(i.poster).upper():
+                        options_l = '''<a href="/discussion?delete=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a>'''
+                except:
+                    options_l = ''
+                content = content + '''
+        <tr>
+          <td><strong>''' + i.poster + '''</strong></td>
+          <td>''' + i.text + '''</td>
+          <td>''' + options_l + '''</td>
+        </tr>'''
+        return render_template('disc.html', markup_content = Markup(content), table = show_table)
+
+
     @app.route('/add_tp', methods=['POST', 'GET'])
     @login_required
     def new_tp():
@@ -2993,6 +3040,15 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         db.session.add(add_loc)
         db.session.commit()
 
+    def disc_add(_poster, _text):
+        add_d = Disc(
+            poster = _poster,
+            text = _text,
+            time = datetime.datetime.utcnow(),
+            )
+        db.session.add(add_d)
+        db.session.commit()
+
     def tp_add(_author, _query_term, _content):
         add_tp = TinyPage(
             author = _author,
@@ -3044,6 +3100,11 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     def tp_del(_id):
         tpd = TinyPage.query.filter_by(id=_id).first()
         db.session.delete(tpd)
+        db.session.commit()
+
+    def disc_del(_id):
+        dd = Disc.query.filter_by(id=_id).first()
+        db.session.delete(dd)
         db.session.commit()
 
     def sms_log_add(_snd_call, _rcv_call, _msg, _snd_id, _rcv_id, _server, _system_name):

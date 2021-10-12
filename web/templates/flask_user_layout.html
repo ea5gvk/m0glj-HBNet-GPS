@@ -111,16 +111,43 @@
           </ul>
         </li>
         {% endif %}
-
+<!--
             <li class="nav-item">
         <a class="nav-link" href="{{url}}/mail/{{ current_user.username or current_user.email }}"><i class="bi bi-mailbox"></i> Mailbox </a>
       </li>
+-->
+        
+            <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="features_menu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+           <i class="bi bi-arrow-down-square"></i> Features 
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="features_menu">
+            <li><a class="dropdown-item" href="{{url}}/mail/{{ current_user.username or current_user.email }}"><i class="bi bi-mailbox"></i> Mailbox </a></li>
+            <li><a class="dropdown-item" href="{{url}}/discussion"><i class="bi bi-chat-right-quote"></i> Discussion </a></li>
+            <li><a class="dropdown-item" href="{{url}}/generate_passphrase"><i class="bi bi-info-square"></i> Passphrase(s) </a></li>
+
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="settings_menu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+           <i class="bi bi-toggles"></i> Settings 
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="settings_menu">
+
+            <li><a class="dropdown-item" href="{{ url_for('user.edit_user_profile') }}"><i class="bi bi-file-person"></i> Change {{ current_user.username or current_user.email }} </a></li>
+            <li><a class="dropdown-item" href="{{url}}/aprs_settings"><i class="bi bi-geo"></i> APRS Configuration </a></li>
+          </ul>
+        </li>
+    
+    <!--
             <li class="nav-item">
         <a class="nav-link" href="{{url}}/generate_passphrase"><i class="bi bi-info-square"></i> Passphrase(s) </a>
       </li>
                 <li class="nav-item">
         <a class="nav-link" href="{{ url_for('user.edit_user_profile') }}"><i class="bi bi-file-person"></i> Change {{ current_user.username or current_user.email }} </a>
       </li>
+    -->
            <li class="nav-item">
         <a class="nav-link" href="{{ url_for('user.logout') }}"><i class="bi bi-door-closed"></i> Sign Out </a>
       </li>
