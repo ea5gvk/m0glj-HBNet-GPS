@@ -251,6 +251,26 @@ def send_sms_que_req(CONFIG):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
+def send_sms_cmd(CONFIG, _rf_id, _cmd):
+    print('ssnd rmt cmd')
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_cmd_data = {
+    'sms_cmd': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'rf_id': _rf_id,
+    'cmd': _cmd
+    }
+    json_object = json.dumps(sms_cmd_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['que']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
 
 
 
@@ -584,6 +604,9 @@ def process_sms(_rf_src, sms, call_type, system_name):
         user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
     elif '@BB' in sms:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms), system_name)
+
+    elif '?' in parse_sms[0]:
+        send_sms_cmd(CONFIG, int_id(_rf_src), sms)
     elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
         s = ' '
         email_message =  s.join(parse_sms[1:])#str(re.sub('.*@|.* E-', '', sms))

@@ -6825,6 +6825,23 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 
                             )
                     sms_que_purge('DATA')
+            elif 'sms_cmd' in hblink_req:
+                if hblink_req['sms_cmd']:
+                    print(hblink_req['cmd'][:1])
+                    if hblink_req['cmd'][:1] == '?':
+                        split_cmd = str(hblink_req['cmd']).split(' ')
+                        tp = TinyPage.query.filter_by(query_term=str(split_cmd[0])[1:]).first()
+                        print(tp.content)
+                        
+                        sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
+                        
+                        
+
+                    response = jsonify(
+                            out='yes'
+    ##                        OBP=get_OBP(hblink_req['get_config'])
+
+                            )
             elif 'get_rules' in hblink_req:
                 if hblink_req['get_rules']: # == 'burn_list':
                     
