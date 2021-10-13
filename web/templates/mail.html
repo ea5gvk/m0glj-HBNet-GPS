@@ -45,6 +45,13 @@
   <input type="text" id="dmr_id" name="dmr_id" class="form-control" aria-label="DMR ID" aria-describedby="basic-addon1">
 </div>
 
+<select class="form-select" aria-label="gateway" name="gateway" >
+  <option selected>Choose Data Gateway</option>
+  
+{{gateways}}
+
+</select>
+
 <div class="input-group">
   <span class="input-group-text">Message</span>
   <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>

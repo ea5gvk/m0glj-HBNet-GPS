@@ -2565,7 +2565,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 options_l = ''
             content = content + '''
     <tr>
-      <td><strong>''' + i.query_term + '''</strong></td>
+      <td><strong>?''' + i.query_term + '''</strong></td>
       <td>''' + i.content + '''</td>
       <td>''' + i.author + '''</td>
       <td>''' + options_l + '''</td>
@@ -2779,6 +2779,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     @app.route('/mail/<user>', methods=['GET', 'POST'])
     @login_required
     def get_mail(user):
+        gateway_o = ''
         show_mailbox = False
         if current_user.username == user:
             if request.args.get('delete_mail'):
@@ -2794,7 +2795,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
                 
             elif request.args.get('send_sms'):
-                sms_que_add(current_user.username, '', 0, int(request.form.get('dmr_id')), 'motorola', 'unit', 'DATA', '', request.form.get('message'))
+                sms_que_add(current_user.username, '', 0, int(request.form.get('dmr_id')), 'motorola', 'unit', request.form.get('gateway'), '', request.form.get('message'))
+                print(request.form.get('gateway'))
                 content = '''<h3 style="text-align: center;">Message in que.</h3>
                 <p style="text-align: center;">Redirecting in 1 seconds.</p>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
@@ -2804,6 +2806,10 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             else:
                 show_mailbox = True
                 mail_all = MailBox.query.filter_by(rcv_callsign=user.upper()).order_by(MailBox.time.desc()).all()
+                data_gateways = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).all()
+                for i in data_gateways:
+                    gateway_o = gateway_o + '''  <option value="''' + i.name + '''">''' + i.name + '''</option>\n'''
+                    
                 content = ''
                 for i in mail_all:
                     content = content + '''
@@ -2815,7 +2821,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             </tr>'''
         else:
             content = '<h4><p style="text-align: center;">Not your mailbox.</p></h4>'
-        return render_template('mail.html', markup_content = Markup(content), user_id = user, show_mail = show_mailbox)
+        return render_template('mail.html', markup_content = Markup(content), user_id = user, show_mail = show_mailbox, gateways = Markup(gateway_o))
     
 
     @app.route('/talkgroups/<server>') #, methods=['POST', 'GET'])
@@ -6816,24 +6822,27 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 
             elif 'get_sms_que' in hblink_req:
                 if hblink_req['get_sms_que']:
-                    q = sms_que('DATA')
-                    print(q)
+                    q = sms_que(hblink_req['get_sms_que'])
 
                     response = jsonify(
                             que=q
-    ##                        OBP=get_OBP(hblink_req['get_config'])
-
                             )
-                    sms_que_purge('DATA')
+                    sms_que_purge(hblink_req['get_sms_que'])
             elif 'sms_cmd' in hblink_req:
                 if hblink_req['sms_cmd']:
-                    print(hblink_req['cmd'][:1])
                     if hblink_req['cmd'][:1] == '?':
-                        split_cmd = str(hblink_req['cmd']).split(' ')
-                        tp = TinyPage.query.filter_by(query_term=str(split_cmd[0])[1:]).first()
-                        print(tp.content)
+                        tst = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).first()
+                        print(tst)
+                        oo_str = tst.other_options
+                        print(oo_str.split(';'))
                         
-                        sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
+                        try:
+                            split_cmd = str(hblink_req['cmd']).split(' ')
+                            tp = TinyPage.query.filter_by(query_term=str(split_cmd[0])[1:]).first()
+##                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
+                        except:
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Query not found or other error.')
+                                              
                         
                         
 
