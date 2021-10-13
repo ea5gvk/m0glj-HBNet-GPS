@@ -2795,8 +2795,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
                 
             elif request.args.get('send_sms'):
-                sms_que_add(current_user.username, '', 0, int(request.form.get('dmr_id')), 'motorola', 'unit', request.form.get('gateway'), '', request.form.get('message'))
-                print(request.form.get('gateway'))
+                sms_que_add(current_user.username, '', 0, int(request.form.get('dmr_id')), 'motorola', 'unit', request.form.get('gateway'), '', current_user.username + ' - ' + request.form.get('message'))
                 content = '''<h3 style="text-align: center;">Message in que.</h3>
                 <p style="text-align: center;">Redirecting in 1 seconds.</p>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
@@ -6830,18 +6829,33 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                     sms_que_purge(hblink_req['get_sms_que'])
             elif 'sms_cmd' in hblink_req:
                 if hblink_req['sms_cmd']:
+                    split_cmd = str(hblink_req['cmd']).split(' ')
+                    print(split_cmd)
                     if hblink_req['cmd'][:1] == '?':
-                        tst = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).first()
-                        print(tst)
-                        oo_str = tst.other_options
-                        print(oo_str.split(';'))
-                        
+##                        tst = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).first()
+##                        print(tst)
+##                        oo_str = tst.other_options
+##                        print(oo_str.split(';'))
                         try:
-                            split_cmd = str(hblink_req['cmd']).split(' ')
                             tp = TinyPage.query.filter_by(query_term=str(split_cmd[0])[1:]).first()
-##                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Query not found or other error.')
+                    if hblink_req['cmd'][:4] == '@RSS':
+                        try:
+                            try:
+                                retr = int(split_cmd[1])
+                            except:
+                                retr = split_cmd[1]
+
+                            if type(retr) == int:
+                                ss = Social.query.filter_by(dmr_id=int(split_cmd[1])).order_by(Social.time.desc()).first()
+                            elif type(retr) == str:
+                                ss = Social.query.filter_by(callsign=str(split_cmd[1]).upper()).order_by(Social.time.desc()).first()
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Last - ' + ss.message)
+                        except:
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
+
                                               
                         
                         

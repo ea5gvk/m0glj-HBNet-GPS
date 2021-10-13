@@ -70,8 +70,8 @@
 <div class="row">
   <div class="col-lg-12">
 <p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#compose" class="btn btn-primary">Compose</button></p>
-            {% if call_or_get(current_user.has_roles('Admin')) %}
-<p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#compose_sms" class="btn btn-primary">Send SMS</button></p>
+{% if call_or_get(current_user.has_roles('Admin')) %}
+<p style="text-align: left;"><button data-bs-toggle="collapse" data-bs-target="#compose_sms" class="btn btn-primary">Send SMS</button></p>
 {% endif %}
 
   <table data-toggle="table" data-pagination="true" data-search="true" >

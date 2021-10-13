@@ -577,6 +577,10 @@ def process_sms(_rf_src, sms, call_type, system_name):
         s = ' '
         post = s.join(parse_sms[1:])
         send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
+    if '@RSS' in parse_sms[0]:
+        print(parse_sms)
+        send_sms_cmd(CONFIG, int_id(_rf_src), sms)
+##        s = ' '
     elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
