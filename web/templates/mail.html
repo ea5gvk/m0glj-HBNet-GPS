@@ -29,12 +29,43 @@
   </div>
 </div>
 
+</div>
+
+
+<div id="compose_sms" class="collapse">
+
+<div class="card">
+  <div class="card-header">Send SMS to radio</div>
+  <div class="card-body">
+  
+  <form action="{{ current_user.username or current_user.email }}?send_sms=true" method="post">
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">DMR ID</span>
+  <input type="text" id="dmr_id" name="dmr_id" class="form-control" aria-label="DMR ID" aria-describedby="basic-addon1">
+</div>
+
+<div class="input-group">
+  <span class="input-group-text">Message</span>
+  <textarea id="message" name="message" class="form-control" aria-label="Message"></textarea>
+</div>
+
+<br />  
+  <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Send" /></form></p>
+
+  </div>
+</div>
+
 </div> 
+
 
 {% if show_mail %}
 <div class="row">
   <div class="col-lg-12">
 <p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#compose" class="btn btn-primary">Compose</button></p>
+            {% if call_or_get(current_user.has_roles('Admin')) %}
+<p style="text-align: right;"><button data-bs-toggle="collapse" data-bs-target="#compose_sms" class="btn btn-primary">Send SMS</button></p>
+{% endif %}
 
   <table data-toggle="table" data-pagination="true" data-search="true" >
   <thead>

@@ -234,6 +234,23 @@ def send_unit_table(CONFIG, _data):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
+def send_sms_que_req(CONFIG):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    sms_req_data = {
+    'get_sms_que': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    }
+    json_object = json.dumps(sms_req_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+        print(resp)
+        return resp['que']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
 
 
 
@@ -897,7 +914,11 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
             print(ahex(the_mmdvm_pkt))
-            systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
+            if bytes.fromhex(dst_id) in UNIT_MAP:
+                systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
+            else:
+                systems['MASTER-1'].send_system(the_mmdvm_pkt)
+                print('need to code, flood all systems , ' + str(bytes.fromhex(dst_id) ))
             
     with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
         packet_write_file.write(str(mmdvm_send_seq))
@@ -973,18 +994,19 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
     peer_id = str(hex(peer_id))[2:].zfill(8)
     if call_type == 'unit':
         call_type = 1
-        # Try to find slot from UNIT_MAP
-        try:
-            #Slot 2
-            if UNIT_MAP[bytes.fromhex(to_id)][2] == 2:
-                slot = 1
-            # Slot 1
-            if UNIT_MAP[bytes.fromhex(to_id)][2] == 1:
-                slot = 0
-        except Exception as e:
-            logger.info(e)
-            # Change to config value later
-            slot = 1
+        slot = 1
+##        # Try to find slot from UNIT_MAP
+##        try:
+##            #Slot 2
+##            if UNIT_MAP[bytes.fromhex(to_id)][2] == 2:
+##                slot = 1
+##            # Slot 1
+##            if UNIT_MAP[bytes.fromhex(to_id)][2] == 1:
+##                slot = 0
+##        except Exception as e:
+##            logger.info(e)
+##            # Change to config value later
+##            slot = 1
     if call_type == 'group':
         call_type = 0
         # Send all Group data to TS 2, need to fix later.
@@ -1059,6 +1081,9 @@ def aprs_process(packet):
                         try:
                             if 'msgNo' in aprslib.parse(packet):
                                 #sleep(1)
+
+                                # Write function to check UNIT_MAP and see if X amount of time has passed, if time passed, no ACK. This will prevent multiple gateways from
+                                # ACKing. time of 24hrs?
                                 logger.info(str(aprslib.parse(packet)['addresse']) + '>APHBL3,TCPIP*:' + ':' + str(aprslib.parse(packet)['from'].ljust(9)) +':ack' + str(aprslib.parse(packet)['msgNo']))
                                 aprs_send(str(aprslib.parse(packet)['addresse']) + '>APHBL3,TCPIP*:' + ':' + str(aprslib.parse(packet)['from'].ljust(9)) +':ack' + str(aprslib.parse(packet)['msgNo']))
                                 logger.info('Send ACK')
@@ -1378,6 +1403,16 @@ def rule_timer_loop():
     logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
     ping(CONFIG)
     send_unit_table(CONFIG, UNIT_MAP)
+    send_que = send_sms_que_req(CONFIG)
+    print(type(send_sms_que_req(CONFIG)))
+    print(send_sms_que_req(CONFIG))
+    for i in send_que:
+        try:
+            send_sms(False, i['rcv_id'], 0000, 0000, 'unit',  i['msg'])
+        except Exception as e:
+            logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
+            logger.info(e)
+
 
     
 class OBP(OPENBRIDGE):
@@ -1446,7 +1481,9 @@ class HBP(HBSYSTEM):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
+        print(_dtype_vseq)
         print('MMDVM RCVD')
+        print(UNIT_MAP)
         if _rf_src not in PACKET_MATCH:
             PACKET_MATCH[_rf_src] = [_data, time()]
         elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
@@ -1455,10 +1492,13 @@ class HBP(HBSYSTEM):
             pass
         else:
             PACKET_MATCH[_rf_src] = [_data, time()]
-        if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
-            data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-        else:
-            pass
+        try:
+            if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
+                data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+            else:
+                pass
+        except Exception as e:
+            logger.error('Error, possibly received voice group call.')
 ##        pass
 
 
@@ -1605,7 +1645,7 @@ if __name__ == '__main__':
 
     # Initialize the rule timer -- this if for user activated stuff
     rule_timer_task = task.LoopingCall(rule_timer_loop)
-    rule_timer = rule_timer_task.start(60)
+    rule_timer = rule_timer_task.start(20)
     rule_timer.addErrback(loopingErrHandle)
 
     if 'N0CALL' in aprs_callsign:

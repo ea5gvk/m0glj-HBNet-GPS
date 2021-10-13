@@ -2792,6 +2792,14 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 content = '''<h3 style="text-align: center;">Message sent.</h3>
                 <p style="text-align: center;">Redirecting in 1 seconds.</p>
                 <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+                
+            elif request.args.get('send_sms'):
+                sms_que_add(current_user.username, '', 0, int(request.form.get('dmr_id')), 'motorola', 'unit', 'DATA', '', request.form.get('message'))
+                content = '''<h3 style="text-align: center;">Message in que.</h3>
+                <p style="text-align: center;">Redirecting in 1 seconds.</p>
+                <meta http-equiv="refresh" content="1; URL=''' + url + '''/mail/''' + current_user.username + '''" /> '''
+
+
 
             else:
                 show_mailbox = True
@@ -2936,11 +2944,32 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         que_list = []
         for i in que_db:
             print(i)
+            que_list.append({'snd_call': i.snd_callsign, 'rcv_id': i.rcv_id, 'msg_type': i.msg_type, 'call_type': i.call_type, 'msg': i.message})
+        return que_list        
 
-    def sms_que_add():
-        pass
-    def sms_que_purge():
-        pass
+    def sms_que_add(_snd_call, _rcv_call, _snd_id, _rcv_id, _msg_type, _call_type, _server, _system_name, _msg):
+        sqa = SMS_Que(
+            snd_callsign = _snd_call,
+            rcv_callsign = _rcv_call,
+            message = _msg,
+            time = datetime.datetime.utcnow(),
+            server = _server,
+            system_name = _system_name,
+            snd_id = _snd_id,
+            rcv_id = _rcv_id,
+            msg_type = _msg_type,
+            call_type = _call_type
+            )
+        db.session.add(sqa)
+        db.session.commit()
+        
+    
+    def sms_que_purge(_server):
+        sqd = SMS_Que.query.filter_by(server=_server).all()
+
+        for i in sqd:
+                db.session.delete(i)
+        db.session.commit()
     
     def get_peer_configs(_server_name):
         mmdvm_pl = mmdvmPeer.query.filter_by(server=_server_name).filter_by(enabled=True).all()
@@ -6783,16 +6812,19 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     ##                except:
     ##                    message = jsonify(message='Config error')
     ##                    response = make_response(message, 401)
-                    .
+                    
 
             elif 'get_sms_que' in hblink_req:
-                if hblink_req['get_sms_que']: 
+                if hblink_req['get_sms_que']:
+                    q = sms_que('DATA')
+                    print(q)
 
                     response = jsonify(
-                            que=server_get(hblink_req['get_config'])
+                            que=q
     ##                        OBP=get_OBP(hblink_req['get_config'])
 
-                            )      
+                            )
+                    sms_que_purge('DATA')
             elif 'get_rules' in hblink_req:
                 if hblink_req['get_rules']: # == 'burn_list':
                     
