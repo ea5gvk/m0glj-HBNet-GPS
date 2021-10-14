@@ -107,6 +107,27 @@ __license__    = 'GNU GPLv3'
 __maintainer__ = 'Eric Craw, KF7EEL'
 __email__      = 'kf7eel@qsl.net'
 
+def download_aprs_settings(_CONFIG):
+    user_man_url = _CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(_CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    aprs_check = {
+    'aprs_settings':True,
+    'secret':shared_secret
+    }
+    json_object = json.dumps(aprs_check, indent = 4)
+    try:
+        set_dict = {}
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+##        raw_json = resp['aprs_settings']
+        print(type(resp))
+        for i in resp['aprs_settings'].items():
+            print(i)
+            set_dict[int(i[0])] = i[1]
+        return set_dict
+    # For exception, write blank dict
+    except requests.ConnectionError:
+        return {}
 
 def ping(CONFIG):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
@@ -259,7 +280,8 @@ def send_sms_cmd(CONFIG, _rf_id, _cmd):
     'sms_cmd': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
     'secret':shared_secret,
     'rf_id': _rf_id,
-    'cmd': _cmd
+    'cmd': _cmd,
+    'call': str(get_alias((_rf_id), subscriber_ids))
     }
     json_object = json.dumps(sms_cmd_data, indent = 4)
     
@@ -410,6 +432,7 @@ def mailbox_delete(dmr_id):
 
 def sos_write(dmr_id, time, message):
     user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+    print(user_settings)
     try:
         if user_settings[dmr_id][1]['ssid'] == '':
             sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
@@ -573,14 +596,18 @@ def process_sms(_rf_src, sms, call_type, system_name):
     logger.info(call_type)
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
+    # Social Status function
     if '@SS' in parse_sms[0]:
         s = ' '
         post = s.join(parse_sms[1:])
         send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
-    if '@RSS' in parse_sms[0]:
-        print(parse_sms)
+    # Offload some commands onto the HBNet web service
+    elif '@RSS' in parse_sms[0] or '@RBB' in parse_sms[0] or '@RMB' in parse_sms[0]:
         send_sms_cmd(CONFIG, int_id(_rf_src), sms)
-##        s = ' '
+    # Tiny Page query
+    elif '?' in parse_sms[0]:
+        send_sms_cmd(CONFIG, int_id(_rf_src), sms)
+    
     elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
@@ -593,6 +620,8 @@ def process_sms(_rf_src, sms, call_type, system_name):
             send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'It works')
         if call_type == 'vcsbk':
             send_sms(False, 9, 0000, 0000, 'group',  'It works')
+
+    # APRS settings
     elif '@ICON' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms), call_type)
     elif '@SSID' in parse_sms[0]:
@@ -606,36 +635,38 @@ def process_sms(_rf_src, sms, call_type, system_name):
         user_setting_write(int_id(_rf_src), 'APRS ON', True, call_type)
     elif '@APRS OFF' in sms or '@APRS off' in sms:
         user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
-    elif '@BB' in sms:
+    elif '@BB' in parse_sms[0]:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms), system_name)
 
-    elif '?' in parse_sms[0]:
-        send_sms_cmd(CONFIG, int_id(_rf_src), sms)
-    elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
-        s = ' '
-        email_message =  s.join(parse_sms[1:])#str(re.sub('.*@|.* E-', '', sms))
-        to_email = parse_sms[0]#str(re.sub(' E-.*', '', sms))
-        email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
-        logger.info('Email to: ' + to_email)
-        logger.info('Message: ' + email_message)
-        try:
-            send_email(to_email, email_subject, email_message)
-            logger.info('Email sent.')
-        except Exception as error_exception:
-            logger.info('Failed to send email.')
-            logger.info(error_exception)
-            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+    # Email command, going away
+##    elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
+##        s = ' '
+##        email_message =  s.join(parse_sms[1:])#str(re.sub('.*@|.* E-', '', sms))
+##        to_email = parse_sms[0]#str(re.sub(' E-.*', '', sms))
+##        email_subject = 'New message from ' + str(get_alias(int_id(_rf_src), subscriber_ids))
+##        logger.info('Email to: ' + to_email)
+##        logger.info('Message: ' + email_message)
+##        try:
+##            send_email(to_email, email_subject, email_message)
+##            logger.info('Email sent.')
+##        except Exception as error_exception:
+##            logger.info('Failed to send email.')
+##            logger.info(error_exception)
+##            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+    
     elif '@SOS' in sms or '@NOTICE' in sms:
         sos_write(int_id(_rf_src), time(), sms)
     elif '@REM SOS' == sms:
         os.remove(emergency_sos_file)
         logger.info('Removing SOS or Notice')
+        
     elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
         message = re.sub('^@|.* M-|','',sms)
         recipient = re.sub('@| M-.*','',sms)
         mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
     elif '@REM MAIL' == sms:
         mailbox_delete(_rf_src)
+        
     elif '@MH' in parse_sms[0]:
         grid_square = re.sub('@MH ', '', sms)
         if len(grid_square) < 6:
@@ -696,71 +727,71 @@ def process_sms(_rf_src, sms, call_type, system_name):
             logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
         packet_assembly = ''
           
-    elif '?' in parse_sms[0][0:1]:
-        use_api = CONFIG['DATA_CONFIG']['USE_API']
-        print(use_api)
-        if use_api == True:
-            auth_tokens = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
-            #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
-            #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
-            system = parse_sms[0][1:]
-            #print(access_systems[system])
-            #print(authorized_users)
-            # Determin msg_xfer or app
-            if access_systems[system]['mode'] == 'msg_xfer':
-                s = ' '
-                message_to_send = s.join(parse_sms[2:])
-                dest_id = int(parse_sms[1])
-                source_id = int_id(_rf_src)
-                send_msg_xfer(access_systems[system]['url'], access_systems[system]['user'], access_systems[system]['password'], message_to_send, source_id, dest_id)
-            if access_systems[system]['mode'] == 'app':
-                s = ' '
-                message_to_send = s.join(parse_sms[1:])
-                source_id = int_id(_rf_src)
-                send_app_request(access_systems[system]['url'], message_to_send, source_id)
-                
-                
-        if use_api == False:
-            if call_type == 'unit':
-                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
-            if call_type == 'vcsbk':
-                send_sms(False, 9, 0000, 0000, 'group', 'API not enabled. Contact server admin.')
+##    elif '?' in parse_sms[0][0:1]:
+##        use_api = CONFIG['DATA_CONFIG']['USE_API']
+##        print(use_api)
+##        if use_api == True:
+##            auth_tokens = ast.literal_eval(os.popen('cat ' + auth_token_file).read())
+##            #access_systems = ast.literal_eval(os.popen('cat ' + access_systems_file).read())
+##            #authorized_users = ast.literal_eval(os.popen('cat ' + authorized_users_file).read())
+##            system = parse_sms[0][1:]
+##            #print(access_systems[system])
+##            #print(authorized_users)
+##            # Determin msg_xfer or app
+##            if access_systems[system]['mode'] == 'msg_xfer':
+##                s = ' '
+##                message_to_send = s.join(parse_sms[2:])
+##                dest_id = int(parse_sms[1])
+##                source_id = int_id(_rf_src)
+##                send_msg_xfer(access_systems[system]['url'], access_systems[system]['user'], access_systems[system]['password'], message_to_send, source_id, dest_id)
+##            if access_systems[system]['mode'] == 'app':
+##                s = ' '
+##                message_to_send = s.join(parse_sms[1:])
+##                source_id = int_id(_rf_src)
+##                send_app_request(access_systems[system]['url'], message_to_send, source_id)
+##                
+##                
+##        if use_api == False:
+##            if call_type == 'unit':
+##                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
+##            if call_type == 'vcsbk':
+##                send_sms(False, 9, 0000, 0000, 'group', 'API not enabled. Contact server admin.')
 
-    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
-        #Example SMS text: @ARMDS A-This is a test.
-        s = ' '
-        aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
-        aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
-        logger.info(aprs_msg)
-        logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
-        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-        if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
-            ssid = user_settings[int_id(_rf_src)][1]['ssid']
-        else:
-            ssid = user_ssid
-        try:
-            if user_settings[int_id(_rf_src)][5]['APRS'] == True:
-                aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
-                logger.info(aprs_msg_pkt)
-                try:
-                    aprslib.parse(aprs_msg_pkt)
-                    aprs_send(aprs_msg_pkt)
-                    #logger.info('Packet sent.')
-                except Exception as error_exception:
-                    logger.info('Error uploading MSG packet.')
-                    logger.info(error_exception)
-                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-            else:
-                if call_type == 'unit':
-                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
-                if call_type == 'vcsbk':
-                    send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
-                
-        except Exception as e:
-            if call_type == 'unit':
-                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
-            if call_type == 'vcsbk':
-                send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
+##        #Example SMS text: @ARMDS A-This is a test.
+##        s = ' '
+##        aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
+##        aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
+##        logger.info(aprs_msg)
+##        logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
+##        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+##        if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
+##            ssid = user_settings[int_id(_rf_src)][1]['ssid']
+##        else:
+##            ssid = user_ssid
+##        try:
+##            if user_settings[int_id(_rf_src)][5]['APRS'] == True:
+##                aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
+##                logger.info(aprs_msg_pkt)
+##                try:
+##                    aprslib.parse(aprs_msg_pkt)
+##                    aprs_send(aprs_msg_pkt)
+##                    #logger.info('Packet sent.')
+##                except Exception as error_exception:
+##                    logger.info('Error uploading MSG packet.')
+##                    logger.info(error_exception)
+##                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+##            else:
+##                if call_type == 'unit':
+##                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                if call_type == 'vcsbk':
+##                    send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                
+##        except Exception as e:
+##            if call_type == 'unit':
+##                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##            if call_type == 'vcsbk':
+##                send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 
 ##    try:
 ##        if sms in cmd_list:
@@ -1305,7 +1336,8 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         # Begin APRS format and upload
                         # Disable opening file for reading to reduce "collision" or reading and writing at same time.
                         # 14FRS2013 simplified and moved settings retrieval
-                        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())	
+                        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+                        print(user_settings)
                         if int_id(_rf_src) not in user_settings:	
                             ssid = str(user_ssid)	
                             icon_table = '/'	
@@ -1419,7 +1451,6 @@ def rule_timer_loop():
     _now = time()
     _then = _now - 3600
     remove_list = []
-    print(UNIT_MAP)
     for unit in UNIT_MAP:
         if UNIT_MAP[unit][1] < (_then):
             remove_list.append(unit)
@@ -1431,8 +1462,6 @@ def rule_timer_loop():
     ping(CONFIG)
     send_unit_table(CONFIG, UNIT_MAP)
     send_que = send_sms_que_req(CONFIG)
-    print(type(send_sms_que_req(CONFIG)))
-    print(send_sms_que_req(CONFIG))
     for i in send_que:
         try:
             send_sms(False, i['rcv_id'], 0000, 0000, 'unit',  i['msg'])
@@ -1588,43 +1617,47 @@ if __name__ == '__main__':
 
 ##    use_api = CONFIG['DATA_CONFIG']['USE_API']
 
-    # Check if user_settings (for APRS settings of users) exists. Creat it if not.
-    if Path(user_settings_file).is_file():
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
         pass
-    else:
-        Path(user_settings_file).touch()
-        with open(user_settings_file, 'w') as user_dict_file:
-            user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]}")
-            user_dict_file.close()
-    # Check to see if dashboard files exist
-    if Path(loc_file).is_file():
-        pass
-    else:
-        Path(loc_file).touch()
-        with open(loc_file, 'w') as user_loc_file:
-            user_loc_file.write("[]")
-            user_loc_file.close()
-    if Path(bb_file).is_file():
-        pass
-    else:
-        Path(bb_file).touch()
-        with open(bb_file, 'w') as user_bb_file:
-            user_bb_file.write("[]")
-            user_bb_file.close()
-            
-    if Path(sms_file).is_file():
-        pass
-    else:
-        Path(sms_file).touch()
-        with open(sms_file, 'w') as user_sms_file:
-            user_sms_file.write("[]")
-            user_sms_file.close()
-    try:
-        Path('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/').mkdir(parents=True, exist_ok=True)
-        logger.info('Created que directory')
-    except:
-        logger.info('Unable to create data que directory')
-        pass    
+    
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
+        # Check if user_settings (for APRS settings of users) exists. Creat it if not.
+        if Path(user_settings_file).is_file():
+            pass
+        else:
+            Path(user_settings_file).touch()
+            with open(user_settings_file, 'w') as user_dict_file:
+                user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]}")
+                user_dict_file.close()
+        # Check to see if dashboard files exist
+        if Path(loc_file).is_file():
+            pass
+        else:
+            Path(loc_file).touch()
+            with open(loc_file, 'w') as user_loc_file:
+                user_loc_file.write("[]")
+                user_loc_file.close()
+        if Path(bb_file).is_file():
+            pass
+        else:
+            Path(bb_file).touch()
+            with open(bb_file, 'w') as user_bb_file:
+                user_bb_file.write("[]")
+                user_bb_file.close()
+                
+        if Path(sms_file).is_file():
+            pass
+        else:
+            Path(sms_file).touch()
+            with open(sms_file, 'w') as user_sms_file:
+                user_sms_file.write("[]")
+                user_sms_file.close()
+##        try:
+##            Path('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/').mkdir(parents=True, exist_ok=True)
+##            logger.info('Created que directory')
+##        except:
+##            logger.info('Unable to create data que directory')
+##            pass    
 
     # Start the system logger
     if cli_args.LOG_LEVEL:
@@ -1672,7 +1705,7 @@ if __name__ == '__main__':
 
     # Initialize the rule timer -- this if for user activated stuff
     rule_timer_task = task.LoopingCall(rule_timer_loop)
-    rule_timer = rule_timer_task.start(20)
+    rule_timer = rule_timer_task.start(10)
     rule_timer.addErrback(loopingErrHandle)
 
     if 'N0CALL' in aprs_callsign:
@@ -1682,5 +1715,10 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
+
+    # Download user APRS settings
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        with open(user_settings_file, 'w') as f:
+                f.write(str(download_aprs_settings(CONFIG)))
         
     reactor.run()

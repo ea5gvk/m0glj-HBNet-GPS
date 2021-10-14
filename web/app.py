@@ -2386,15 +2386,22 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     @app.route('/aprs_settings')
     def aprs_settings():
         user_aprs = User.query.filter_by(username=current_user.username).first()
-        print(user_aprs.aprs)
         settings = ast.literal_eval(user_aprs.aprs)
+        data_gateways = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).all()
+        
         content = '''
   <h1 style="text-align: center;">APRS Settings</h1>
+  '''
+        for g in data_gateways:
+            print(g.name)
+            
+            content = content + '''
+''' + g.name + '''
 
 <table data-toggle="table" data-pagination="true" data-search="true" >
   <thead>
     <tr>
-      <th>DMR ID</th>
+      <th>DMR ID </th>
       <th>Callsign</th>
       <th>SSID</th>
       <th>Icon</th>
@@ -2407,46 +2414,50 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
   </thead>
   <tbody>
 '''
-        show_form = True
-        for i in settings.items():
-            content = content + '''
-<form action="aprs_settings?save_id=''' + str(i[0]) + '''" method="post">
-      <th>''' + str(i[0]) + '''</th>
-      <th>''' + i[1][0]['call'] + '''</th>
-      <th><select class="form-select" aria-label="SSID" id="ssid">
-  <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="7">7</option>
-  <option value="8">8</option>
-  <option value="9">9</option>
-  <option value="10">10</option>
-  <option value="11">11</option>
-  <option value="12">12</option>
-  <option value="13">13</option>
-  <option value="14">14</option>
-  <option value="15">15</option>
-</select></th>
+            show_form = True
+            for i in settings.items():
+                content = content + '''
+    <tr>
+    <form action="aprs_settings?save_id=''' + str(i[0]) + '''&save_server=''' + g.name + '''" method="post">
+          <td>''' + str(i[0]) + '''</td>
+          <td>''' + i[1][0]['call'] + '''</td>
+          <td><select class="form-select" aria-label="SSID" id="ssid">
+      <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+      <option value="13">13</option>
+      <option value="14">14</option>
+      <option value="15">15</option>
+    </select></td>
 
-      <th><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></th>
-      <th><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></th>
-      <th><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></th>
-      <th>''' + str(i[1][5]['APRS']) + '''</th>
-</form>
-'''
+          <td><div class="input-group mb-3">
+      <span class="input-group-text" id="icon"></span>
+      <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+    </div></td>
+          <td><div class="input-group mb-3">
+      <span class="input-group-text" id="icon"></span>
+      <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+    </div></td>
+          <td><div class="input-group mb-3">
+      <span class="input-group-text" id="icon"></span>
+      <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+    </div></td>
+          <td>''' + str(i[1][5]['APRS']) + '''</td>
+    </form>
+    </tr>
+    \n
+    '''
+        content = content + '</tbody></table>'
         
 ##        for i in bbl:
 ##            content = content + '''
@@ -2457,7 +2468,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 ##      <td>''' + i.server + ' - ' + i.system_name + '''</td>
 ##
 ##    </tr>'''
-        content = content + '</tbody></table>'
+        
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
     @app.route('/talkgroups')
@@ -3063,6 +3074,16 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             #print(i.dmr_id)
             burn_dict[i.dmr_id] = i.version
         return burn_dict
+
+    def get_aprs_settings():
+        ul = User.query.all()
+        #print(b)
+        aprs_dict = {}
+        for i in ul:
+            usr_settings = ast.literal_eval(i.aprs)
+            for s in usr_settings.items():               
+                aprs_dict[int(s[0])] = s[1]
+        return aprs_dict
         
     def add_burnlist(_dmr_id, _version):
         burn_list = BurnList(
@@ -6751,6 +6772,11 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                 response = jsonify(
                                 burn_list=get_burnlist()
                                     )
+            elif 'aprs_settings' in hblink_req: # ['burn_list']: # == 'burn_list':
+                print(get_aprs_settings())
+                response = jsonify(
+                                aprs_settings=get_aprs_settings()
+                                    )
             elif 'loc_callsign' in hblink_req:
                 if hblink_req['lat'] == '*' and hblink_req['lon'] == '*':
 ##                    del peer_locations[hblink_req['dmr_id']]
@@ -6828,6 +6854,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                             )
                     sms_que_purge(hblink_req['get_sms_que'])
             elif 'sms_cmd' in hblink_req:
+                print(get_aprs_settings())
                 if hblink_req['sms_cmd']:
                     split_cmd = str(hblink_req['cmd']).split(' ')
                     print(split_cmd)
@@ -6841,7 +6868,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Query not found or other error.')
-                    if hblink_req['cmd'][:4] == '@RSS':
+                    elif hblink_req['cmd'][:4] == '@RSS':
                         try:
                             try:
                                 retr = int(split_cmd[1])
@@ -6852,9 +6879,34 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                                 ss = Social.query.filter_by(dmr_id=int(split_cmd[1])).order_by(Social.time.desc()).first()
                             elif type(retr) == str:
                                 ss = Social.query.filter_by(callsign=str(split_cmd[1]).upper()).order_by(Social.time.desc()).first()
-                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Last - ' + ss.message)
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Last: ' + ss.message)
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
+                            
+                    elif hblink_req['cmd'][:4] == '@RBB':
+                        try:
+                            bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).limit(3).all()
+                            for i in bbl:
+                                sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'BB: ' + i.bulletin)
+                        except:
+                            sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
+                            
+                    elif hblink_req['cmd'][:4] == '@RMB':
+                        if split_cmd[1]:
+                            try:
+                                mail_all = MailBox.query.filter_by(rcv_callsign=hblink_req['call'].upper()).order_by(MailBox.time.desc()).limit(3).all()
+                                for i in mail_all:
+                                    sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', str(i.snd_callsign) + ': ' + i.message)
+                            except:
+                                sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
+                            
+                        else:
+                            try:
+                                mail_all = MailBox.query.filter_by(rcv_id=int(hblink_req['rf_id'])).order_by(MailBox.time.desc()).limit(3).all()
+                                for i in mail_all:
+                                    sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', str(i.snd_id) + ': ' + re.sub('<.*?>', '', str(i.message)))
+                            except:
+                                sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
 
                                               
                         
