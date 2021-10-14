@@ -24,6 +24,9 @@ url = 'http://localhost:8080'
 # Replace below with some random string such as an SHA256
 secret_key = 'SUPER SECRET LONG KEY'
 
+# Timezone to show time stamps in. Stored in DB as UTC. Offset in hours.
+hbnet_tz = -1
+
 # Default state for newly created user accounts. Setting to False will require
 # the approval of an admin user before the user can login.
 default_account_state = True

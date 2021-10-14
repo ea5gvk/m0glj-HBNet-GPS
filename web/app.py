@@ -41,6 +41,8 @@ from flask_mail import Message, Mail
 from socket import gethostbyname
 import re
 import folium
+##from pytz import timezone
+from datetime import timedelta
 
 from gen_script_template import gen_script
 
@@ -856,7 +858,7 @@ def hbnet_web_service():
                     <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><em>"""+ str(i.time.strftime(time_format)) +"""</em></td>
+                    <td style="text-align: center;"><em>"""+ str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) +"""</em></td>
                     </tr>
                     </tbody>
                     </table>
@@ -1398,7 +1400,7 @@ def hbnet_web_service():
 <td>&nbsp;
 <p style="text-align: center;"><a href="update_ids?callsign=''' + u.username + '''"><button  type="button" class="btn btn-success btn-block" >Update from RadioID.net</button></a></p>
 &nbsp;</td>
-<td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str(u.email_confirmed_at.strftime(time_format)) + '''</strong></p></td>
+<td>&nbsp;''' + confirm_link + '''&nbsp; <br /><p style="text-align: center;"><strong>Email confirmed: ''' + str((u.email_confirmed_at + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</strong></p></td>
 </tr>
 <tr>
 <td>&nbsp;
@@ -2502,8 +2504,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
               <item>
                 <title>To: """ + i.rcv_callsign + ' (' + str(i.rcv_id) + ') - From: ' + i.snd_callsign + """ (""" + str(i.snd_id) + """</title>
                 <link>""" + url + """/sms</link>
-                <description>""" + i.message + """ - """ + str(i.time.strftime(time_format)) + """</description>
-                <pubDate>""" + i.time.strftime('%a, %d %b %y') +"""</pubDate>
+                <description>""" + i.message + """ - """ + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</description>
+                <pubDate>""" + (i.time + timedelta(hours=hbnet_tz)).strftime('%a, %d %b %y') +"""</pubDate>
               </item>
 
 """
@@ -2540,8 +2542,8 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
               <item>
                 <title>""" + i.callsign + ' - ' + str(i.dmr_id) + """</title>
                 <link>""" + url + """/bb</link>
-                <description>""" + i.bulletin + """ - """ + str(i.time.strftime(time_format)) + """</description>
-                <pubDate>""" + i.time.strftime('%a, %d %b %y') +"""</pubDate>
+                <description>""" + i.bulletin + """ - """ + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</description>
+                <pubDate>""" + (i.time + timedelta(hours=hbnet_tz)).strftime('%a, %d %b %y') +"""</pubDate>
               </item>
 
 """
@@ -2557,7 +2559,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
     <tr>
       <td><p style="text-align: center;"><strong>''' + i.callsign + '''<strong></p> \n <a href="/ss/''' + str(i.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></td>
       <td>''' + i.bulletin + '''</td>
-      <td>''' + str(i.time.strftime(time_format)) + '''</td>
+      <td>''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
       <td>''' + i.server + ' - ' + i.system_name + '''</td>
 
     </tr>'''
@@ -2625,7 +2627,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <div class="card" style="width:300px">
   <div class="card-header"><strong>''' + i.poster + '''</strong></div>
   <div class="card-body">''' + i.text + '''</div>
-  <div class="card-footer">''' + str(i.time.strftime(time_format)) + '''</div>
+  <div class="card-footer">''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</div>
 </div>
 </td>
 <td>
@@ -2711,10 +2713,10 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         for i in ss_all:
             ss_content = ss_content + """
               <item>
-                <title>""" + str(dmr_id) + ' - ' + str(i.time.strftime(time_format)) + """</title>
+                <title>""" + str(dmr_id) + ' - ' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</title>
                 <link>""" + url + """/ss/""" + dmr_id + """</link>
                 <description>""" + str(i.message) + """ - """ + str(i.time.strftime(time_format)) + """</description>
-                <pubDate>""" + str(i.time.strftime('%a, %d %b %y')) + """</pubDate>
+                <pubDate>""" + str((i.time + timedelta(hours=hbnet_tz)).strftime('%a, %d %b %y')) + """</pubDate>
               </item>
 """
            
@@ -2729,7 +2731,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             content = '''
     <div class="card" style="width: 400px;">
     <div class="card-body">
-    <h4 class="card-title" style="text-align: center;">''' + ssd.callsign + ' - ' + str(ssd.dmr_id) + '''</h4>\n <p style="text-align: center;">''' + str(ssd.time.strftime(time_format)) + '''</p>
+    <h4 class="card-title" style="text-align: center;">''' + ssd.callsign + ' - ' + str(ssd.dmr_id) + '''</h4>\n <p style="text-align: center;">''' + str((ssd.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</p>
     <br /><hr /><br />
     <p class="card-text" style="text-align: center;"><strong>''' + ssd.message + '''</strong></p>
 <br /><hr /><br />
@@ -2738,7 +2740,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
                 post_content = post_content + '''
         <tr>
           <td>''' + i.message + '''</td>
-          <td>''' + str(i.time.strftime(time_format)) + '''</td>
+          <td>''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
         </tr>'''
         except:
             content = '<h4><p style="text-align: center;">No posts by user.</p></h4>'
@@ -2781,7 +2783,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         <tr>
           <td><strong>To: </strong>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''<br /><strong>From: </strong>''' + i.rcv_callsign + ''' - ''' + str(i.rcv_id) + '''</td>
           <td>''' + i.message + '''</td>
-          <td>''' + str(i.time.strftime(time_format)) + '''</td>
+          <td>''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
           <td><a href="/all_mail/''' + user + '''?delete_mail=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
         </tr>'''
         return render_template('all_mail.html', markup_content = Markup(content), show_mail = show_mailbox)
@@ -2826,7 +2828,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             <tr>
               <td>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''</td>
               <td>''' + i.message + '''</td>
-              <td>''' + str(i.time.strftime(time_format)) + '''</td>
+              <td>''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
               <td><a href="/mail/''' + current_user.username + '''?delete_mail=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
             </tr>'''
         else:
@@ -6679,7 +6681,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong></button></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
-    <td style="text-align: center;">&nbsp;''' + str(i.time.strftime(time_format)) + '''&nbsp;</td>
+    <td style="text-align: center;">&nbsp;''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''&nbsp;</td>
     </tr>
 '''
 ##        content = dev_loc
@@ -6773,7 +6775,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                                 burn_list=get_burnlist()
                                     )
             elif 'aprs_settings' in hblink_req: # ['burn_list']: # == 'burn_list':
-                print(get_aprs_settings())
+##                print(get_aprs_settings())
                 response = jsonify(
                                 aprs_settings=get_aprs_settings()
                                     )

@@ -119,10 +119,7 @@ def download_aprs_settings(_CONFIG):
         set_dict = {}
         req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         resp = json.loads(req.text)
-##        raw_json = resp['aprs_settings']
-        print(type(resp))
         for i in resp['aprs_settings'].items():
-            print(i)
             set_dict[int(i[0])] = i[1]
         return set_dict
     # For exception, write blank dict
