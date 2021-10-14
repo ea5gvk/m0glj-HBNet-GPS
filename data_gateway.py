@@ -184,11 +184,8 @@ def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id, system_name):
     
     try:
         req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
-##        resp = json.loads(req.text)
-##        print(resp)
-##        return resp['rules']
-    except requests.ConnectionError:
-        logger.error('Config server unreachable')
+    except Exception as e:
+        logger.error(e)
 
 def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
@@ -266,8 +263,8 @@ def send_sms_que_req(CONFIG):
         resp = json.loads(req.text)
         print(resp)
         return resp['que']
-    except requests.ConnectionError:
-        logger.error('Config server unreachable')
+    except Exception as e:
+        logger.error(e)
 
 def send_sms_cmd(CONFIG, _rf_id, _cmd):
     print('ssnd rmt cmd')
@@ -1459,12 +1456,16 @@ def rule_timer_loop():
     ping(CONFIG)
     send_unit_table(CONFIG, UNIT_MAP)
     send_que = send_sms_que_req(CONFIG)
-    for i in send_que:
-        try:
-            send_sms(False, i['rcv_id'], 0000, 0000, 'unit',  i['msg'])
-        except Exception as e:
-            logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
-            logger.info(e)
+    try:
+        for i in send_que:
+            try:
+                send_sms(False, i['rcv_id'], 0000, 0000, 'unit',  i['msg'])
+            except Exception as e:
+                logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
+                logger.info(e)
+    except Exception as e:
+        logger.error('Send que error')
+        logger.error(e)
 
 
     

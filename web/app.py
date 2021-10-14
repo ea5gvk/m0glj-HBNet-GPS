@@ -169,6 +169,9 @@ def hbnet_web_service():
         city = db.Column(db.String(100), nullable=False, server_default='')
         notes = db.Column(db.String(2000), nullable=False, server_default='')
         aprs = db.Column(db.String(2000), nullable=False, server_default='{}')
+        api_keys = db.Column(db.String(2000), nullable=False, server_default='[]')
+        other = db.Column(db.String(2000), nullable=False, server_default='{}')
+
         #Used for initial approval
         initial_admin_approved = db.Column('initial_admin_approved', db.Boolean(), nullable=False, server_default='1')
         # Define the relationship to Role via UserRoles
@@ -2393,12 +2396,6 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         
         content = '''
   <h1 style="text-align: center;">APRS Settings</h1>
-  '''
-        for g in data_gateways:
-            print(g.name)
-            
-            content = content + '''
-''' + g.name + '''
 
 <table data-toggle="table" data-pagination="true" data-search="true" >
   <thead>
@@ -2416,49 +2413,49 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
   </thead>
   <tbody>
 '''
-            show_form = True
-            for i in settings.items():
-                content = content + '''
-    <tr>
-    <form action="aprs_settings?save_id=''' + str(i[0]) + '''&save_server=''' + g.name + '''" method="post">
-          <td>''' + str(i[0]) + '''</td>
-          <td>''' + i[1][0]['call'] + '''</td>
-          <td><select class="form-select" aria-label="SSID" id="ssid">
-      <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-      <option value="13">13</option>
-      <option value="14">14</option>
-      <option value="15">15</option>
-    </select></td>
+        show_form = True
+        for i in settings.items():
+            content = content + '''
+<tr>
+<form action="aprs_settings?save_id=''' + str(i[0]) + '''" method="post">
+      <td>''' + str(i[0]) + '''</td>
+      <td>''' + i[1][0]['call'] + '''</td>
+      <td><select class="form-select" aria-label="SSID" id="ssid">
+  <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+  <option value="11">11</option>
+  <option value="12">12</option>
+  <option value="13">13</option>
+  <option value="14">14</option>
+  <option value="15">15</option>
+</select></td>
 
-          <td><div class="input-group mb-3">
-      <span class="input-group-text" id="icon"></span>
-      <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-    </div></td>
-          <td><div class="input-group mb-3">
-      <span class="input-group-text" id="icon"></span>
-      <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-    </div></td>
-          <td><div class="input-group mb-3">
-      <span class="input-group-text" id="icon"></span>
-      <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-    </div></td>
-          <td>''' + str(i[1][5]['APRS']) + '''</td>
-    </form>
-    </tr>
-    \n
-    '''
+      <td><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></td>
+      <td><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></td>
+      <td><div class="input-group mb-3">
+  <span class="input-group-text" id="icon"></span>
+  <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
+</div></td>
+      <td>''' + str(i[1][5]['APRS']) + '''</td>
+</form>
+</tr>
+\n
+'''
         content = content + '</tbody></table>'
         
 ##        for i in bbl:
@@ -3083,8 +3080,13 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         aprs_dict = {}
         for i in ul:
             usr_settings = ast.literal_eval(i.aprs)
-            for s in usr_settings.items():               
-                aprs_dict[int(s[0])] = s[1]
+            for s in usr_settings.items():
+                print(s[1])
+                if s[1] == 'default':
+                    aprs_dict[int(s[0])] = [{'call': str(i.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
+                else:
+                    aprs_dict[int(s[0])] = s[1]
+        print(aprs_dict)
         return aprs_dict
         
     def add_burnlist(_dmr_id, _version):

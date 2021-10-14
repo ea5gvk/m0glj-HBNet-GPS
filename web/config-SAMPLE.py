@@ -27,6 +27,9 @@ secret_key = 'SUPER SECRET LONG KEY'
 # Timezone to show time stamps in. Stored in DB as UTC. Offset in hours.
 hbnet_tz = -1
 
+# Time format for display on some pages
+time_format = '%H:%M:%S - %m/%d/%y'
+
 # Default state for newly created user accounts. Setting to False will require
 # the approval of an admin user before the user can login.
 default_account_state = True
@@ -88,7 +91,4 @@ USER_ENABLE_REGISTER = True
 USER_AUTO_LOGIN_AFTER_CONFIRM = False
 USER_SHOW_USERNAME_DOES_NOT_EXIST = True
 
-
-# Time format for display on some pages
-time_format = '%H:%M:%S - %m/%d/%y'
 
