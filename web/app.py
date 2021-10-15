@@ -6631,7 +6631,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <tr>
       <td>''' + str(int_id(i[0])) + '''</td>
       <td>''' + str((i[1][0])) + '''</td>
-      <td>''' + str(i[1][1]) + '''</td>
+      <td>''' + str((datetime.datetime.fromtimestamp(i[1][1]) + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
     </tr>
 '''
 
