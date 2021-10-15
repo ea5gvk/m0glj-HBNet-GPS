@@ -6608,6 +6608,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     @app.route('/unit/<server>')
     def get_unit_table(server):
         unit_table = Misc.query.filter_by(field_1='unit_table_' + server).first()
+        svr = ServerList.query.filter_by(name=server).first()
         table_dict = ast.literal_eval(unit_table.field_2)
         print(table_dict)
         content = '''
@@ -6631,7 +6632,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <tr>
       <td>''' + str(int_id(i[0])) + '''</td>
       <td>''' + str((i[1][0])) + '''</td>
-      <td>''' + str((datetime.datetime.fromtimestamp(i[1][1]) + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
+      <td>''' + str((svr.unit_time + datetime.datetime.fromtimestamp(i[1][1]) + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
     </tr>
 '''
 
