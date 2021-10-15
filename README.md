@@ -67,6 +67,21 @@ A voluntary registry for HBlink systems with public access has been created at h
 
 ---
 
+### Git Repositories
+
+[https://codeberg.org/kf7eel/hbnet](https://codeberg.org/kf7eel/hbnet)
+
+[https://gitea.com/kf7eel/hbnet](https://gitea.com/kf7eel/hbnet)
+
+[https://linux.us.org/HBNet/HBNet](https://linux.us.org/HBNet/HBNet)
+
+[https://gitlab.com/hbnet2/hbnet](https://gitlab.com/hbnet2/hbnet)
+
+[https://github.com/kf7eel/hbnet](https://github.com/kf7eel/hbnet) 
+
+
+
+---
 ## PROJECT: Open Source HomeBrew Repeater Proctol Client/Master. ##
 
 **UPDATES:**
