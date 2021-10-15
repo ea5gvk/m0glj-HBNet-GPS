@@ -2778,7 +2778,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
             for i in mail_all_users:
                 content = content + '''
         <tr>
-          <td><strong>To: </strong>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''<br /><strong>From: </strong>''' + i.rcv_callsign + ''' - ''' + str(i.rcv_id) + '''</td>
+          <td><strong>To: </strong>''' + i.rcv_callsign + ''' - ''' + str(i.rcv_id) + '''<br /><strong>From: </strong>''' + i.snd_callsign + ''' - ''' + str(i.snd_id) + '''</td>
           <td>''' + i.message + '''</td>
           <td>''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
           <td><a href="/all_mail/''' + user + '''?delete_mail=''' + str(i.id) + '''"><button type="button" class="btn btn-danger">Delete</button></a></td>
