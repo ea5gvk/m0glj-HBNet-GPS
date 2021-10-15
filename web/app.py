@@ -6626,19 +6626,19 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
   <tbody>
 
 '''
-        try:
-            for i in table_dict.items():
-                content = content + '''
+##        try:
+        for i in table_dict.items():
+            content = content + '''
 <tr>
-      <td>''' + str(int_id(i[0])) + '''</td>
-      <td>''' + str((i[1][0])) + '''</td>
-      <td>''' + str((svr.unit_time + datetime.datetime.fromtimestamp(i[1][1]) + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
-    </tr>
+  <td>''' + str(int_id(i[0])) + '''</td>
+  <td>''' + str((i[1][0])) + '''</td>
+  <td>''' + str((timedelta(seconds=svr.unit_time) + datetime.datetime.fromtimestamp(i[1][1])).strftime(time_format)) + '''</td>
+</tr>
 '''
 
-            content = content + '</tbody></table>'
-        except:
-            content = '<h4><p style="text-align: center;">No UNIT table.</p></h4>'
+        content = content + '</tbody></table>'
+##        except:
+##            content = '<h4><p style="text-align: center;">No UNIT table.</p></h4>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
 
