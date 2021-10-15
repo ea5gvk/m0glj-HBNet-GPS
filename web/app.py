@@ -6637,8 +6637,8 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 '''
 
         content = content + '</tbody></table>'
-##        except:
-##            content = '<h4><p style="text-align: center;">No UNIT table.</p></h4>'
+####        except:
+####            content = '<h4><p style="text-align: center;">No UNIT table or other.</p></h4>'
         return render_template('flask_user_layout.html', markup_content = Markup(content))
     
 
