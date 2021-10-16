@@ -689,7 +689,7 @@ def hbnet_web_service():
         edit_user.last_name = str(radioid_data[2])
         edit_user.city = str(radioid_data[3])
         for i in radioid_data[0].items():
-            aprs_dict[i[0]] = 'default'
+            aprs_dict[i[0]] = """[{'call': '""" + str(user.username).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
         edit_user.aprs = str(aprs_dict)
         user_role = UserRoles(
             user_id=edit_user.id,
@@ -2388,85 +2388,90 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         response = Response(gen_csv, mimetype="text/csv")
         return response
 
-    @app.route('/aprs_settings')
+    @app.route('/aprs_settings', methods=['POST', 'GET'])
+    @login_required
     def aprs_settings():
         user_aprs = User.query.filter_by(username=current_user.username).first()
         settings = ast.literal_eval(user_aprs.aprs)
-        data_gateways = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).all()
-        
-        content = '''
-  <h1 style="text-align: center;">APRS Settings</h1>
+##        data_gateways = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).all()
+        if request.args.get('save_id'):
+          
+            aprs_edit(user_aprs.username, request.args.get('save_id'), request.form.get('ssid'), request.form.get('icon'), request.form.get('comment'), request.form.get('pin'), request.form.get('aprs'))
+            content = '''<h3 style="text-align: center;">Saved.</h3>
+            <p style="text-align: center;">Redirecting in 1 seconds.</p>
+            <meta http-equiv="refresh" content="1; URL=/aprs_settings" /> '''
+        else:
+            content = '''
+      <h1 style="text-align: center;">APRS Settings</h1>
 
-<table data-toggle="table" data-pagination="true" data-search="true" >
-  <thead>
-    <tr>
-      <th>DMR ID </th>
-      <th>Callsign</th>
-      <th>SSID</th>
-      <th>Icon</th>
-      <th>Comment</th>
-      <th>PIN</th>
-      <th>APRS MSG?</th>
-      <th>Options</th>
+    <table class="table" >
+      <thead>
+        <tr>
+          <th>DMR ID </th>
+          <th>Callsign</th>
+          <th>SSID</th>
+          <th>Icon</th>
+          <th>Comment</th>
+          <th>PIN</th>
+          <th>APRS MSG?</th>
+          <th>Options</th>
 
-    </tr>
-  </thead>
-  <tbody>
-'''
-        show_form = True
-        for i in settings.items():
-            content = content + '''
-<tr>
+        </tr>
+      </thead>
+      <tbody>
+    '''
+            show_form = True
+            for i in settings.items():
+                content = content + '''
 <form action="aprs_settings?save_id=''' + str(i[0]) + '''" method="post">
-      <td>''' + str(i[0]) + '''</td>
-      <td>''' + i[1][0]['call'] + '''</td>
-      <td><select class="form-select" aria-label="SSID" id="ssid">
-  <option selected>Current - ''' + i[1][1]['ssid'] + '''</option>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="7">7</option>
-  <option value="8">8</option>
-  <option value="9">9</option>
-  <option value="10">10</option>
-  <option value="11">11</option>
-  <option value="12">12</option>
-  <option value="13">13</option>
-  <option value="14">14</option>
-  <option value="15">15</option>
-</select></td>
+    <tr>
+          <td>''' + str(i[0]) + '''</td>
+          <td>''' + i[1][0]['call'] + '''</td>
+          <td><select class="form-select" aria-label="SSID" name="ssid" id="ssid">
+      <option value="''' + i[1][1]['ssid'] + '''" selected>''' + i[1][1]['ssid'] + '''</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+      <option value="13">13</option>
+      <option value="14">14</option>
+      <option value="15">15</option>
+    </select></td>
 
-      <td><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></td>
-      <td><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></td>
-      <td><div class="input-group mb-3">
-  <span class="input-group-text" id="icon"></span>
-  <input type="text" class="form-control" placeholder="''' + i[1][4]['pin'] + '''" aria-label="Username" aria-describedby="basic-addon1">
-</div></td>
-      <td>''' + str(i[1][5]['APRS']) + '''</td>
-</form>
-</tr>
-\n
-'''
-        content = content + '</tbody></table>'
-        
-##        for i in bbl:
-##            content = content + '''
-##    <tr>
-##      <td><p style="text-align: center;"><strong>''' + i.callsign + '''<strong></p> \n <a href="/ss/''' + str(i.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></td>
-##      <td>''' + i.bulletin + '''</td>
-##      <td>''' + str(i.time.strftime(time_format)) + '''</td>
-##      <td>''' + i.server + ' - ' + i.system_name + '''</td>
-##
-##    </tr>'''
+          <td><div class="input-group mb-3">
+      <span class="input-group-text" >Icon</span>
+      <input type="text" name="icon" id="icon" class="form-control" placeholder="''' + i[1][2]['icon'] + '''" aria-label="icon" aria-describedby="basic-addon1">
+    </div></td>
+          <td><div class="input-group mb-3">
+      <span class="input-group-text" >Comment</span>
+      <input type="text" name="comment" id="comment" class="form-control" placeholder="''' + i[1][3]['comment'] + '''" aria-label="comment" aria-describedby="basic-addon1">
+    </div></td>
+          <td><div class="input-group mb-3">
+          
+      <span class="input-group-text" >PIN</span>
+      <input type="text" name="pin" id="pin" class="form-control" placeholder="''' + str(i[1][4]['pin']) + '''" aria-label="pin" aria-describedby="basic-addon1">
+    </div></td>
+          <td><select class="form-select" aria-label="APRS" name="aprs" id="aprs">
+      <option value="''' + str(i[1][5]['APRS']) + '''" selected>Current - ''' + str(i[1][5]['APRS']) + '''</option>
+      <option value="True">True</option>
+      <option value="False">False</option>
+          </select></td>
+    <td>
+    <button type="submit" class="btn btn-primary mb-3"> Save </button>
+    </td>
+    </tr>
+    </form>
+    \n
+    '''
+            content = content + '</tbody></table>'
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
@@ -3082,10 +3087,10 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             usr_settings = ast.literal_eval(i.aprs)
             for s in usr_settings.items():
                 print(s[1])
-                if s[1] == 'default':
-                    aprs_dict[int(s[0])] = [{'call': str(i.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
-                else:
-                    aprs_dict[int(s[0])] = s[1]
+##                if s[1] == 'default':
+####                    aprs_dict[int(s[0])] = [{'call': str(i.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
+##                else:
+                aprs_dict[int(s[0])] = s[1]
         print(aprs_dict)
         return aprs_dict
         
@@ -3168,6 +3173,32 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             )
         db.session.add(add_bb)
         db.session.commit()
+
+    def aprs_edit(_user, _dmr_id, _ssid, _icon, _comment, _pin, _aprs_msg):
+        u = User.query.filter_by(username=_user).first()
+        settings = ast.literal_eval(u.aprs)
+        new_settings = {}
+        _dmr_id = int(_dmr_id)
+        for i in settings:
+            new_settings[i] = settings[i]
+
+        if _ssid != '':
+            new_settings[_dmr_id][1]['ssid'] = _ssid
+        if _icon != '':
+            new_settings[_dmr_id][2]['icon'] = _icon
+        if _comment != '':
+            new_settings[_dmr_id][3]['comment'] = _comment
+        if _pin != '':
+            new_settings[_dmr_id][4]['pin'] = int(_pin)
+        if _aprs_msg == 'True':
+            new_settings[_dmr_id][5]['APRS'] = True
+        if _aprs_msg == 'False':
+            new_settings[_dmr_id][5]['APRS'] = False
+        
+        u.aprs = str(new_settings)
+        db.session.commit()
+        
+    
         
     def del_ss(_dmr_id):
         try:
@@ -6205,7 +6236,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                 radioid_data = ast.literal_eval(get_ids(request.form.get('username')))
                 aprs_dict = {}
                 for i in radioid_data[0].items():
-                        aprs_dict[i[0]] = 'default'
+                        aprs_dict[i[0]] = """[{'call': '""" + str(request.form.get('username')).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
                 user = User(
                     username=request.form.get('username'),
                     email=request.form.get('email'),
@@ -6873,7 +6904,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', tp.content)
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Query not found or other error.')
-                    elif hblink_req['cmd'][:4] == '@RSS':
+                    elif hblink_req['cmd'][:4] == '*RSS':
                         try:
                             try:
                                 retr = int(split_cmd[1])
@@ -6888,7 +6919,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
                             
-                    elif hblink_req['cmd'][:4] == '@RBB':
+                    elif hblink_req['cmd'][:4] == '*RBB':
                         try:
                             bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).limit(3).all()
                             for i in bbl:
@@ -6896,7 +6927,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                         except:
                             sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
                             
-                    elif hblink_req['cmd'][:4] == '@RMB':
+                    elif hblink_req['cmd'][:4] == '*RMB':
                         if split_cmd[1]:
                             try:
                                 mail_all = MailBox.query.filter_by(rcv_callsign=hblink_req['call'].upper()).order_by(MailBox.time.desc()).limit(3).all()
