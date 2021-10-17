@@ -288,7 +288,116 @@ def send_sms_cmd(CONFIG, _rf_id, _cmd):
         logger.error('Config server unreachable')
 
 
+# Function to download config
+def download_config(CONFIG_FILE, cli_file):
+    user_man_url = CONFIG_FILE['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    config_check = {
+    'get_config':CONFIG_FILE['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret
+    }
+    json_object = json.dumps(config_check, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+        resp = json.loads(req.text)
+        iterate_config = resp['peers'].copy()
+        corrected_config = resp['config'].copy()
+        corrected_config['SYSTEMS'] = {}
+        corrected_config['LOGGER'] = {}
+        iterate_config.update(resp['masters'].copy())
+        corrected_config['SYSTEMS'].update(iterate_config)
+        corrected_config['LOGGER'].update(CONFIG_FILE['LOGGER'])
+##        corrected_config['WEB_SERVICE'].update(resp['config']['WEB_SERVICE'])
+        corrected_config['WEB_SERVICE'] = {}
+        corrected_config['WEB_SERVICE']['THIS_SERVER_NAME'] = CONFIG_FILE['WEB_SERVICE']['THIS_SERVER_NAME']
+        corrected_config['WEB_SERVICE']['URL'] = CONFIG_FILE['WEB_SERVICE']['URL']
+        corrected_config['WEB_SERVICE']['SHARED_SECRET'] = CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET']
+        corrected_config['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] = CONFIG_FILE['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']
+        corrected_config['WEB_SERVICE'].update(resp['config']['WEB_SERVICE'])
+        corrected_config['GLOBAL']['TG1_ACL'] = data_gateway_config.acl_build(corrected_config['GLOBAL']['TG1_ACL'], 4294967295)
+        corrected_config['GLOBAL']['TG2_ACL'] = data_gateway_config.acl_build(corrected_config['GLOBAL']['TG2_ACL'], 4294967295)
+        corrected_config['GLOBAL']['REG_ACL'] = data_gateway_config.acl_build(corrected_config['GLOBAL']['REG_ACL'], 4294967295)
+        corrected_config['GLOBAL']['SUB_ACL'] = data_gateway_config.acl_build(corrected_config['GLOBAL']['SUB_ACL'], 4294967295)
+##        corrected_config['SYSTEMS'] = {}
+        for i in iterate_config:
+##            corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
+##            corrected_config['SYSTEMS'][i] = {}
+##            print(iterate_config[i])
+            if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
+##                print(iterate_config[i])
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')
+                if iterate_config[i]['MODE'] == 'OPENBRIDGE':
+##                    corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
+                    corrected_config['SYSTEMS'][i]['NETWORK_ID'] = int(iterate_config[i]['NETWORK_ID']).to_bytes(4, 'big')
+                    corrected_config['SYSTEMS'][i]['PASSPHRASE'] = (iterate_config[i]['PASSPHRASE'] + b'\x00' * 30)[:20] #bytes(re.sub('', "b'|'", str(iterate_config[i]['PASSPHRASE'])).ljust(20, '\x00')[:20], 'utf-8') #bytes(iterate_config[i]['PASSPHRASE'].ljust(20,'\x00')[:20], 'utf-8')
+                    corrected_config['SYSTEMS'][i]['BOTH_SLOTS'] = iterate_config[i]['BOTH_SLOTS']
+                    corrected_config['SYSTEMS'][i]['TARGET_SOCK'] = (gethostbyname(iterate_config[i]['TARGET_IP']), iterate_config[i]['TARGET_PORT'])
+                    corrected_config['SYSTEMS'][i]['ENCRYPTION_KEY'] = bytes(iterate_config[i]['ENCRYPTION_KEY'], 'utf-8')
+                    corrected_config['SYSTEMS'][i]['USE_ENCRYPTION'] = iterate_config[i]['USE_ENCRYPTION']
+                    
 
+            if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
+##                print(iterate_config[i])
+                corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
+                corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
+                corrected_config['SYSTEMS'][i]['TG1_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['TG2_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
+##                corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 4294967295)
+                corrected_config['SYSTEMS'][i]['MASTER_SOCKADDR'] = tuple(iterate_config[i]['MASTER_SOCKADDR'])
+                corrected_config['SYSTEMS'][i]['SOCK_ADDR'] = tuple(iterate_config[i]['SOCK_ADDR'])
+                corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes((iterate_config[i]['PASSPHRASE']), 'utf-8')
+                corrected_config['SYSTEMS'][i]['CALLSIGN'] = bytes((iterate_config[i]['CALLSIGN']).ljust(8)[:8], 'utf-8')
+                corrected_config['SYSTEMS'][i]['RX_FREQ'] = bytes((iterate_config[i]['RX_FREQ']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['TX_FREQ'] = bytes((iterate_config[i]['TX_FREQ']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['TX_POWER'] = bytes((iterate_config[i]['TX_POWER']).rjust(2,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['COLORCODE'] = bytes((iterate_config[i]['COLORCODE']).rjust(2,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['LATITUDE'] = bytes((iterate_config[i]['LATITUDE']).ljust(8)[:8], 'utf-8')
+                corrected_config['SYSTEMS'][i]['LONGITUDE'] = bytes((iterate_config[i]['LONGITUDE']).ljust(9)[:9], 'utf-8')
+                corrected_config['SYSTEMS'][i]['HEIGHT'] = bytes((iterate_config[i]['HEIGHT']).rjust(3,'0'), 'utf-8')
+                corrected_config['SYSTEMS'][i]['LOCATION'] = bytes((iterate_config[i]['LOCATION']).ljust(20)[:20], 'utf-8')
+                corrected_config['SYSTEMS'][i]['DESCRIPTION'] = bytes((iterate_config[i]['DESCRIPTION']).ljust(19)[:19], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SLOTS'] = bytes((iterate_config[i]['SLOTS']), 'utf-8')
+                corrected_config['SYSTEMS'][i]['URL'] = bytes((iterate_config[i]['URL']).ljust(124)[:124], 'utf-8')
+                corrected_config['SYSTEMS'][i]['SOFTWARE_ID'] = bytes(('Development').ljust(40)[:40], 'utf-8')#bytes(('HBNet V1.0').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['PACKAGE_ID'] = bytes(('HBNet').ljust(40)[:40], 'utf-8')
+                corrected_config['SYSTEMS'][i]['OPTIONS'] = b''.join([b'Type=HBNet;', bytes(iterate_config[i]['OPTIONS'], 'utf-8')])
+
+
+
+            
+            if iterate_config[i]['MODE'] == 'PEER':
+                    corrected_config['SYSTEMS'][i].update({'STATS':{
+                        'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                        'CONNECTED': None,
+                        'PINGS_SENT': 0,
+                        'PINGS_ACKD': 0,
+                        'NUM_OUTSTANDING': 0,
+                        'PING_OUTSTANDING': False,
+                        'LAST_PING_TX_TIME': 0,
+                        'LAST_PING_ACK_TIME': 0,
+                    }})
+            if iterate_config[i]['MODE'] == 'XLXPEER':
+                corrected_config['SYSTEMS'][i].update({'XLXSTATS': {
+                    'CONNECTION': 'NO',             # NO, RTPL_SENT, AUTHENTICATED, CONFIG-SENT, YES 
+                    'CONNECTED': None,
+                    'PINGS_SENT': 0,
+                    'PINGS_ACKD': 0,
+                    'NUM_OUTSTANDING': 0,
+                    'PING_OUTSTANDING': False,
+                    'LAST_PING_TX_TIME': 0,
+                    'LAST_PING_ACK_TIME': 0,
+                }})
+            corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
+            corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
+
+        return corrected_config
+    # For exception, write blank dict
+    except requests.ConnectionError:
+        logger.error('Config server unreachable, defaulting to local config')
+        return data_gateway_config.build_config(cli_file)
 
 ##################################################################################################
 
@@ -591,12 +700,12 @@ def process_sms(_rf_src, sms, call_type, system_name):
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
     # Social Status function
-    if '@SS' in parse_sms[0]:
+    if '*SS' in parse_sms[0]:
         s = ' '
         post = s.join(parse_sms[1:])
         send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
     # Offload some commands onto the HBNet web service
-    elif '@RSS' in parse_sms[0] or '@RBB' in parse_sms[0] or '@RMB' in parse_sms[0]:
+    elif '*RSS' in parse_sms[0] or '*RBB' in parse_sms[0] or '*RMB' in parse_sms[0]:
         send_sms_cmd(CONFIG, int_id(_rf_src), sms)
     # Tiny Page query
     elif '?' in parse_sms[0]:
@@ -1438,7 +1547,21 @@ def svrd_send_all(_svrd_data):
                 if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
                     if CONFIG['SYSTEMS'][system]['ENCRYPTION_KEY'] != b'':
                         systems[system].send_system(_svrd_packet + _svrd_data)
+def ten_loop_func():
+    logger.info('10 minute loop')
+    # Download user APRS settings
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        with open(user_settings_file, 'w') as f:
+                f.write(str(download_aprs_settings(CONFIG)))
 
+##    for unit in UNIT_MAP:
+    svrd_send_all(b'UNIT' + bytes_4(data_id))
+##        # Download burn list
+##    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+##        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
+##            f.write(str(download_burnlist(CONFIG)))
+                
+    
 def rule_timer_loop():
     global UNIT_MAP
     logger.debug('(ROUTER) routerHBP Rule timer loop started')
@@ -1580,9 +1703,12 @@ if __name__ == '__main__':
     # Ensure we have a path for the config file, if one wasn't specified, then use the default (top of file)
     if not cli_args.CONFIG_FILE:
         cli_args.CONFIG_FILE = os.path.dirname(os.path.abspath(__file__))+'/data_gateway.cfg'
-
+      
     # Call the external routine to build the configuration dictionary
     CONFIG = data_gateway_config.build_config(cli_args.CONFIG_FILE)
+
+##    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+##        CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
 
 
     data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
@@ -1706,6 +1832,11 @@ if __name__ == '__main__':
     rule_timer = rule_timer_task.start(10)
     rule_timer.addErrback(loopingErrHandle)
 
+    # Used for misc timing events
+    ten_loop_task = task.LoopingCall(ten_loop_func)
+    ten_loop = ten_loop_task.start(600)
+    ten_loop.addErrback(loopingErrHandle)
+
     if 'N0CALL' in aprs_callsign:
         logger.info('APRS callsighn set to N0CALL, packet not sent.')
         pass
@@ -1713,10 +1844,5 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
-
-    # Download user APRS settings
-    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        with open(user_settings_file, 'w') as f:
-                f.write(str(download_aprs_settings(CONFIG)))
-        
+       
     reactor.run()

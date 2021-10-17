@@ -403,7 +403,14 @@ def make_bridges(_rules):
                 _system['TIMER']  = time()
     return _rules
 
+def ten_loop_func():
+    logger.info('10 minute loop')
+    # Download burn list
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
+            f.write(str(download_burnlist(CONFIG)))
 
+                
 # Run this every minute for rule timer updates
 def rule_timer_loop(unit_flood_time):
     global UNIT_MAP
@@ -1604,10 +1611,15 @@ if __name__ == '__main__':
     stream_trimmer = stream_trimmer_task.start(5)
     stream_trimmer.addErrback(loopingErrHandle)
 
+    # Used for misc timing events
+    ten_loop_task = task.LoopingCall(ten_loop_func)
+    ten_loop = ten_loop_task.start(600)
+    ten_loop.addErrback(loopingErrHandle)
+
     logger.info('UNIT calls will be bridged to: ' + str(UNIT))
     
-    # Download burn list
-    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
-        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
-            f.write(str(download_burnlist(CONFIG)))
+##    # Download burn list
+##    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+##        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
+##            f.write(str(download_burnlist(CONFIG)))
     reactor.run()
