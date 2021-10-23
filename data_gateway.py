@@ -290,6 +290,7 @@ def send_sms_cmd(CONFIG, _rf_id, _cmd):
 
 # Function to download config
 def download_config(CONFIG_FILE, cli_file):
+##    global aprs_callsign
     user_man_url = CONFIG_FILE['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG_FILE['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     config_check = {
@@ -305,6 +306,7 @@ def download_config(CONFIG_FILE, cli_file):
         corrected_config = resp['config'].copy()
         corrected_config['SYSTEMS'] = {}
         corrected_config['LOGGER'] = {}
+        corrected_config['DATA_CONFIG'] = {}
         iterate_config.update(resp['masters'].copy())
         corrected_config['SYSTEMS'].update(iterate_config)
         corrected_config['LOGGER'].update(CONFIG_FILE['LOGGER'])
@@ -326,6 +328,7 @@ def download_config(CONFIG_FILE, cli_file):
 ##            print(iterate_config[i])
             if iterate_config[i]['MODE'] == 'MASTER' or iterate_config[i]['MODE'] == 'PROXY' or iterate_config[i]['MODE'] == 'OPENBRIDGE':
 ##                print(iterate_config[i])
+                corrected_config['SYSTEMS'][i]['OTHER_OPTIONS'] = iterate_config[i]['OTHER_OPTIONS']
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['TG2_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG2_ACL'], 4294967295)
                 corrected_config['SYSTEMS'][i]['PASSPHRASE'] = bytes(iterate_config[i]['PASSPHRASE'], 'utf-8')
@@ -341,6 +344,7 @@ def download_config(CONFIG_FILE, cli_file):
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
 ##                print(iterate_config[i])
+                corrected_config['SYSTEMS'][i]['OTHER_OPTIONS'] = iterate_config[i]['OTHER_OPTIONS']
                 corrected_config['SYSTEMS'][i]['GROUP_HANGTIME'] = int(iterate_config[i]['GROUP_HANGTIME'])
                 corrected_config['SYSTEMS'][i]['RADIO_ID'] = int(iterate_config[i]['RADIO_ID']).to_bytes(4, 'big')
                 corrected_config['SYSTEMS'][i]['TG1_ACL'] = data_gateway_config.acl_build(iterate_config[i]['TG1_ACL'], 4294967295)
@@ -392,7 +396,78 @@ def download_config(CONFIG_FILE, cli_file):
                 }})
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
             corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
+##        print(corrected_config['OTHER']['OTHER_OPTIONS'])
 
+        other_split = corrected_config['OTHER']['OTHER_OPTIONS'].split(';')
+        for i in other_split:
+            if 'DATA_GATEWAY:' in i:
+##                print(i)
+                gateway_options = i[13:].split(':')
+##                print(gateway_options)
+                for o in gateway_options:
+##                    print(o)
+                    final_options = o.split('=')
+                    print(final_options)
+                    if final_options[0] == 'aprs_login_call':
+                        corrected_config['DATA_CONFIG']['APRS_LOGIN_CALL'] = final_options[1].upper()
+                    if final_options[0] == 'aprs_login_passcode':
+                        corrected_config['DATA_CONFIG']['APRS_LOGIN_PASSCODE'] = final_options[1]
+                    if final_options[0] == 'aprs_server':
+                        corrected_config['DATA_CONFIG']['APRS_SERVER'] = final_options[1]
+                    if final_options[0] == 'aprs_filter':
+                        corrected_config['DATA_CONFIG']['APRS_FILTER'] = final_options[1]
+                    if final_options[0] == 'aprs_port':
+                        corrected_config['DATA_CONFIG']['APRS_PORT'] = final_options[1]
+                    if final_options[0] == 'default_ssid':
+                        corrected_config['DATA_CONFIG']['USER_APRS_SSID'] = final_options[1]
+                    if final_options[0] == 'default_comment':
+                        corrected_config['DATA_CONFIG']['USER_APRS_COMMENT'] = final_options[1]
+                    if final_options[0] == 'data_id':
+                        corrected_config['DATA_CONFIG']['DATA_DMR_ID'] = final_options[1]
+                    if final_options[0] == 'call_type':
+                        corrected_config['DATA_CONFIG']['CALL_TYPE'] = final_options[1]
+                    if final_options[0] == 'user_settings':
+                        corrected_config['DATA_CONFIG']['USER_SETTINGS_FILE'] = final_options[1]
+                    if final_options[0] == 'igate_time':
+                        corrected_config['DATA_CONFIG']['IGATE_BEACON_TIME'] = final_options[1]
+                    if final_options[0] == 'igate_icon':
+                        corrected_config['DATA_CONFIG']['IGATE_BEACON_ICON'] = final_options[1]
+                    if final_options[0] == 'igate_comment':
+                        corrected_config['DATA_CONFIG']['IGATE_BEACON_COMMENT'] = final_options[1]
+                    if final_options[0] == 'igate_lat':
+                        corrected_config['DATA_CONFIG']['IGATE_BEACON_LATITUDE'] = final_options[1]
+                    if final_options[0] == 'igate_longitude':
+                        corrected_config['DATA_CONFIG']['IGATE_BEACON_LONGITUDE'] = final_options[1]
+                        
+                
+
+##        data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
+##
+##        # Group call or Unit (private) call
+##        call_type = CONFIG['DATA_CONFIG']['CALL_TYPE']
+##        # APRS-IS login information
+##        aprs_callsign = str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper()
+##        aprs_passcode = int(CONFIG['DATA_CONFIG']['APRS_LOGIN_PASSCODE'])
+##        aprs_server = CONFIG['DATA_CONFIG']['APRS_SERVER']
+##        aprs_port = int(CONFIG['DATA_CONFIG']['APRS_PORT'])
+##        user_ssid = CONFIG['DATA_CONFIG']['USER_APRS_SSID']
+##        aprs_comment = CONFIG['DATA_CONFIG']['USER_APRS_COMMENT']
+##        aprs_filter = CONFIG['DATA_CONFIG']['APRS_FILTER']
+##        # EMAIL variables
+##    ##    email_sender = CONFIG['DATA_CONFIG']['EMAIL_SENDER']
+##    ##    email_password = CONFIG['DATA_CONFIG']['EMAIL_PASSWORD']
+##    ##    smtp_server = CONFIG['DATA_CONFIG']['SMTP_SERVER']
+##    ##    smtp_port = CONFIG['DATA_CONFIG']['SMTP_PORT']
+##
+##        # Dashboard files
+##        bb_file = CONFIG['DATA_CONFIG']['BULLETIN_BOARD_FILE']
+##        loc_file = CONFIG['DATA_CONFIG']['LOCATION_FILE']
+##        the_mailbox_file = CONFIG['DATA_CONFIG']['MAILBOX_FILE']
+##        emergency_sos_file = CONFIG['DATA_CONFIG']['EMERGENCY_SOS_FILE']
+##        sms_file = CONFIG['DATA_CONFIG']['SMS_FILE']
+##        # User APRS settings
+##        user_settings_file = CONFIG['DATA_CONFIG']['USER_SETTINGS_FILE']
+##
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -1707,8 +1782,8 @@ if __name__ == '__main__':
     # Call the external routine to build the configuration dictionary
     CONFIG = data_gateway_config.build_config(cli_args.CONFIG_FILE)
 
-##    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
-##        CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
+        CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
 
 
     data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
@@ -1731,15 +1806,15 @@ if __name__ == '__main__':
 ##    smtp_port = CONFIG['DATA_CONFIG']['SMTP_PORT']
 
     # Dashboard files
-    bb_file = CONFIG['DATA_CONFIG']['BULLETIN_BOARD_FILE']
-    loc_file = CONFIG['DATA_CONFIG']['LOCATION_FILE']
-    the_mailbox_file = CONFIG['DATA_CONFIG']['MAILBOX_FILE']
-    emergency_sos_file = CONFIG['DATA_CONFIG']['EMERGENCY_SOS_FILE']
-    sms_file = CONFIG['DATA_CONFIG']['SMS_FILE']
+##    bb_file = CONFIG['DATA_CONFIG']['BULLETIN_BOARD_FILE']
+##    loc_file = CONFIG['DATA_CONFIG']['LOCATION_FILE']
+##    the_mailbox_file = CONFIG['DATA_CONFIG']['MAILBOX_FILE']
+##    emergency_sos_file = CONFIG['DATA_CONFIG']['EMERGENCY_SOS_FILE']
+##    sms_file = CONFIG['DATA_CONFIG']['SMS_FILE']
     # User APRS settings
     user_settings_file = CONFIG['DATA_CONFIG']['USER_SETTINGS_FILE']
 
-##    use_api = CONFIG['DATA_CONFIG']['USE_API']
+####    use_api = CONFIG['DATA_CONFIG']['USE_API']
 
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
         pass
