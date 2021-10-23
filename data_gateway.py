@@ -28,7 +28,7 @@ uploads them to APRS-IS. Also does miscelaneous SMS functions.
 # Python modules we need
 import sys
 from bitarray import bitarray
-from time import time, strftime
+from time import time, strftime, sleep
 from importlib import import_module
 
 # Twisted is pretty important, so I keep it separate
@@ -395,7 +395,7 @@ def download_config(CONFIG_FILE, cli_file):
                     'LAST_PING_ACK_TIME': 0,
                 }})
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
-            corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
+            corrected_config['SYSTEMS'][i]['SUB_ACL'] = data_gateway_config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
 ##        print(corrected_config['OTHER']['OTHER_OPTIONS'])
 
         other_split = corrected_config['OTHER']['OTHER_OPTIONS'].split(';')
@@ -441,33 +441,6 @@ def download_config(CONFIG_FILE, cli_file):
                         
                 
 
-##        data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
-##
-##        # Group call or Unit (private) call
-##        call_type = CONFIG['DATA_CONFIG']['CALL_TYPE']
-##        # APRS-IS login information
-##        aprs_callsign = str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper()
-##        aprs_passcode = int(CONFIG['DATA_CONFIG']['APRS_LOGIN_PASSCODE'])
-##        aprs_server = CONFIG['DATA_CONFIG']['APRS_SERVER']
-##        aprs_port = int(CONFIG['DATA_CONFIG']['APRS_PORT'])
-##        user_ssid = CONFIG['DATA_CONFIG']['USER_APRS_SSID']
-##        aprs_comment = CONFIG['DATA_CONFIG']['USER_APRS_COMMENT']
-##        aprs_filter = CONFIG['DATA_CONFIG']['APRS_FILTER']
-##        # EMAIL variables
-##    ##    email_sender = CONFIG['DATA_CONFIG']['EMAIL_SENDER']
-##    ##    email_password = CONFIG['DATA_CONFIG']['EMAIL_PASSWORD']
-##    ##    smtp_server = CONFIG['DATA_CONFIG']['SMTP_SERVER']
-##    ##    smtp_port = CONFIG['DATA_CONFIG']['SMTP_PORT']
-##
-##        # Dashboard files
-##        bb_file = CONFIG['DATA_CONFIG']['BULLETIN_BOARD_FILE']
-##        loc_file = CONFIG['DATA_CONFIG']['LOCATION_FILE']
-##        the_mailbox_file = CONFIG['DATA_CONFIG']['MAILBOX_FILE']
-##        emergency_sos_file = CONFIG['DATA_CONFIG']['EMERGENCY_SOS_FILE']
-##        sms_file = CONFIG['DATA_CONFIG']['SMS_FILE']
-##        # User APRS settings
-##        user_settings_file = CONFIG['DATA_CONFIG']['USER_SETTINGS_FILE']
-##
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -1155,9 +1128,9 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
             else:
                 systems['MASTER-1'].send_system(the_mmdvm_pkt)
                 print('need to code, flood all systems , ' + str(bytes.fromhex(dst_id) ))
-            
-    with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
-        packet_write_file.write(str(mmdvm_send_seq))
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:  
+        with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
+            packet_write_file.write(str(mmdvm_send_seq))
 
     return mmdvm_send_seq
 
@@ -1224,6 +1197,7 @@ def gen_header(to_id, from_id, call_type):
 
 def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
     global use_csbk
+    sleep(1)
     use_csbk = csbk
     to_id = str(hex(to_id))[2:].zfill(6)
     from_id = str(hex(from_id))[2:].zfill(6)
@@ -1759,6 +1733,7 @@ class HBP(HBSYSTEM):
                 pass
         except Exception as e:
             logger.error('Error, possibly received voice group call.')
+            logger.info(e)
 ##        pass
 
 
