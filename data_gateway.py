@@ -1448,7 +1448,8 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                 aprslib.parse(aprs_loc_packet)
                 float(lat_deg) < 91
                 float(lon_deg) < 121
-                if int_id(_dst_id) == data_id:
+##                if int_id(_dst_id) == data_id:
+                if int_id(_dst_id) in data_id:
                     aprs_send(aprs_loc_packet)
                     dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment, int_id(_rf_src))
                 #logger.info('Sent APRS packet')
@@ -1552,7 +1553,9 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                     # Float values of lat and lon. Anything that is not a number will cause it to fail.
                         float(loc.lat)
                         float(loc.lon)
-                        if int_id(_dst_id) == data_id:
+##                        if int_id(_dst_id) == data_id:
+                        if int_id(_dst_id) in data_id:
+
                             aprs_send(aprs_loc_packet)
                             dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment, int_id(_rf_src))
                     except Exception as error_exception:
@@ -1592,9 +1595,13 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         msg_found = re.sub('.*\n', '', sms)
                         logger.info('\n\n' + 'Received SMS from ' + str(get_alias(int_id(_rf_src), subscriber_ids)) + ', DMR ID: ' + str(int_id(_rf_src)) + ': ' + str(msg_found) + '\n')
                         
-                        if int_id(_dst_id) == data_id:
+##                        if int_id(_dst_id) == data_id:
+                        if int_id(_dst_id) in data_id:
+
                             process_sms(_rf_src, msg_found, _call_type, UNIT_MAP[_rf_src][0])
-                        if int_id(_dst_id) != data_id:
+##                        if int_id(_dst_id) != data_id:
+                        if int_id(_dst_id) not in data_id:
+
                             dashboard_sms_write(str(get_alias(int_id(_rf_src), subscriber_ids)), str(get_alias(int_id(_dst_id), subscriber_ids)), int_id(_dst_id), int_id(_rf_src), msg_found, time(), UNIT_MAP[_rf_src][0])
                         #packet_assembly = ''
                         pass
@@ -1630,7 +1637,8 @@ def ten_loop_func():
                 f.write(str(download_aprs_settings(CONFIG)))
 
 ##    for unit in UNIT_MAP:
-    svrd_send_all(b'UNIT' + bytes_4(data_id))
+    for my_id in data_id:
+        svrd_send_all(b'UNIT' + bytes_4(my_id))
 ##        # Download burn list
 ##    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
 ##        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
@@ -1786,7 +1794,9 @@ if __name__ == '__main__':
         CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
 
 
-    data_id = int(CONFIG['DATA_CONFIG']['DATA_DMR_ID'])
+    data_id_str = str('[' + CONFIG['DATA_CONFIG']['DATA_DMR_ID'] + ']')
+    data_id = ast.literal_eval(data_id_str)
+    
     #echo_id = int(CONFIG['DATA_CONFIG']['ECHO_DMR_ID'])
 
     # Group call or Unit (private) call
