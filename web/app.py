@@ -3225,6 +3225,33 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             )
         db.session.add(add_ss)
         db.session.commit()
+        
+    def oo_server_add(_server, _other_options):
+        s = ServerList.query.filter_by(name=_server).first()
+        s.other_options = str(_other_options)
+        db.session.commit()
+
+    def sms_aprs_edit(_user, _dmr_id, _setting, _value):
+        u = User.query.filter(User.username.ilike(_user)).first()
+        aprs_settings = ast.literal_eval(u.aprs)
+        print(_setting)
+        if _setting == 'ssid':
+            aprs_settings[_dmr_id][1][_setting] = _value
+        if _setting == 'icon':
+            aprs_settings[_dmr_id][2][_setting] = _value
+        if _setting == 'com':
+            aprs_settings[_dmr_id][3]['comment'] = _value
+        if _setting == 'pin':
+            aprs_settings[_dmr_id][4][_setting] = int(_value)
+        if _setting.upper() == 'APRS':
+            if _value.upper() == 'ON':
+                aprs_settings[_dmr_id][5][_setting] = True
+            if _value.upper() == 'OFF':
+                aprs_settings[_dmr_id][5][_setting] = False
+        print(aprs_settings[_dmr_id])
+        
+        u.aprs = str(aprs_settings)
+        db.session.commit()
 
     def tp_del(_id):
         tpd = TinyPage.query.filter_by(id=_id).first()
@@ -6890,10 +6917,10 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                             )
                     sms_que_purge(hblink_req['get_sms_que'])
             elif 'sms_cmd' in hblink_req:
-                print(get_aprs_settings())
+##                print(get_aprs_settings())
                 if hblink_req['sms_cmd']:
                     split_cmd = str(hblink_req['cmd']).split(' ')
-                    print(split_cmd)
+##                    print(split_cmd)
                     if hblink_req['cmd'][:1] == '?':
 ##                        tst = ServerList.query.filter(ServerList.other_options.ilike('%DATA_GATEWAY%')).first()
 ##                        print(tst)
@@ -6943,6 +6970,18 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                                     sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', str(i.snd_id) + ': ' + re.sub('<.*?>', '', str(i.message)))
                             except:
                                 sms_que_add('', '', 0, hblink_req['rf_id'], 'motorola', 'unit', hblink_req['sms_cmd'], '', 'Not found or other error')
+                    elif hblink_req['cmd'][:5] == 'APRS-':
+                        if hblink_req['cmd'][5:9] == 'APRS':
+                            if 'ON' in split_cmd[1]:
+                                sms_aprs_edit(hblink_req['call'], hblink_req['rf_id'], 'APRS', 'ON')
+                            if 'OFF' in split_cmd[1]:
+                                sms_aprs_edit(hblink_req['call'], hblink_req['rf_id'], 'APRS', 'OFF')
+
+                        elif hblink_req['cmd'][5:9] != 'APRS':
+
+                            aprs_set = re.sub('APRS-|=.*','',split_cmd[0])
+                            aprs_val = re.sub('.*=|,','',split_cmd[0])
+                            sms_aprs_edit(hblink_req['call'], hblink_req['rf_id'], aprs_set.lower(), aprs_val)
 
                                               
                         

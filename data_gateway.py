@@ -692,54 +692,57 @@ def decdeg2dms(dd):
 
 def user_setting_write(dmr_id, setting, value, call_type):
 ##    try:
-    # Open file and load as dict for modification
-        logger.info(setting.upper())
-        with open(user_settings_file, 'r') as f:
-##            if f.read() == '{}':
-##                user_dict = {}
-            user_dict = ast.literal_eval(f.read())
-            logger.info('Current settings: ' + str(user_dict))
-            if dmr_id not in user_dict:
-                user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
-            if setting.upper() == 'ICON':
-                user_dict[dmr_id][2]['icon'] = value
-            if setting.upper() == 'SSID':
-                user_dict[dmr_id][1]['ssid'] = value  
-            if setting.upper() == 'COM':
-                user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
-            if setting.upper() == 'APRS ON':
-                user_dict[dmr_id][5] = {'APRS': True}
-                if call_type == 'unit':
-                    send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
-                if call_type == 'vcsbk':
-                    send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Enabled')
-            if setting.upper() == 'APRS OFF':
-                user_dict[dmr_id][5] = {'APRS': False}
-                if call_type == 'unit':
-                    send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
-                if call_type == 'vcsbk':
-                    send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Disabled')
-            if setting.upper() == 'PIN':
-                #try:
-                    #if user_dict[dmr_id]:
-                user_dict[dmr_id][4]['pin'] = value
-                if call_type == 'unit':
-                    send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
-                if call_type == 'vcsbk':
-                    send_sms(False, 9, 0000, 0000, 'group',  'You can now use your pin on the dashboard.')
-                    #if not user_dict[dmr_id]:
-                    #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
-                #except:
-                #    user_dict[dmr_id].append({'pin': value})
-            f.close()
-            logger.info('Loaded user settings. Write changes.')
-    # Write modified dict to file
-        with open(user_settings_file, 'w') as user_dict_file:
-            user_dict_file.write(str(user_dict))
-            user_dict_file.close()
-            logger.info('User setting saved')
-            f.close()
-            packet_assembly = ''
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+            send_sms_cmd(CONFIG, dmr_id, 'APRS-' + setting + '=' + str(value))
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
+   # Open file and load as dict for modification
+            logger.info(setting.upper())
+            with open(user_settings_file, 'r') as f:
+    ##            if f.read() == '{}':
+    ##                user_dict = {}
+                user_dict = ast.literal_eval(f.read())
+                logger.info('Current settings: ' + str(user_dict))
+                if dmr_id not in user_dict:
+                    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
+                if setting.upper() == 'ICON':
+                    user_dict[dmr_id][2]['icon'] = value
+                if setting.upper() == 'SSID':
+                    user_dict[dmr_id][1]['ssid'] = value  
+                if setting.upper() == 'COM':
+                    user_comment = user_dict[dmr_id][3]['comment'] = value[0:35]
+                if setting.upper() == 'APRS ON':
+                    user_dict[dmr_id][5] = {'APRS': True}
+                    if call_type == 'unit':
+                        send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
+                    if call_type == 'vcsbk':
+                        send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Enabled')
+                if setting.upper() == 'APRS OFF':
+                    user_dict[dmr_id][5] = {'APRS': False}
+                    if call_type == 'unit':
+                        send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
+                    if call_type == 'vcsbk':
+                        send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Disabled')
+                if setting.upper() == 'PIN':
+                    #try:
+                        #if user_dict[dmr_id]:
+                    user_dict[dmr_id][4]['pin'] = value
+                    if call_type == 'unit':
+                        send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
+                    if call_type == 'vcsbk':
+                        send_sms(False, 9, 0000, 0000, 'group',  'You can now use your pin on the dashboard.')
+                        #if not user_dict[dmr_id]:
+                        #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
+                    #except:
+                    #    user_dict[dmr_id].append({'pin': value})
+                f.close()
+                logger.info('Loaded user settings. Write changes.')
+        # Write modified dict to file
+            with open(user_settings_file, 'w') as user_dict_file:
+                user_dict_file.write(str(user_dict))
+                user_dict_file.close()
+                logger.info('User setting saved')
+                f.close()
+                packet_assembly = ''
             
 # Process SMS, do something bases on message
 
