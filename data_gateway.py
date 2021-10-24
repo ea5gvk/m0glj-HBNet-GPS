@@ -1685,11 +1685,10 @@ class OBP(OPENBRIDGE):
 
     def svrd_received(self, _mode, _data):
         print('SVRD RCV')
-        print(_mode)
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
             print(UNIT_MAP)
-        if _mode == b'DATA':
+        if _mode == b'DATA' or _mode == b'MDATA':
         # DMR Data packet, sent via SVRD
             _peer_id = _data[11:15]
             _seq = _data[4]
@@ -1711,7 +1710,7 @@ class OBP(OPENBRIDGE):
 ##            # Record last packet to prevent duplicates, think finger printing.
 ##            PACKET_MATCH[_rf_src] = [_data, time()]
 
-
+            
             self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 
 
