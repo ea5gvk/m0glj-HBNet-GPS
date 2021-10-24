@@ -915,6 +915,10 @@ def hbnet_web_service():
     @app.route('/help')
     def help_page():
         return render_template('help.html')
+    
+    @app.route('/data_help')
+    def gateway_help_page():
+        return render_template('data_gateway_help.html')
 
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required

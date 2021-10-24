@@ -96,6 +96,9 @@ import random
 from bitarray.util import hex2ba as hex2bits
 import traceback
 
+from socket import gethostbyname
+
+
 #################################
 
 
@@ -440,7 +443,7 @@ def download_config(CONFIG_FILE, cli_file):
                         corrected_config['DATA_CONFIG']['IGATE_BEACON_LONGITUDE'] = final_options[1]
                         
                 
-
+        print(corrected_config['SYSTEMS'])
         return corrected_config
     # For exception, write blank dict
     except requests.ConnectionError:
@@ -713,23 +716,23 @@ def user_setting_write(dmr_id, setting, value, call_type):
                 if setting.upper() == 'APRS ON':
                     user_dict[dmr_id][5] = {'APRS': True}
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Enabled')
+                        send_sms(False, dmr_id, 1, 1, 'unit', 'APRS MSG TX/RX Enabled')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Enabled')
+                        send_sms(False, 9, 1, 1, 'group', 'APRS MSG TX/RX Enabled')
                 if setting.upper() == 'APRS OFF':
                     user_dict[dmr_id][5] = {'APRS': False}
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 0000, 0000, 'unit', 'APRS MSG TX/RX Disabled')
+                        send_sms(False, dmr_id, 1, 1, 'unit', 'APRS MSG TX/RX Disabled')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 0000, 0000, 'group', 'APRS MSG TX/RX Disabled')
+                        send_sms(False, 9, 1, 1, 'group', 'APRS MSG TX/RX Disabled')
                 if setting.upper() == 'PIN':
                     #try:
                         #if user_dict[dmr_id]:
                     user_dict[dmr_id][4]['pin'] = value
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 0000, 0000, 'unit',  'You can now use your pin on the dashboard.')
+                        send_sms(False, dmr_id, 1, 1, 'unit',  'You can now use your pin on the dashboard.')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 0000, 0000, 'group',  'You can now use your pin on the dashboard.')
+                        send_sms(False, 9, 1, 1, 'group',  'You can now use your pin on the dashboard.')
                         #if not user_dict[dmr_id]:
                         #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
                     #except:
@@ -765,32 +768,32 @@ def process_sms(_rf_src, sms, call_type, system_name):
     elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
-            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+            send_sms(False, int_id(_rf_src), 1, 1, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
         if call_type == 'vcsbk':
-            send_sms(False, 9, 0000, 0000, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+            send_sms(False, 9, 1, 1, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
     elif parse_sms[0] == 'TEST':
         logger.info('It works!')
         if call_type == 'unit':
-            send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'It works')
+            send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'It works')
         if call_type == 'vcsbk':
-            send_sms(False, 9, 0000, 0000, 'group',  'It works')
+            send_sms(False, 9, 1, 1, 'group',  'It works')
 
     # APRS settings
-    elif '@ICON' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@ICON| ','',sms), call_type)
-    elif '@SSID' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@SSID| ','',sms), call_type)
-    elif '@COM' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), re.sub('@COM |@COM','',sms), call_type)
-    elif '@PIN' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|@','',sms), int(re.sub('@PIN |@PIN','',sms)), call_type)    
+    elif '*ICON' in parse_sms[0]:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*ICON| ','',sms), call_type)
+    elif '*SSID' in parse_sms[0]:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*SSID| ','',sms), call_type)
+    elif '*COM' in parse_sms[0]:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*COM |\*COM','',sms), call_type)
+    elif '*PIN' in parse_sms[0]:
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), int(re.sub('\*PIN |\*PIN','',sms)), call_type)    
     # Write blank entry to cause APRS receive to look for packets for this station.
-    elif '@APRS ON' in sms or '@APRS on' in sms:
+    elif '*APRS ON' in sms or '@APRS on' in sms:
         user_setting_write(int_id(_rf_src), 'APRS ON', True, call_type)
-    elif '@APRS OFF' in sms or '@APRS off' in sms:
+    elif '*APRS OFF' in sms or '@APRS off' in sms:
         user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
-    elif '@BB' in parse_sms[0]:
-        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('@BB|@BB ','',sms), system_name)
+    elif '*BB' in parse_sms[0]:
+        dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('\*BB|\*BB ','',sms), system_name)
 
     # Email command, going away
 ##    elif '@' in parse_sms[0][1:] and '.' in parse_sms[0]: # and ' E-' in sms:
@@ -808,9 +811,9 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##            logger.info(error_exception)
 ##            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     
-    elif '@SOS' in sms or '@NOTICE' in sms:
+    elif '*SOS' in sms or '@NOTICE' in sms:
         sos_write(int_id(_rf_src), time(), sms)
-    elif '@REM SOS' == sms:
+    elif '*REM SOS' == sms:
         os.remove(emergency_sos_file)
         logger.info('Removing SOS or Notice')
         
@@ -818,11 +821,11 @@ def process_sms(_rf_src, sms, call_type, system_name):
         message = re.sub('^@|.* M-|','',sms)
         recipient = re.sub('@| M-.*','',sms)
         mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
-    elif '@REM MAIL' == sms:
+    elif '*REM MAIL' == sms:
         mailbox_delete(_rf_src)
         
-    elif '@MH' in parse_sms[0]:
-        grid_square = re.sub('@MH ', '', sms)
+    elif '*MH' in parse_sms[0]:
+        grid_square = re.sub('*MH ', '', sms)
         if len(grid_square) < 6:
             pass
         else:
@@ -907,9 +910,9 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##                
 ##        if use_api == False:
 ##            if call_type == 'unit':
-##                send_sms(False, int_id(_rf_src), 0000, 0000, 'unit', 'API not enabled. Contact server admin.')
+##                send_sms(False, int_id(_rf_src), 1, 1, 'unit', 'API not enabled. Contact server admin.')
 ##            if call_type == 'vcsbk':
-##                send_sms(False, 9, 0000, 0000, 'group', 'API not enabled. Contact server admin.')
+##                send_sms(False, 9, 1, 1, 'group', 'API not enabled. Contact server admin.')
 
 ##    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
 ##        #Example SMS text: @ARMDS A-This is a test.
@@ -937,15 +940,15 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
 ##            else:
 ##                if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##                if call_type == 'vcsbk':
-##                    send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, 9, 1, 1, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##                
 ##        except Exception as e:
 ##            if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 0000, 0000, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##            if call_type == 'vcsbk':
-##                send_sms(False, 9, 0000, 0000, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                send_sms(False, 9, 1, 1, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 
 ##    try:
 ##        if sms in cmd_list:
@@ -1055,7 +1058,7 @@ def mmdvm_encapsulate(dst_id, src_id, peer_id, _seq, _slot, _call_type, _dtype_v
     middle_guts = slot + call_type + frame_type + dtype_vseq
     #print(middle_guts)
     dmr_data = str(_dmr_data)[2:-1] #str(re.sub("b'|'", '', str(_dmr_data)))
-    complete_packet = signature.encode() + seq + dest_id + source_id + via_id + middle_guts.tobytes() + stream_id + bytes.fromhex((dmr_data)) + bitarray('0000000000101111').tobytes()#bytes.fromhex(dmr_data)
+    complete_packet = signature.encode() + seq + dest_id + source_id + via_id + middle_guts.tobytes() + stream_id + bytes.fromhex((dmr_data))# + bitarray('0000000000101111').tobytes()#bytes.fromhex(dmr_data)
     #print('Complete: ' + str(ahex(complete_packet)))
     return complete_packet
 
@@ -1127,10 +1130,12 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
             cap_in = cap_in + 1
             print(ahex(the_mmdvm_pkt))
             if bytes.fromhex(dst_id) in UNIT_MAP:
+                logger.info('Sending SMS packet to ' + str(UNIT_MAP[bytes.fromhex(dst_id)][0]))
                 systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
             else:
-                systems['MASTER-1'].send_system(the_mmdvm_pkt)
-                print('need to code, flood all systems , ' + str(bytes.fromhex(dst_id) ))
+                for s in CONFIG['SYSTEMS'].items():
+                    systems[s[0]].send_system(the_mmdvm_pkt)
+                    logger.info('Sending SMS packet to ' + str(s[0]))
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:  
         with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
             packet_write_file.write(str(mmdvm_send_seq))
@@ -1230,9 +1235,9 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
     else:
         create_sms_seq(to_id, from_id, peer_id, int(slot), call_type, create_crc16(gen_header(to_id, from_id, call_type)) + create_crc32(format_sms(str(msg), to_id, from_id)))
 
-def data_que_check():
-    l=task.LoopingCall(data_que_send)
-    l.start(1)
+##def data_que_check():
+##    l=task.LoopingCall(data_que_send)
+##    l.start(1)
 ##def data_que_send():
 ##    #logger.info('Check SMS que')
 ##    try:
@@ -1290,7 +1295,7 @@ def aprs_process(packet):
                         ssid = user_ssid
                     if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
                         mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
-                        send_sms(False, sms_id, 0000, 0000, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
+                        send_sms(False, sms_id, 1, 1, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
                         try:
                             if 'msgNo' in aprslib.parse(packet):
                                 #sleep(1)
@@ -1616,6 +1621,7 @@ def ten_loop_func():
 ##    for unit in UNIT_MAP:
     for my_id in data_id:
         svrd_send_all(b'UNIT' + bytes_4(my_id))
+        print('SVRD ' + str(my_id))
 ##        # Download burn list
 ##    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
 ##        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
@@ -1642,7 +1648,7 @@ def rule_timer_loop():
     try:
         for i in send_que:
             try:
-                send_sms(False, i['rcv_id'], 0000, 0000, 'unit',  i['msg'])
+                send_sms(False, i['rcv_id'], 1, 1, 'unit',  i['msg'])
             except Exception as e:
                 logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
                 logger.info(e)
@@ -1665,7 +1671,6 @@ class OBP(OPENBRIDGE):
             PACKET_MATCH[_rf_src] = [_data, time()]
 
         # Check to see if we have already received this packet
-##        print(time() - 1)
         elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
             print('matched, dropping')
             pass
@@ -1876,7 +1881,7 @@ if __name__ == '__main__':
         logger.info('(REPORT) TCP Socket reporting not configured')
 
     # HBlink instance creation
-    logger.info('(GLOBAL) HBlink \'bridge.py\' -- SYSTEM STARTING...')
+    logger.info('(GLOBAL) HBNet Data Gateway \'data_gateway.py\' -- SYSTEM STARTING...')
     for system in CONFIG['SYSTEMS']:
         if CONFIG['SYSTEMS'][system]['ENABLED']:
             if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
@@ -1907,5 +1912,4 @@ if __name__ == '__main__':
         aprs_thread = threading.Thread(target=aprs_rx, args=(aprs_callsign, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid,))
         aprs_thread.daemon = True
         aprs_thread.start()
-       
     reactor.run()

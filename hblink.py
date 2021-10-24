@@ -206,9 +206,9 @@ class OPENBRIDGE(DatagramProtocol):
                 _ckhs = hmac_new(self._config['PASSPHRASE'],_data,sha1).digest()
 
 ##                print(compare_digest(_hash, _ckhs))
-##                print(_sockaddr == self._config['TARGET_SOCK'])
-##                print(ahex(_ckhs))
-##                print(ahex(_hash))
+####                print(_sockaddr == self._config['TARGET_SOCK'])
+##                print((ahex(_ckhs)))
+##                print((ahex(_hash)))
 
                 if compare_digest(_hash, _ckhs) and _sockaddr == self._config['TARGET_SOCK']:
                     _peer_id = _data[11:15]
