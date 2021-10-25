@@ -1267,6 +1267,8 @@ class routerHBP(HBSYSTEM):
         
         
         # Is this a new call stream?
+        svrd_send_all(b'UNIT' + _rf_src)
+        
         if (_stream_id != self.STATUS[_slot]['RX_STREAM_ID']):
             
             # Collision in progress, bail out!
