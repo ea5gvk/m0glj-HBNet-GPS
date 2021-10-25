@@ -695,8 +695,18 @@ def hbnet_web_service():
         edit_user.first_name = str(radioid_data[1])
         edit_user.last_name = str(radioid_data[2])
         edit_user.city = str(radioid_data[3])
+        unreg_set = Misc.query.filter_by(field_1='unregistered_aprs').first()
+        aprs_settings = ast.literal_eval(unreg_set.field_2)
         for i in radioid_data[0].items():
-            aprs_dict[i[0]] = """[{'call': '""" + str(user.username).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
+            try:
+                if i[0] in aprs_settings:
+                    aprs_dict[i[0]] = aprs_settings[i[0]]
+                    del aprs_settings[i[0]]
+                    misc_edit_field_1('unregistered_aprs', str(aprs_settings), '', '', 0, 0, 0, 0, False, False)
+            except Exception as e:
+                aprs_dict[i[0]] = """[{'call': '""" + str(user.username).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
+                print(e)
+        
         edit_user.aprs = str(aprs_dict)
         user_role = UserRoles(
             user_id=edit_user.id,
@@ -3262,8 +3272,9 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             mode = 'unreg'
             unreg_set = Misc.query.filter_by(field_1='unregistered_aprs').first()
             aprs_settings = ast.literal_eval(unreg_set.field_2)
+            print(mode)
             try:
-                aprs_settings[_dmr_id]
+                print(aprs_settings[_dmr_id])
             except:
                 aprs_settings[_dmr_id] = [{'call': _user.upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
         if _setting == 'ssid':
@@ -6295,8 +6306,18 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             if not User.query.filter(User.username == request.form.get('username')).first():
                 radioid_data = ast.literal_eval(get_ids(request.form.get('username')))
                 aprs_dict = {}
+
+                unreg_set = Misc.query.filter_by(field_1='unregistered_aprs').first()
+                aprs_settings = ast.literal_eval(unreg_set.field_2)
                 for i in radioid_data[0].items():
-                        aprs_dict[i[0]] = """[{'call': '""" + str(request.form.get('username')).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
+                    try:
+                        if i[0] in aprs_settings:
+                            aprs_dict[i[0]] = aprs_settings[i[0]]
+                            del aprs_settings[i[0]]
+                            misc_edit_field_1('unregistered_aprs', str(aprs_settings), '', '', 0, 0, 0, 0, False, False)
+                    except Exception as e:
+                        aprs_dict[i[0]] = """[{'call': '""" + str(user.username).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
+                        print(e)
                 user = User(
                     username=request.form.get('username'),
                     email=request.form.get('email'),
