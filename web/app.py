@@ -668,6 +668,13 @@ def hbnet_web_service():
             time = datetime.datetime.utcnow()
             )
         db.session.add(ping_list_initial)
+        unregistered_aprs_list_initial = Misc(
+            field_1 = 'unregistered_aprs',
+            field_2 = '{}',
+            
+            time = datetime.datetime.utcnow()
+            )
+        db.session.add(unregistered_aprs_list_initial)
         script_links_initial = Misc(
             field_1 = 'script_links',
             field_2 = '{}',
@@ -3085,17 +3092,21 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 
     def get_aprs_settings():
         ul = User.query.all()
+        unreg_l = Misc.query.filter_by(field_1='unregistered_aprs').first()
+        ur_l = ast.literal_eval(unreg_l.field_2)
         #print(b)
         aprs_dict = {}
         for i in ul:
             usr_settings = ast.literal_eval(i.aprs)
             for s in usr_settings.items():
-                print(s[1])
+##                print(s[1])
 ##                if s[1] == 'default':
 ####                    aprs_dict[int(s[0])] = [{'call': str(i.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
 ##                else:
                 aprs_dict[int(s[0])] = s[1]
-        print(aprs_dict)
+        for s in ur_l.items():
+##            print(s)
+            aprs_dict[s[0]] = s[1]
         return aprs_dict
         
     def add_burnlist(_dmr_id, _version):
@@ -3236,9 +3247,25 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         db.session.commit()
 
     def sms_aprs_edit(_user, _dmr_id, _setting, _value):
-        u = User.query.filter(User.username.ilike(_user)).first()
-        aprs_settings = ast.literal_eval(u.aprs)
-        print(_setting)
+##misc_edit_field_1(_field_1, _field_2, _field_3, _field_4, _int_1, _int_2, _int_3, _int_4, _boo_1, _boo_2)
+##        unreg_set = Misc.query.filter_by(field_1='unregistered_aprs').first()
+##        unreg_list = ast.literal_eval(unreg_set.field_2)
+##        print(unreg_list)
+        try:
+            mode = 'reg'
+            u = User.query.filter(User.username.ilike(_user)).first()
+            aprs_settings = ast.literal_eval(u.aprs)
+##            print(unreg_list)
+##            if _dmr_id in unreg_list:
+##                print('in list')
+        except:
+            mode = 'unreg'
+            unreg_set = Misc.query.filter_by(field_1='unregistered_aprs').first()
+            aprs_settings = ast.literal_eval(unreg_set.field_2)
+            try:
+                aprs_settings[_dmr_id]
+            except:
+                aprs_settings[_dmr_id] = [{'call': _user.upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
         if _setting == 'ssid':
             aprs_settings[_dmr_id][1][_setting] = _value
         if _setting == 'icon':
@@ -3252,10 +3279,12 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                 aprs_settings[_dmr_id][5][_setting] = True
             if _value.upper() == 'OFF':
                 aprs_settings[_dmr_id][5][_setting] = False
-        print(aprs_settings[_dmr_id])
+        if mode == 'reg':
+            u.aprs = str(aprs_settings)
+            db.session.commit()
+        if mode == 'unreg':
+            misc_edit_field_1('unregistered_aprs', str(aprs_settings), '', '', 0, 0, 0, 0, False, False)
         
-        u.aprs = str(aprs_settings)
-        db.session.commit()
 
     def tp_del(_id):
         tpd = TinyPage.query.filter_by(id=_id).first()
