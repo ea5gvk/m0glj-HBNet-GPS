@@ -716,23 +716,23 @@ def user_setting_write(dmr_id, setting, value, call_type):
                 if setting.upper() == 'APRS ON':
                     user_dict[dmr_id][5] = {'APRS': True}
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 1, 1, 'unit', 'APRS MSG TX/RX Enabled')
+                        send_sms(False, dmr_id, 9, 9, 'unit', 'APRS MSG TX/RX Enabled')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 1, 1, 'group', 'APRS MSG TX/RX Enabled')
+                        send_sms(False, 9, 9, 9, 'group', 'APRS MSG TX/RX Enabled')
                 if setting.upper() == 'APRS OFF':
                     user_dict[dmr_id][5] = {'APRS': False}
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 1, 1, 'unit', 'APRS MSG TX/RX Disabled')
+                        send_sms(False, dmr_id, 9, 9, 'unit', 'APRS MSG TX/RX Disabled')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 1, 1, 'group', 'APRS MSG TX/RX Disabled')
+                        send_sms(False, 9, 9, 9, 'group', 'APRS MSG TX/RX Disabled')
                 if setting.upper() == 'PIN':
                     #try:
                         #if user_dict[dmr_id]:
                     user_dict[dmr_id][4]['pin'] = value
                     if call_type == 'unit':
-                        send_sms(False, dmr_id, 1, 1, 'unit',  'You can now use your pin on the dashboard.')
+                        send_sms(False, dmr_id, 9, 9, 'unit',  'You can now use your pin on the dashboard.')
                     if call_type == 'vcsbk':
-                        send_sms(False, 9, 1, 1, 'group',  'You can now use your pin on the dashboard.')
+                        send_sms(False, 9, 9, 9, 'group',  'You can now use your pin on the dashboard.')
                         #if not user_dict[dmr_id]:
                         #    user_dict[dmr_id] = [{'call': str(get_alias((dmr_id), subscriber_ids))}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': pin}]
                     #except:
@@ -768,15 +768,15 @@ def process_sms(_rf_src, sms, call_type, system_name):
     elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
-            send_sms(False, int_id(_rf_src), 1, 1, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+            send_sms(False, int_id(_rf_src), 9, 9, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
         if call_type == 'vcsbk':
-            send_sms(False, 9, 1, 1, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+            send_sms(False, 9, 9, 9, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
     elif parse_sms[0] == 'TEST':
         logger.info('It works!')
         if call_type == 'unit':
-            send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'It works')
+            send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'It works')
         if call_type == 'vcsbk':
-            send_sms(False, 9, 1, 1, 'group',  'It works')
+            send_sms(False, 9, 9, 9, 'group',  'It works')
 
     # APRS settings
     elif '*ICON' in parse_sms[0]:
@@ -910,9 +910,9 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##                
 ##        if use_api == False:
 ##            if call_type == 'unit':
-##                send_sms(False, int_id(_rf_src), 1, 1, 'unit', 'API not enabled. Contact server admin.')
+##                send_sms(False, int_id(_rf_src), 9, 9, 'unit', 'API not enabled. Contact server admin.')
 ##            if call_type == 'vcsbk':
-##                send_sms(False, 9, 1, 1, 'group', 'API not enabled. Contact server admin.')
+##                send_sms(False, 9, 9, 9, 'group', 'API not enabled. Contact server admin.')
 
 ##    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
 ##        #Example SMS text: @ARMDS A-This is a test.
@@ -940,15 +940,15 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
 ##            else:
 ##                if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##                if call_type == 'vcsbk':
-##                    send_sms(False, 9, 1, 1, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, 9, 9, 9, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##                
 ##        except Exception as e:
 ##            if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 1, 1, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##            if call_type == 'vcsbk':
-##                send_sms(False, 9, 1, 1, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+##                send_sms(False, 9, 9, 9, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 
 ##    try:
 ##        if sms in cmd_list:
@@ -1033,7 +1033,7 @@ def mmdvm_encapsulate(dst_id, src_id, peer_id, _seq, _slot, _call_type, _dtype_v
     #print(ahex(via_id))
     seq = int(_seq).to_bytes(1, 'big')
     #print(ahex(seq))
-    # Binary, 0 for 1, 1 for 2
+    # Binary, 0 for 9, 9 for 2
     slot = bitarray(str(_slot))
     #print(slot)
     # binary, 0 for group, 1 for unit, bin(1)
@@ -1295,7 +1295,7 @@ def aprs_process(packet):
                         ssid = user_ssid
                     if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
                         mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
-                        send_sms(False, sms_id, 1, 1, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
+                        send_sms(False, sms_id, 9, 9, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
                         try:
                             if 'msgNo' in aprslib.parse(packet):
                                 #sleep(1)
@@ -1645,10 +1645,11 @@ def rule_timer_loop():
     ping(CONFIG)
     send_unit_table(CONFIG, UNIT_MAP)
     send_que = send_sms_que_req(CONFIG)
+    print(UNIT_MAP)
     try:
         for i in send_que:
             try:
-                send_sms(False, i['rcv_id'], 1, 1, 'unit',  i['msg'])
+                send_sms(False, i['rcv_id'], 9, 9, 'unit',  i['msg'])
             except Exception as e:
                 logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
                 logger.info(e)

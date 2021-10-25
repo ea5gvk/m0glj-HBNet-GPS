@@ -452,8 +452,8 @@ def rule_timer_loop(unit_flood_time):
             else:
                 logger.debug('(ROUTER) Conference Bridge NO ACTION: System: %s, Bridge: %s, TS: %s, TGID: %s', _system['SYSTEM'], _bridge, _system['TS'], int_id(_system['TGID']))
 
-    for unit in UNIT_MAP:
-        svrd_send_all(b'UNIT' + unit)
+##    for unit in UNIT_MAP:
+##        svrd_send_all(b'UNIT' + unit)
     _then = _now - unit_flood_time
     remove_list = []
     for unit in UNIT_MAP:
