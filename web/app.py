@@ -2164,12 +2164,18 @@ def hbnet_web_service():
             content = '''<h3 style="text-align: center;">Saved terms of service.</h3>
             <p style="text-align: center;">Redirecting in 3 seconds.</p>
             <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
+        elif request.args.get('aprs') == 'save':
+            misc_edit_field_1('unregistered_aprs', request.form.get('aprs_text'), None, None, None, None, None, None, None, None)
+            content = '''<h3 style="text-align: center;">Saved terms of service.</h3>
+            <p style="text-align: center;">Redirecting in 3 seconds.</p>
+            <meta http-equiv="refresh" content="3; URL=misc_settings" /> '''
         else:
                 
             email_text = Misc.query.filter_by(field_1='approval_email').first()
             flash_text = Misc.query.filter_by(field_1='approval_flash').first()
             home_text = Misc.query.filter_by(field_1='home_page').first()
             tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
+            aprs_text = Misc.query.filter_by(field_1='unregistered_aprs').first()
             content = '''
     <p>&nbsp;</p>
     <form action="misc_settings?approve_email=save" method="POST">
@@ -2224,13 +2230,28 @@ def hbnet_web_service():
     </form>
     <p>&nbsp;</p>
 
-        <p>&nbsp;</p>
-
     <form action="misc_settings?tos=save" method="POST">
     <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
     <tbody>
     <tr style="height: 51.1667px;">
     <td style="height: 51.1667px; text-align: center;"><label for="tos_text">Terms of Service (HTML OK, 5000 characters max):</label><br /> <textarea id="tos_text" cols="65" name="tos_text" rows="4">''' + tos_text.field_2 + '''</textarea></td>
+    </tr>
+    <tr style="height: 27px;">
+    <td style="text-align: center; height: 27px;">
+    <p>&nbsp;</p>
+    <p><input type="submit" value="Submit" /></p>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </form>
+    <p>&nbsp;</p>
+
+        <form action="misc_settings?aprs=save" method="POST">
+    <table style="width: 500px; margin-left: auto; margin-right: auto;" border="1">
+    <tbody>
+    <tr style="height: 51.1667px;">
+    <td style="height: 51.1667px; text-align: center;"><label for="aprs_text">Unregistered APRS:</label><br /> <textarea id="aprs_text" cols="65" name="aprs_text" rows="4">''' + aprs_text.field_2 + '''</textarea></td>
     </tr>
     <tr style="height: 27px;">
     <td style="text-align: center; height: 27px;">
