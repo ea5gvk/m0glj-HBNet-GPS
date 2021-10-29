@@ -1085,6 +1085,7 @@ def dmr_encode(packet_list, _slot):
         l_slot = bitarray('0111011100')
         r_slot = bitarray('1101110001')
         #Mobile Station
+        # D5D7F77FD757
         #sync_data = bitarray('110101011101011111110111011111111101011101010111')
         if _slot == 0:
             # TS1 - F7FDD5DDFD55

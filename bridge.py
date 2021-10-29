@@ -745,6 +745,7 @@ class routerOBP(OPENBRIDGE):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
+        print(int_id(_dst_id))
  
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, pkt_time)
