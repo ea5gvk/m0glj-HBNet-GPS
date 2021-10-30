@@ -1,0 +1,115 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">Add Data Gatweay Options</h1>
+
+<br />
+
+<strong>Note: </strong> Setting the APRS Login Call to <strong>N0CALL</strong> will disable APRS features. You will still be able to see station positions on the map though.
+<br />
+<br />
+
+
+  <div class="card">
+  <div class="card-header">Add Options</div>
+  <div class="card-body">
+
+
+<form action="/manage_servers?add_data_options={{server}}" method="post">
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Data ID(s)</span>
+  <input type="text" id="data_id" name="data_id" class="form-control" aria-describedby="basic-addon1" value="9099, 9098">
+</div>
+
+<select class="form-select" aria-label="Call Type" name="call_type" id="call_type">
+      <option value="both" selected>Call Type - Both</option>
+      <option value="unit">Unit</option>
+      <option value="group">Group</option>
+  
+    </select>
+
+<br />
+<br />  
+
+
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">APRS Login Call</span>
+  <input type="text" id="aprs_login_call" name="aprs_login_call" class="form-control" aria-describedby="basic-addon1" value="N0CALL">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">APRS Passcode</span>
+  <input type="text" id="aprs_login_passcode" name="aprs_login_passcode" class="form-control" aria-describedby="basic-addon1" value="123456">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">APRS Server</span>
+  <input type="text" id="aprs_server" name="aprs_server" class="form-control" aria-describedby="basic-addon1" value="aprs.hbnet.xyz">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">APRS Port</span>
+  <input type="text" id="aprs_port" name="aprs_port" class="form-control" aria-describedby="basic-addon1" value="14580">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">APRS Filter</span>
+  <input type="text" id="aprs_filter" name="aprs_filter" class="form-control" aria-describedby="basic-addon1" value="t/m r/100">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Default SSID</span>
+  <input type="text" id="default_ssid" name="default_ssid" class="form-control" aria-describedby="basic-addon1" value="15">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Default Comment</span>
+  <input type="text" id="default_comment" name="default_comment" class="form-control" aria-describedby="basic-addon1" value="HBNet APRS Gateway - ">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">User Settings File</span>
+  <input type="text" id="user_settings" name="user_settings" class="form-control" aria-describedby="basic-addon1" value="./user_settings.txt">
+</div>
+
+
+<br />  
+
+<br />  
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">iGate Comment</span>
+  <input type="text" id="igate_comment" name="igate_comment" class="form-control" aria-describedby="basic-addon1" value="HBNet APRS Gateway">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">iGate Time</span>
+  <input type="text" id="igate_time" name="igate_time" class="form-control" aria-describedby="basic-addon1" value="30">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">iGate Icon</span>
+  <input type="text" id="igate_icon" name="igate_icon" class="form-control" aria-describedby="basic-addon1" value="/I">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">iGate Latitude</span>
+  <input type="text" id="igate_lat" name="igate_lat" class="form-control" aria-describedby="basic-addon1" value="0000.00N">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">iGate Longitude</span>
+  <input type="text" id="igate_lon" name="igate_lon" class="form-control" aria-describedby="basic-addon1" value="00000.00W">
+</div>
+
+
+<br />  
+  <p style="text-align: center;"><input class="btn btn-primary" type="submit" value="Save" /></form></p>
+
+  </div>
+  <div class="card-footer"></div>
+</div>
+  
+
+{% endblock %}

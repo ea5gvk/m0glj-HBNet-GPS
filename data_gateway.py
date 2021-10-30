@@ -1719,15 +1719,16 @@ class OBP(OPENBRIDGE):
             _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
             _stream_id = _data[16:20]
 
-            print(int_id(_peer_id))
-            print(int_id(_rf_src))
-            print(int_id(_dst_id))
-            print((_dtype_vseq))
-            print(ahex(bptc_decode(_data)))
+##            print(int_id(_peer_id))
+##            print(int_id(_rf_src))
+##            print(int_id(_dst_id))
+##            print((_dtype_vseq))
+##            print(ahex(bptc_decode(_data)))
                        
             if _mode == b'MDAT' or _mode == b'DATA':
                 print('MDAT')
-##                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+                if _rf_src not in PACKET_MATCH:
+                    PACKET_MATCH[_rf_src] = [_seq, time()]
                 if _seq == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
                     print('matched, dropping')
                     pass

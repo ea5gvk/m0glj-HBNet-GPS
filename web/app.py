@@ -937,6 +937,12 @@ def hbnet_web_service():
     def gateway_help_page():
         return render_template('data_gateway_help.html')
 
+    @app.route('/data_wizard/<add_server>')
+    @roles_required('Admin')
+    @login_required
+    def gateway_wiz_page(add_server):
+        return render_template('data_gateway_wizard.html', server = add_server)
+
     @app.route('/generate_passphrase/pi-star', methods = ['GET'])
     @login_required
     def gen_pi_star():
@@ -3939,9 +3945,15 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         db.session.delete(dr)
         db.session.commit()
 
+    def add_data_options(_name, _options):
+        print(_name)
+        s = ServerList.query.filter_by(name=_name).first()
+        s.other_options = _options
+        db.session.commit()
+
 
     def server_edit(_name, _secret, _ip, _global_path, _global_ping_time, _global_max_missed, _global_use_acl, _global_reg_acl, _global_sub_acl, _global_tg1_acl, _global_tg2_acl, _ai_subscriber_file, _ai_try_download, _ai_path, _ai_peer_file, _ai_tgid_file, _ai_peer_url, _ai_subs_url, _ai_stale, _um_shorten_passphrase, _um_burn_file, _report_enable, _report_interval, _report_port, _report_clients, _unit_time, _notes, _dash_url, _public_notes, _other_options):
-        print(_public_notes)
+##        print(_public_notes)
         s = ServerList.query.filter_by(name=_name).first()
         # print(_name)
         if _secret == '':
@@ -4426,6 +4438,17 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             content = '''<h3 style="text-align: center;">Server deleted.</h3>
 <p style="text-align: center;">Redirecting in 3 seconds.</p>
 <meta http-equiv="refresh" content="3; URL=manage_servers" />'''
+
+        elif request.args.get('add_data_options'):
+##            s = ServerList.query.filter_by(name=request.args.get('add_data_options')).first()
+            print(request.form)
+            print(request.form.get('user_settings'))
+            add_data_options(request.args.get('add_data_options'), 'DATA_GATEWAY:data_id=' + request.form.get('data_id') + ':call_type=' + request.form.get('call_type') + ':aprs_login_call=' + request.form.get('aprs_login_call') + ':aprs_login_passcode=' + request.form.get('aprs_login_passcode') + ':aprs_server=' + request.form.get('aprs_server') + ':aprs_port=' + request.form.get('aprs_port') + ':default_ssid=' + request.form.get('default_ssid') + ':default_comment=' + request.form.get('default_comment') + ':aprs_filter=' + request.form.get('aprs_filter') + ':user_settings=' + request.form.get('user_settings') + ':igate_time=' + request.form.get('igate_time') + ':igate_icon=' + request.form.get('igate_icon') + ':igate_comment=' + request.form.get('igate_comment') + ':igate_lat=' + request.form.get('igate_lat') + ':igate_lon=' + request.form.get('igate_lon') + '')
+
+            content = '''<h3 style="text-align: center;">Added data gateway options.</h3>
+<p style="text-align: center;">Redirecting in 3 seconds.</p>
+<meta http-equiv="refresh" content="3; URL=manage_servers" />'''
+            
         elif request.args.get('edit_server'):
             s = ServerList.query.filter_by(name=request.args.get('edit_server')).first()
             
@@ -4435,6 +4458,9 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <p style="text-align: center;"><strong><a href="manage_servers?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
 
 <p style="text-align: center;"><strong><a href="/import_rules/''' + str(s.name) + '''">Import Rules</a></strong></p>
+
+<p style="text-align: center;"><strong><a href="/data_wizard/''' + str(s.name) + '''">Add options for Data Gateway</a></strong></p>
+
 
 <form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
 <p style="text-align: center;">&nbsp;</p>
