@@ -72,6 +72,9 @@ from datetime import datetime
 import re
 from socket import gethostbyname
 
+from setproctitle import setproctitle
+
+
 
 
 # Does anybody read this stuff? There's a PEP somewhere that says I should do this.
@@ -285,26 +288,94 @@ def download_config(L_CONFIG_FILE, cli_file):
     
 # From hotspot_proxy2, FreeDMR
 def hotspot_proxy(listen_port, port_start, port_stop):
+##    Master = "127.0.0.1"
+##    ListenPort = listen_port
+##    DestportStart = port_start
+##    DestPortEnd = port_stop
+##    Timeout = 30
+##    Stats = True
+##    Debug = False
+##    BlackList = [1234567]
+##    
+##   
+##    CONNTRACK = {}
+##
+##    for port in range(DestportStart,DestPortEnd+1,1):
+##        CONNTRACK[port] = False
+##    
+##
+##    reactor.listenUDP(ListenPort,Proxy(Master,ListenPort,CONNTRACK,BlackList,Timeout,Debug,DestportStart,DestPortEnd))
+##
+##    def loopingErrHandle(failure):
+##        logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error innowtimed loop.\n {}'.format(failure))
+##        reactor.stop()
+##        
+##    def stats():        
+##        count = 0
+##        nowtime = time()
+##        for port in CONNTRACK:
+##            if CONNTRACK[port]:
+##                count = count+1
+##                
+##        totalPorts = DestPortEnd - DestportStart
+##        freePorts = totalPorts - count
+##        
+##        logger.info("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
+##
+##
+##        
+##    if Stats == True:
+##        stats_task = task.LoopingCall(stats)
+##        statsa = stats_task.start(30)
+##        statsa.addErrback(loopingErrHandle)
+
     Master = "127.0.0.1"
     ListenPort = listen_port
+    # '' = all IPv4, '::' = all IPv4 and IPv6 (Dual Stack)
+    ListenIP = ''
     DestportStart = port_start
     DestPortEnd = port_stop
     Timeout = 30
-    Stats = True
+    Stats = False
     Debug = False
+    ClientInfo = True
     BlackList = [1234567]
     
-   
+#*******************
+    
+    
+    #Set process title early
+    setproctitle(__file__)
+    
+    #If IPv6 is enabled by enivornment variable...
+    if ListenIP == '' and 'FDPROXY_IPV6' in os.environ and bool(os.environ['FDPROXY_IPV6']):
+        ListenIP = '::'
+        
+    #Override static config from Environment
+    if 'FDPROXY_STATS' in os.environ:
+        Stats = bool(os.environ['FDPROXY_STATS'])
+    if 'FDPROXY_DEBUG' in os.environ:
+        Debug = bool(os.environ['FDPROXY_DEBUG'])
+    if 'FDPROXY_CLIENTINFO' in os.environ:
+        ClientInfo = bool(os.environ['FDPROXY_CLIENTINFO'])
+    if 'FDPROXY_LISTENPORT' in os.environ:
+        ListenPort = os.environ['FDPROXY_LISTENPORT']
+        
+    
     CONNTRACK = {}
 
     for port in range(DestportStart,DestPortEnd+1,1):
         CONNTRACK[port] = False
     
+    #If we are listening IPv6 and Master is an IPv4 IPv4Address
+    #IPv6ify the address. 
+    if ListenIP == '::' and IsIPv4Address(Master):
+        Master = '::ffff:' + Master
 
-    reactor.listenUDP(ListenPort,Proxy(Master,ListenPort,CONNTRACK,BlackList,Timeout,Debug,DestportStart,DestPortEnd))
+    reactor.listenUDP(ListenPort,Proxy(Master,ListenPort,CONNTRACK,BlackList,Timeout,Debug,ClientInfo,DestportStart,DestPortEnd),interface=ListenIP)
 
     def loopingErrHandle(failure):
-        logger.error('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error innowtimed loop.\n {}'.format(failure))
+        print('(GLOBAL) STOPPING REACTOR TO AVOID MEMORY LEAK: Unhandled error innowtimed loop.\n {}'.format(failure))
         reactor.stop()
         
     def stats():        
@@ -317,7 +388,7 @@ def hotspot_proxy(listen_port, port_start, port_stop):
         totalPorts = DestPortEnd - DestportStart
         freePorts = totalPorts - count
         
-        logger.info("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
+        print("{} ports out of {} in use ({} free)".format(count,totalPorts,freePorts))
 
 
         
@@ -325,6 +396,7 @@ def hotspot_proxy(listen_port, port_start, port_stop):
         stats_task = task.LoopingCall(stats)
         statsa = stats_task.start(30)
         statsa.addErrback(loopingErrHandle)
+    
 
 # Used to track if we have downloaded user custon rules
 user_rules = {}
@@ -745,7 +817,9 @@ class routerOBP(OPENBRIDGE):
         pkt_time = time()
         dmrpkt = _data[20:53]
         _bits = _data[15]
-        print(int_id(_dst_id))
+
+        print('Src: ' + str(int_id(_rf_src)))
+        print('Dst: ' + str(int_id(_dst_id)))
  
         # Make/update this unit in the UNIT_MAP cache
         UNIT_MAP[_rf_src] = (self.name, pkt_time)

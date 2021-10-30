@@ -191,6 +191,7 @@ class OPENBRIDGE(DatagramProtocol):
         pass
 
     def datagramReceived(self, _packet, _sockaddr):
+        print(_sockaddr)
 ##        print(_packet[:4])
         # Keep This Line Commented Unless HEAVILY Debugging!
 ##        logger.debug('(%s) RX packet from %s -- %s', self._system, _sockaddr, ahex(_packet))
@@ -298,7 +299,8 @@ class OPENBRIDGE(DatagramProtocol):
 ##                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 ##            else:
                
-            self.svrd_received(_d_pkt[4:8], _d_pkt[8:]) 
+            self.svrd_received(_d_pkt[4:8], _d_pkt[8:])
+##            print(ahex(_d_pkt[8:]))
                 
 #************************************************
 #     HB MASTER CLASS

@@ -1058,7 +1058,7 @@ def mmdvm_encapsulate(dst_id, src_id, peer_id, _seq, _slot, _call_type, _dtype_v
     middle_guts = slot + call_type + frame_type + dtype_vseq
     #print(middle_guts)
     dmr_data = str(_dmr_data)[2:-1] #str(re.sub("b'|'", '', str(_dmr_data)))
-    complete_packet = signature.encode() + seq + dest_id + source_id + via_id + middle_guts.tobytes() + stream_id + bytes.fromhex((dmr_data))# + bitarray('0000000000101111').tobytes()#bytes.fromhex(dmr_data)
+    complete_packet = signature.encode() + seq + source_id + dest_id + via_id + middle_guts.tobytes() + stream_id + bytes.fromhex((dmr_data))# + bitarray('0000000000101111').tobytes()#bytes.fromhex(dmr_data)
     #print('Complete: ' + str(ahex(complete_packet)))
     return complete_packet
 
@@ -1085,15 +1085,15 @@ def dmr_encode(packet_list, _slot):
         l_slot = bitarray('0111011100')
         r_slot = bitarray('1101110001')
         #Mobile Station
-        # D5D7F77FD757
-        #sync_data = bitarray('110101011101011111110111011111111101011101010111')
-        if _slot == 0:
-            # TS1 - F7FDD5DDFD55
-            sync_data = bitarray('111101111111110111010101110111011111110101010101')
-        if _slot == 1:
-            #TS2 - D7557F5FF7F5
-            sync_data = bitarray('110101110101010101111111010111111111011111110101')
-            
+       # D5D7F77FD757
+        sync_data = bitarray('110101011101011111110111011111111101011101010111')
+##        if _slot == 0:
+##            # TS1 - F7FDD5DDFD55
+##            sync_data = bitarray('111101111111110111010101110111011111110101010101')
+##        if _slot == 1:
+##            #TS2 - D7557F5FF7F5
+##            sync_data = bitarray('110101110101010101111111010111111111011111110101')
+##            
         # Data sync? 110101011101011111110111011111111101011101010111 - D5D7F77FD757
         new_pkt = ahex(stitched_pkt[:98] + l_slot + sync_data + r_slot + stitched_pkt[98:])
         send_seq.append(new_pkt)
@@ -1130,13 +1130,16 @@ def create_sms_seq(dst_id, src_id, peer_id, _slot, _call_type, dmr_string):
             mmdvm_send_seq.append(ahex(the_mmdvm_pkt))
             cap_in = cap_in + 1
             print(ahex(the_mmdvm_pkt))
-            if bytes.fromhex(dst_id) in UNIT_MAP:
-                logger.info('Sending SMS packet to ' + str(UNIT_MAP[bytes.fromhex(dst_id)][0]))
-                systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
-            else:
-                for s in CONFIG['SYSTEMS'].items():
+        if bytes.fromhex(dst_id) in UNIT_MAP:
+            logger.info('Sending SMS packet to ' + str(UNIT_MAP[bytes.fromhex(dst_id)][0]))
+            systems[UNIT_MAP[bytes.fromhex(dst_id)][0]].send_system(the_mmdvm_pkt)
+        else:
+            for s in CONFIG['SYSTEMS'].items():
+                if 'FREEDMR' in s[1]['OTHER_OPTIONS']:
+                    systems[s[0]].send_system(b'SVRDDATA' + the_mmdvm_pkt)
+                else:
                     systems[s[0]].send_system(the_mmdvm_pkt)
-                    logger.info('Sending SMS packet to ' + str(s[0]))
+                logger.info('Sending SMS packet to ' + str(s[0]))
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:  
         with open('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/' + str(random.randint(1000, 9999)) + '.mmdvm_seq', "w") as packet_write_file:
             packet_write_file.write(str(mmdvm_send_seq))
@@ -1230,9 +1233,9 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
         call_type = 0
         # Send all Group data to TS 2, need to fix later.
         slot = 1
-    if csbk == 'yes':
+    if csbk == True:
         use_csbk = True
-        create_sms_seq(to_id, from_id, peer_id, int(slot), new_call_type, csbk_gen(to_id, from_id) + create_crc16(gen_header(to_id, from_id, new_call_type)) + create_crc32(format_sms(msg, to_id, from_id)))
+        create_sms_seq(to_id, from_id, peer_id, int(slot), call_type, csbk_gen(to_id, from_id) + create_crc16(gen_header(to_id, from_id, call_type)) + create_crc32(format_sms(msg, to_id, from_id)))
     else:
         create_sms_seq(to_id, from_id, peer_id, int(slot), call_type, create_crc16(gen_header(to_id, from_id, call_type)) + create_crc32(format_sms(str(msg), to_id, from_id)))
 
@@ -1476,6 +1479,7 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
             # Use block 0 as trigger. $GPRMC must also be in string to indicate NMEA.
             # This triggers the APRS upload
             if btf == 0:
+                
                 final_packet = str(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly)).tobytes().decode('utf-8', 'ignore'))
                 sms_hex = str(ba2hx(bitarray(re.sub("\)|\(|bitarray|'", '', packet_assembly))))
                 sms_hex_string = re.sub("b'|'", '', str(sms_hex))
@@ -1690,8 +1694,10 @@ class OBP(OPENBRIDGE):
         if _mode == b'UNIT':
             UNIT_MAP[_data] = (self._system, time())
             print(UNIT_MAP)
-        if _mode == b'DATA' or _mode == b'MDATA':
+        if _mode == b'DATA' or _mode == b'MDAT':
+##            print(ahex(_data))
         # DMR Data packet, sent via SVRD
+        
             _peer_id = _data[11:15]
             _seq = _data[4]
             _rf_src = _data[5:8]
@@ -1709,6 +1715,14 @@ class OBP(OPENBRIDGE):
             _dtype_vseq = (_bits & 0xF) # data, 1=voice header, 2=voice terminator; voice, 0=burst A ... 5=burst F
             _stream_id = _data[16:20]
 
+            print(int_id(_peer_id))
+            print(int_id(_rf_src))
+            print(int_id(_dst_id))
+            print((_dtype_vseq))
+            print(ahex(bptc_decode(_data)))
+            
+            
+
 ##            # Record last packet to prevent duplicates, think finger printing.
 ##            PACKET_MATCH[_rf_src] = [_data, time()]
 
@@ -1724,9 +1738,8 @@ class HBP(HBSYSTEM):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         UNIT_MAP[_rf_src] = (self._system, time())
-        print(_dtype_vseq)
+##        print(ahex(_data))
         print('MMDVM RCVD')
-        print(UNIT_MAP)
         if _rf_src not in PACKET_MATCH:
             PACKET_MATCH[_rf_src] = [_data, time()]
         elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
