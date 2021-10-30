@@ -445,9 +445,7 @@ def mirror_traffic(_data):
                 if CONFIG['SYSTEMS'][system]['MODE'] == 'OPENBRIDGE':
                     print(CONFIG['SYSTEMS'][system]['OTHER_OPTIONS'])
                     if 'MIRROR_ALL_TRAFFIC' in CONFIG['SYSTEMS'][system]['OTHER_OPTIONS']:
-                        print('mirrored to ' + system)
-                        print(_data)
-                        systems[system].send_system(SVRD + b'DATA' + _data)
+                        systems[system].send_system(SVRD + b'MDAT' + _data)
                     
 
 

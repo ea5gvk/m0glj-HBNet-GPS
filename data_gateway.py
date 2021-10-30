@@ -1344,12 +1344,14 @@ def aprs_beacon_send():
     logger.info(beacon_packet)
 
 ##### DMR data function ####
-def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
+def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data, mirror = False):
     # Capture data headers
     global n_packet_assembly, hdr_type
     #logger.info(_dtype_vseq)
     #logger.info(_call_type)
     #logger.info(_frame_type)
+    print(int_id(_stream_id))
+    print((_seq))
     logger.info(strftime('%H:%M:%S - %m/%d/%y'))
     #logger.info('Special debug for developement:')
     logger.info(ahex(bptc_decode(_data)))
@@ -1402,49 +1404,50 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
             # Form APRS packet
             #logger.info(aprs_loc_packet)
             logger.info('Lat: ' + str(aprs_lat) + ' Lon: ' + str(aprs_lon))
+            if mirror == False:
             # 14FRS2013 simplified and moved settings retrieval
-            user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-            if int_id(_rf_src) not in user_settings:	
-                ssid = str(user_ssid)	
-                icon_table = '/'	
-                icon_icon = '['	
-                comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
-            else:	
-                if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
-                    ssid = user_ssid	
-                if user_settings[int_id(_rf_src)][3]['comment'] == '':	
-                    comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
-                if user_settings[int_id(_rf_src)][2]['icon'] == '':	
+                user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+                if int_id(_rf_src) not in user_settings:	
+                    ssid = str(user_ssid)	
                     icon_table = '/'	
                     icon_icon = '['	
-                if user_settings[int_id(_rf_src)][2]['icon'] != '':	
-                    icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
-                    icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
-                if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
-                    ssid = user_settings[int_id(_rf_src)][1]['ssid']	
-                if user_settings[int_id(_rf_src)][3]['comment'] != '':	
-                    comment = user_settings[int_id(_rf_src)][3]['comment']
-            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
-            logger.info(aprs_loc_packet)
-            logger.info('User comment: ' + comment)
-            logger.info('User SSID: ' + ssid)
-            logger.info('User icon: ' + icon_table + icon_icon)
-            # Attempt to prevent malformed packets from being uploaded.
-            try:
-                aprslib.parse(aprs_loc_packet)
-                float(lat_deg) < 91
-                float(lon_deg) < 121
-##                if int_id(_dst_id) == data_id:
-                if int_id(_dst_id) in data_id:
-                    aprs_send(aprs_loc_packet)
-                    dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment, int_id(_rf_src))
-                #logger.info('Sent APRS packet')
-            except Exception as error_exception:
-                logger.info('Error. Failed to send packet. Packet may be malformed.')
-                logger.info(error_exception)
-                logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-            udt_block = 1
-            hdr_type = ''
+                    comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
+                else:	
+                    if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
+                        ssid = user_ssid	
+                    if user_settings[int_id(_rf_src)][3]['comment'] == '':	
+                        comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
+                    if user_settings[int_id(_rf_src)][2]['icon'] == '':	
+                        icon_table = '/'	
+                        icon_icon = '['	
+                    if user_settings[int_id(_rf_src)][2]['icon'] != '':	
+                        icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
+                        icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
+                    if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
+                        ssid = user_settings[int_id(_rf_src)][1]['ssid']	
+                    if user_settings[int_id(_rf_src)][3]['comment'] != '':	
+                        comment = user_settings[int_id(_rf_src)][3]['comment']
+                aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(aprs_lat) + icon_table + str(aprs_lon) + icon_icon + '/' + str(comment)
+                logger.info(aprs_loc_packet)
+                logger.info('User comment: ' + comment)
+                logger.info('User SSID: ' + ssid)
+                logger.info('User icon: ' + icon_table + icon_icon)
+                # Attempt to prevent malformed packets from being uploaded.
+                try:
+                    aprslib.parse(aprs_loc_packet)
+                    float(lat_deg) < 91
+                    float(lon_deg) < 121
+    ##                if int_id(_dst_id) == data_id:
+                    if int_id(_dst_id) in data_id:
+                        aprs_send(aprs_loc_packet)
+                        dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, aprs_lat, aprs_lon, time(), comment, int_id(_rf_src))
+                    #logger.info('Sent APRS packet')
+                except Exception as error_exception:
+                    logger.info('Error. Failed to send packet. Packet may be malformed.')
+                    logger.info(error_exception)
+                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+                udt_block = 1
+                hdr_type = ''
         else:
               pass
     #NMEA type packets for Anytone like radios.
@@ -1498,57 +1501,58 @@ def data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _fr
                         nmea_parse = re.sub('.*\$|\n.*|V\*.*', '', final_packet)
                     loc = pynmea2.parse(nmea_parse, check=False)
                     logger.info('Latitude: ' + str(loc.lat) + str(loc.lat_dir) + ' Longitude: ' + str(loc.lon) + str(loc.lon_dir) + ' Direction: ' + str(loc.true_course) + ' Speed: ' + str(loc.spd_over_grnd) + '\n')
-                    try:
-                        # Begin APRS format and upload
-                        # Disable opening file for reading to reduce "collision" or reading and writing at same time.
-                        # 14FRS2013 simplified and moved settings retrieval
-                        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-                        print(user_settings)
-                        if int_id(_rf_src) not in user_settings:	
-                            ssid = str(user_ssid)	
-                            icon_table = '/'	
-                            icon_icon = '['	
-                            comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
-                        else:	
-                            if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
-                                ssid = user_ssid	
-                            if user_settings[int_id(_rf_src)][3]['comment'] == '':	
-                                comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
-                            if user_settings[int_id(_rf_src)][2]['icon'] == '':	
+                    if mirror == False:
+                        try:
+                            # Begin APRS format and upload
+                            # Disable opening file for reading to reduce "collision" or reading and writing at same time.
+                            # 14FRS2013 simplified and moved settings retrieval
+                            user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+                            print(user_settings)
+                            if int_id(_rf_src) not in user_settings:	
+                                ssid = str(user_ssid)	
                                 icon_table = '/'	
                                 icon_icon = '['	
-                            if user_settings[int_id(_rf_src)][2]['icon'] != '':	
-                                icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
-                                icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
-                            if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
-                                ssid = user_settings[int_id(_rf_src)][1]['ssid']	
-                            if user_settings[int_id(_rf_src)][3]['comment'] != '':	
-                                comment = user_settings[int_id(_rf_src)][3]['comment']	
-                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
-                        logger.info(aprs_loc_packet)
-                        logger.info('User comment: ' + comment)
-                        logger.info('User SSID: ' + ssid)
-                        logger.info('User icon: ' + icon_table + icon_icon)
-                    except Exception as error_exception:
-                        logger.info('Error or user settings file not found, proceeding with default settings.')
-                        aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
-                        logger.info(error_exception)
-                        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-                    try:
-                    # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
-                        aprslib.parse(aprs_loc_packet)
-                    # Float values of lat and lon. Anything that is not a number will cause it to fail.
-                        float(loc.lat)
-                        float(loc.lon)
-##                        if int_id(_dst_id) == data_id:
-                        if int_id(_dst_id) in data_id:
+                                comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src)) 	
+                            else:	
+                                if user_settings[int_id(_rf_src)][1]['ssid'] == '':	
+                                    ssid = user_ssid	
+                                if user_settings[int_id(_rf_src)][3]['comment'] == '':	
+                                    comment = aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))	
+                                if user_settings[int_id(_rf_src)][2]['icon'] == '':	
+                                    icon_table = '/'	
+                                    icon_icon = '['	
+                                if user_settings[int_id(_rf_src)][2]['icon'] != '':	
+                                    icon_table = user_settings[int_id(_rf_src)][2]['icon'][0]	
+                                    icon_icon = user_settings[int_id(_rf_src)][2]['icon'][1]	
+                                if user_settings[int_id(_rf_src)][1]['ssid'] != '':	
+                                    ssid = user_settings[int_id(_rf_src)][1]['ssid']	
+                                if user_settings[int_id(_rf_src)][3]['comment'] != '':	
+                                    comment = user_settings[int_id(_rf_src)][3]['comment']	
+                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + icon_table + str(loc.lon[0:8]) + str(loc.lon_dir) + icon_icon + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + str(comment)
+                            logger.info(aprs_loc_packet)
+                            logger.info('User comment: ' + comment)
+                            logger.info('User SSID: ' + ssid)
+                            logger.info('User icon: ' + icon_table + icon_icon)
+                        except Exception as error_exception:
+                            logger.info('Error or user settings file not found, proceeding with default settings.')
+                            aprs_loc_packet = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(user_ssid) + '>APHBL3,TCPIP*:@' + str(datetime.datetime.utcnow().strftime("%H%M%Sh")) + str(loc.lat[0:7]) + str(loc.lat_dir) + '/' + str(loc.lon[0:8]) + str(loc.lon_dir) + '[' + str(round(loc.true_course)).zfill(3) + '/' + str(round(loc.spd_over_grnd)).zfill(3) + '/' + aprs_comment + ' DMR ID: ' + str(int_id(_rf_src))
+                            logger.info(error_exception)
+                            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+                        try:
+                        # Try parse of APRS packet. If it fails, it will not upload to APRS-IS
+                            aprslib.parse(aprs_loc_packet)
+                        # Float values of lat and lon. Anything that is not a number will cause it to fail.
+                            float(loc.lat)
+                            float(loc.lon)
+    ##                        if int_id(_dst_id) == data_id:
+                            if int_id(_dst_id) in data_id:
 
-                            aprs_send(aprs_loc_packet)
-                            dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment, int_id(_rf_src))
-                    except Exception as error_exception:
-                        logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
-                        logger.info(error_exception)
-                        logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+                                aprs_send(aprs_loc_packet)
+                                dashboard_loc_write(str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + ssid, str(loc.lat[0:7]) + str(loc.lat_dir), str(loc.lon[0:8]) + str(loc.lon_dir), time(), comment, int_id(_rf_src))
+                        except Exception as error_exception:
+                            logger.info('Failed to parse packet. Packet may be deformed. Not uploaded.')
+                            logger.info(error_exception)
+                            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
                     # Get callsign based on DMR ID
                     # End APRS-IS upload
                 # Assume this is an SMS message
@@ -1672,17 +1676,18 @@ class OBP(OPENBRIDGE):
 
     def dmrd_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data):
         print(_frame_type)
-        UNIT_MAP[_rf_src] = (self._system, time())
+##        UNIT_MAP[_rf_src] = (self._system, time())
+        UNIT_MAP[_rf_src] = (_seq, time())
         if _rf_src not in PACKET_MATCH:
-            PACKET_MATCH[_rf_src] = [_data, time()]
+            PACKET_MATCH[_rf_src] = [_seq, time()]
 
         # Check to see if we have already received this packet
-        elif _data == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
+        elif _seq == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
             print('matched, dropping')
             pass
             print(PACKET_MATCH)
         else:
-            PACKET_MATCH[_rf_src] = [_data, time()]
+            PACKET_MATCH[_rf_src] = [_seq, time()]
             print('OBP RCVD')
             if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dtype_vseq == 6 or _call_type == 'vcsbk':
                 data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
@@ -1697,7 +1702,6 @@ class OBP(OPENBRIDGE):
         if _mode == b'DATA' or _mode == b'MDAT':
 ##            print(ahex(_data))
         # DMR Data packet, sent via SVRD
-        
             _peer_id = _data[11:15]
             _seq = _data[4]
             _rf_src = _data[5:8]
@@ -1720,14 +1724,20 @@ class OBP(OPENBRIDGE):
             print(int_id(_dst_id))
             print((_dtype_vseq))
             print(ahex(bptc_decode(_data)))
-            
-            
+                       
+            if _mode == b'MDAT' or _mode == b'DATA':
+                print('MDAT')
+##                self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+                if _seq == PACKET_MATCH[_rf_src][0] and time() - 1 < PACKET_MATCH[_rf_src][1]:
+                    print('matched, dropping')
+                    pass
 
-##            # Record last packet to prevent duplicates, think finger printing.
-##            PACKET_MATCH[_rf_src] = [_data, time()]
-
-            
-            self.dmrd_received(_peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+                else:
+                    print('no match')
+                    if _mode == b'MDAT':
+                        data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data, True)
+                    if _mode == b'DATA':
+                        data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
 
 
 
@@ -1824,8 +1834,8 @@ if __name__ == '__main__':
 ####    use_api = CONFIG['DATA_CONFIG']['USE_API']
 
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+####        if 'DUAL_DASH' in CONFIG['WEB_SERVICE']['']
         pass
-    
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
         # Check if user_settings (for APRS settings of users) exists. Creat it if not.
         if Path(user_settings_file).is_file():
