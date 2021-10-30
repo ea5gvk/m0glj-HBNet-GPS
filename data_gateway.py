@@ -1311,8 +1311,8 @@ def aprs_process(packet):
                                 logger.info('Send ACK')
                         except Exception as e:
                             logger.info(e)
-    except:
-        logger.info('aprs except')
+    except Exception as e:
+        logger.info(e)
 
 # the APRS RX process
 def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, user_ssid):
