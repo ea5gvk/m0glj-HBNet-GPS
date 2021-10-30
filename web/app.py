@@ -2533,6 +2533,63 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         
         return render_template('tg_all.html', markup_content = Markup(content))
 
+    @app.route('/tags', methods=['POST', 'GET'])
+##    @login_required
+    def tag_list():
+        content = ''
+        if request.args.get('tag'):
+            ss_tags = Social.query.filter(Social.message.ilike('%#' + request.args.get('tag') + '%')).order_by(Social.time.desc()).all()
+            bb_tags = BulletinBoard.query.filter(BulletinBoard.bulletin.ilike('%#' + request.args.get('tag') + '%')).order_by(BulletinBoard.time.desc()).all()
+            sms_tags = SMSLog.query.filter(SMSLog.message.ilike('%#' + request.args.get('tag') + '%')).order_by(SMSLog.time.desc()).all()
+            for i in ss_tags:
+                tag = re.sub('.*#| .*', '', i.message)
+                content = content + ''' <tr>
+          <td>''' + i.message + ''' | ''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
+        </tr> '''
+            for i in bb_tags:
+                tag = re.sub('.*#| .*', '', i.bulletin)
+                content = content + ''' <tr>
+          <td>''' + i.bulletin + ''' | ''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
+        </tr> '''
+            for i in sms_tags:
+                tag = re.sub('.*#| .*', '', i.message)
+                content = content + '''<tr>
+          <td>''' + i.message + ''' | ''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
+        </tr> '''
+            
+
+        else:
+            ss_tags = Social.query.filter(Social.message.ilike('%#%')).order_by(Social.time.desc()).all()
+            bb_tags = BulletinBoard.query.filter(BulletinBoard.bulletin.ilike('%#%')).order_by(BulletinBoard.time.desc()).all()
+            sms_tags = SMSLog.query.filter(SMSLog.message.ilike('%#%')).order_by(SMSLog.time.desc()).all()
+
+            rend_list = []
+            for i in ss_tags:
+                tag = re.sub('.*#| .*', '', i.message)
+                if tag not in rend_list:
+                    content = content + ''' <tr>
+          <td><a href="/tags?tag=''' + tag + '''"><strong>#''' + tag + '''</strong></a></td>
+        </tr> '''
+                    rend_list.append(str(tag))
+            for i in bb_tags:
+                tag = re.sub('.*#| .*', '', i.bulletin)
+                if tag not in rend_list:
+                    content = content + ''' <tr>
+          <td><a href="/tags?tag=''' + tag + '''"><strong>#''' + tag + '''</strong></a></td>
+        </tr> '''
+                    rend_list.append(str(tag))
+
+            for i in sms_tags:
+                tag = re.sub('.*#| .*', '', i.message)
+                if tag not in rend_list:
+                    content = content + ''' <tr>
+          <td><a href="/tags?tag=''' + tag + '''"><strong>#''' + tag + '''</strong></a></td>
+        </tr> '''
+                    rend_list.append(str(tag))
+            
+        return render_template('tags.html', markup_content = Markup(content))
+    
+
     @app.route('/sms.xml')
     def rss_sms():
         rss_header = """<?xml version="1.0" encoding="UTF-8" ?>

@@ -1,0 +1,25 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+
+  <h1 style="text-align: center;">#Tags</h1>
+
+<div class="row">
+
+<table data-toggle="table" data-pagination="true" data-search="true" >
+  <thead>
+    <tr>
+      <th>Tag</th>
+    </tr>
+  </thead>
+  <tbody>
+
+      {{markup_content}}
+
+  </tbody>
+  </table>
+
+  
+  
+</div>
+
+{% endblock %}
