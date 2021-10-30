@@ -2698,7 +2698,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         elif request.args.get('delete_page'):
             show_form = False
             tpd = TinyPage.query.filter_by(id=int(request.args.get('delete_page'))).first()
-            if str(current_user.username).upper() == str(tpd.author).upper():
+            if str(current_user.username).upper() == str(tpd.author).upper() or current_user.has_roles('Admin'):
                 tp_del(int(request.args.get('delete_page')))
                 content = '''<h3 style="text-align: center;">Deleted page.</h3>
             <p style="text-align: center;">Redirecting in 1 seconds.</p>

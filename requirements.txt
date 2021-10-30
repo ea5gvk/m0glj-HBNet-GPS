@@ -10,4 +10,5 @@ requests
 libscrc
 resettabletimer
 cryptography
+setproctitle
 
