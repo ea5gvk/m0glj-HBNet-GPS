@@ -1339,7 +1339,7 @@ def aprs_rx(aprs_rx_login, aprs_passcode, aprs_server, aprs_port, aprs_filter, u
         logger.info(e)
         
 def aprs_beacon_send():
-    beacon_packet = CONFIG['GPS_DATA']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['GPS_DATA']['IGATE_LATITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][0]) + CONFIG['GPS_DATA']['IGATE_LONGITUDE'] + str(CONFIG['GPS_DATA']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['GPS_DATA']['IGATE_BEACON_COMMENT']
+    beacon_packet = CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL'] + '>APHBL3,TCPIP*:!' + CONFIG['DATA_CONFIG']['IGATE_LATITUDE'] + str(CONFIG['DATA_CONFIG']['IGATE_BEACON_ICON'][0]) + CONFIG['DATA_CONFIG']['IGATE_LONGITUDE'] + str(CONFIG['DATA_CONFIG']['IGATE_BEACON_ICON'][1]) + '/' + CONFIG['DATA_CONFIG']['IGATE_BEACON_COMMENT']
     aprs_send(beacon_packet)
     logger.info(beacon_packet)
 

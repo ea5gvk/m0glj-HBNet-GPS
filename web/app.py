@@ -4462,6 +4462,8 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <p style="text-align: center;"><strong><a href="/data_wizard/''' + str(s.name) + '''">Add options for Data Gateway</a></strong></p>
 
 
+<strong>Note: </strong>If <strong>IP/DNS</strong> is left blank, this server will not be listed on the Passphrase(s) page. This can be used to hide a server that users shouldn't connect to directly, such as a data gateway.
+
 <form action="manage_servers?save_mode=edit&server=''' + str(s.name) + '''" method="post">
 <p style="text-align: center;">&nbsp;</p>
 <h3 style="text-align: center;"><strong>Server<br /></strong></h3>
@@ -4669,6 +4671,9 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         # Add new server
         elif request.args.get('add'): # == 'yes':
             content = '''
+
+<strong>Note: </strong>If <strong>IP/DNS</strong> is left blank, this server will not be listed on the Passphrase(s) page. This can be used to hide a server that users shouldn't connect to directly, such as a data gateway.
+
 <form action="manage_servers?save_mode=new" method="post">
   <p style="text-align: center;">&nbsp;</p>
 <h3 style="text-align: center;"><strong>Server<br /></strong></h3>
