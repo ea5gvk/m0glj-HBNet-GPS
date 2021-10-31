@@ -7028,6 +7028,10 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                     bb_add(hblink_req['callsign'], hblink_req['bulletin'], hblink_req['dmr_id'], hblink_req['bb_send'], hblink_req['system_name'])
                     trim_bb()
                     response = 'rcvd'
+            elif 'mb_add' in hblink_req:
+                    mailbox_add(hblink_req['src_callsign'], hblink_req['dst_callsign'], hblink_req['message'], hblink_req['src_dmr_id'], hblink_req['dst_dmr_id'], hblink_req['mb_add'], hblink_req['system_name'])
+                    response = 'rcvd'
+
             elif 'ss_update' in hblink_req:
                     del_ss(hblink_req['dmr_id'])
                     ss_add(hblink_req['callsign'], str(hblink_req['message']), hblink_req['dmr_id'])

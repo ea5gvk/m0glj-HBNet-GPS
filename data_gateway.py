@@ -211,6 +211,30 @@ def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
     except requests.ConnectionError:
         logger.error('Config server unreachable')
 
+
+def send_mb(CONFIG, _dst_callsign, _src_callsign, message, _dst_dmr_id, _src_dmr_id, system_name):
+    user_man_url = CONFIG['WEB_SERVICE']['URL']
+    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+    mb_data = {
+    'mb_add': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+    'secret':shared_secret,
+    'dst_callsign': _dst_callsign,
+    'src_callsign': _src_callsign,
+    'message' : message,
+    'dst_dmr_id' : _dst_dmr_id,
+    'src_dmr_id' : _src_dmr_id,
+    'system_name' : system_name
+    }
+    json_object = json.dumps(mb_data, indent = 4)
+    
+    try:
+        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+##        resp = json.loads(req.text)
+##        print(resp)
+##        return resp['rules']
+    except requests.ConnectionError:
+        logger.error('Config server unreachable')
+
         
 def send_ss(CONFIG, callsign, message, dmr_id):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
@@ -564,12 +588,20 @@ def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time, s
 
 def mailbox_write(call, dmr_id, time, message, recipient):
     #try:
-    mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
-    mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-    with open(the_mailbox_file, 'w') as mailbox_file:
-            mailbox_file.write(str(mail_file[:100]))
-            mailbox_file.close()
-    logger.info('User mail saved.')
+    print(call)
+    print()
+    print()
+    print(recipient)
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        send_mb(CONFIG, call, recipient, message, 0, 0, 'APRS-IS')
+
+    else:        
+        mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
+        mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
+        with open(the_mailbox_file, 'w') as mailbox_file:
+                mailbox_file.write(str(mail_file[:100]))
+                mailbox_file.close()
+        logger.info('User mail saved.')
 
 def mailbox_delete(dmr_id):
     mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
@@ -1298,6 +1330,7 @@ def aprs_process(packet):
                     if i[1][1]['ssid'] == '':
                         ssid = user_ssid
                     if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
+                        logger.info(aprslib.parse(packet)['from'])
                         mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
                         send_sms(False, sms_id, 9, 9, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
                         try:
