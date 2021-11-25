@@ -1,0 +1,14 @@
+version: '3'
+services:
+  hbnet_web_service:
+    build: .
+    ports:
+      # Port outside container:Port inside container
+      - "8082:80"
+    volumes:
+       # Path to config.py
+       - ./config.py:/opt/hbnet_web/config.py   
+       # Persist SQLIte data
+       - ./data:/opt/hbnet_web/data:rw
+       # Path to custon logo
+#       - /path/to/logo.png:/opt/hbnet_web/static/HBnet.png

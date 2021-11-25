@@ -23,7 +23,13 @@ COPY docker/hbnet.conf /etc/nginx/sites-enabled/hbnet.conf
 COPY docker/nginx_default /etc/nginx/sites-enabled/default
 RUN chown -R www-data:www-data /var/log/nginx
 COPY docker/wsgi.py /opt/hbnet_web
+
 COPY docker/wsgi.ini /opt/hbnet_web
+COPY docker/config.py /opt/hbnet_web
+
+RUN mkdir -p /opt/hbnet_web/data
+
+RUN chown -R hbnet_web:hbnet_web /opt/hbnet_web/data/
 
 RUN chown -R hbnet_web:hbnet_web /opt/hbnet_web/
 
@@ -38,7 +44,6 @@ RUN python3.9 -m pip install --upgrade pip
 
 #Install from requirements.txt
 RUN python3.9 -m pip install --no-cache-dir -r requirements.txt
-#RUN python3.9 -m pip install --no-cache-dir supervisor
 
 EXPOSE 80
 EXPOSE 443

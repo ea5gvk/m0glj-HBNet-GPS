@@ -1,11 +1,10 @@
-
 '''
 Settings for HBNet Web Server.
 '''
 # Database options
 # Using SQLite is simple and easiest. Comment out this line and uncomment the MySQL
 # line to use a MySQL/MariaDB server.
-db_location = 'sqlite:///hbnet.sqlite'
+db_location = 'sqlite:////opt/hbnet_web/data/hbnet.sqlite'
 
 # Uncomment and change this line to use a MySQL DB. It is best to start with a fresh
 # DB without data in it.
@@ -14,7 +13,7 @@ db_location = 'sqlite:///hbnet.sqlite'
 
 
 # Title of the HBNet Web Service/DMR network
-title = 'HBNet Web Service'
+title = 'HBNet Web Service (Docker)'
 # Port to run server, not needed if using Docker or uWSGI with NGINX or Apache2
 hws_port = 8080
 # IP to run server on
