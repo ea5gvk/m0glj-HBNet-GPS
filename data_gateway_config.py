@@ -167,6 +167,7 @@ def build_config(_config_file):
 
             elif section == 'DATA_CONFIG':
                 CONFIG['DATA_CONFIG'].update({
+                    'USE_DASHBOARD': config.getboolean(section, 'USE_DASHBOARD'),
                     'DATA_DMR_ID': config.get(section, 'DATA_DMR_ID'),
                     'USER_APRS_SSID': config.get(section, 'USER_APRS_SSID'),
                     'CALL_TYPE': config.get(section, 'CALL_TYPE'),

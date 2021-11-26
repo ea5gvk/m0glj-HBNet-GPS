@@ -529,108 +529,126 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time, comment, dmr_id):
-    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id)
-    else:
-        dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
-        dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
-    # Clear old entries
-        list_index = 0
-        call_count = 0
-        new_dash_entries = []
-        for i in dash_entries:
-            if i['call'] == call:
-                if call_count >= 25:
-                    pass
-                else:
-                    new_dash_entries.append(i)
-                call_count = call_count + 1
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+            send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id)
+        else:
+            dash_entries = ast.literal_eval(os.popen('cat ' + loc_file).read())
+            dash_entries.insert(0, {'call': call, 'lat': lat, 'lon': lon, 'time':time, 'comment':comment})
+        # Clear old entries
+            list_index = 0
+            call_count = 0
+            new_dash_entries = []
+            for i in dash_entries:
+                if i['call'] == call:
+                    if call_count >= 25:
+                        pass
+                    else:
+                        new_dash_entries.append(i)
+                    call_count = call_count + 1
 
-            if call != i['call']:
-                new_dash_entries.append(i)
-                pass
-            list_index = list_index + 1
-        with open(loc_file, 'w') as user_loc_file:
-                user_loc_file.write(str(new_dash_entries[:500]))
-                user_loc_file.close()
-    logger.info('User location saved for dashboard')
-    #logger.info(dash_entries)
+                if call != i['call']:
+                    new_dash_entries.append(i)
+                    pass
+                list_index = list_index + 1
+            with open(loc_file, 'w') as user_loc_file:
+                    user_loc_file.write(str(new_dash_entries[:500]))
+                    user_loc_file.close()
+        logger.info('User location saved for dashboard')
+        #logger.info(dash_entries)
+    else:
+        pass
     
 def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
-    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        send_bb(CONFIG, call, dmr_id, bulletin, system_name)
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+            send_bb(CONFIG, call, dmr_id, bulletin, system_name)
+        else:
+            #try:
+            dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
+           # except:
+            #    dash_entries = []
+            dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
+            with open(bb_file, 'w') as user_bb_file:
+                    user_bb_file.write(str(dash_bb[:20]))
+                    user_bb_file.close()
+            logger.info('User bulletin entry saved.')
+            #logger.info(dash_bb)
     else:
-        #try:
-        dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
-       # except:
-        #    dash_entries = []
-        dash_bb.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'bulletin':bulletin})
-        with open(bb_file, 'w') as user_bb_file:
-                user_bb_file.write(str(dash_bb[:20]))
-                user_bb_file.close()
-        logger.info('User bulletin entry saved.')
-        #logger.info(dash_bb)
+        pass
 
 def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time, system_name):
-    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id, system_name)
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+            send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id, system_name)
+        else:
+            #try:
+            dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
+           # except:
+            #    dash_entries = []
+            dash_sms.insert(0, {'snd_call': snd_call, 'rcv_call':rcv_call, 'snd_dmr_id': snd_dmr_id, 'rcv_dmr_id':rcv_dmr_id, 'time': time, 'sms':sms})
+            with open(sms_file, 'w') as user_sms_file:
+                    user_sms_file.write(str(dash_sms[:25]))
+                    user_sms_file.close()
+            logger.info('User SMS entry saved.')
     else:
-        #try:
-        dash_sms = ast.literal_eval(os.popen('cat ' + sms_file).read())
-       # except:
-        #    dash_entries = []
-        dash_sms.insert(0, {'snd_call': snd_call, 'rcv_call':rcv_call, 'snd_dmr_id': snd_dmr_id, 'rcv_dmr_id':rcv_dmr_id, 'time': time, 'sms':sms})
-        with open(sms_file, 'w') as user_sms_file:
-                user_sms_file.write(str(dash_sms[:25]))
-                user_sms_file.close()
-        logger.info('User SMS entry saved.')
+        pass
 
 
 def mailbox_write(call, dmr_id, time, message, recipient):
-    #try:
-    print(call)
-    print()
-    print()
-    print(recipient)
-    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
-        send_mb(CONFIG, call, recipient, message, 0, 0, 'APRS-IS')
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        #try:
+        print(call)
+        print()
+        print()
+        print(recipient)
+        if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+            send_mb(CONFIG, call, recipient, message, 0, 0, 'APRS-IS')
 
-    else:        
-        mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
-        mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
-        with open(the_mailbox_file, 'w') as mailbox_file:
-                mailbox_file.write(str(mail_file[:100]))
-                mailbox_file.close()
-        logger.info('User mail saved.')
+        else:        
+            mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
+            mail_file.insert(0, {'call': call, 'dmr_id': dmr_id, 'time': time, 'message':message, 'recipient': recipient})
+            with open(the_mailbox_file, 'w') as mailbox_file:
+                    mailbox_file.write(str(mail_file[:100]))
+                    mailbox_file.close()
+            logger.info('User mail saved.')
+    else:
+        pass
 
 def mailbox_delete(dmr_id):
-    mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
-    call = str(get_alias((dmr_id), subscriber_ids))
-    new_data = []
-    for message in mail_file:
-        if message['recipient'] != call:
-            new_data.append(message)
-    with open(the_mailbox_file, 'w') as mailbox_file:
-            mailbox_file.write(str(new_data[:100]))
-            mailbox_file.close()
-    logger.info('Mailbox updated. Delete occurred.')
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
+        call = str(get_alias((dmr_id), subscriber_ids))
+        new_data = []
+        for message in mail_file:
+            if message['recipient'] != call:
+                new_data.append(message)
+        with open(the_mailbox_file, 'w') as mailbox_file:
+                mailbox_file.write(str(new_data[:100]))
+                mailbox_file.close()
+        logger.info('Mailbox updated. Delete occurred.')
+    else:
+        pass
 
 
 def sos_write(dmr_id, time, message):
-    user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-    print(user_settings)
-    try:
-        if user_settings[dmr_id][1]['ssid'] == '':
-            sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
-        else:
-            sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
-    except:
-        sos_call = str(get_alias((dmr_id), subscriber_ids))
-    sos_info = {'call': sos_call, 'dmr_id': dmr_id, 'time': time, 'message':message}
-    with open(emergency_sos_file, 'w') as sos_file:
-            sos_file.write(str(sos_info))
-            sos_file.close()
-    logger.info('Saved SOS.')
+    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+        print(user_settings)
+        try:
+            if user_settings[dmr_id][1]['ssid'] == '':
+                sos_call = user_settings[dmr_id][0]['call'] + '-' + user_ssid
+            else:
+                sos_call = user_settings[dmr_id][0]['call'] + '-' + user_settings[dmr_id][1]['ssid']
+        except:
+            sos_call = str(get_alias((dmr_id), subscriber_ids))
+        sos_info = {'call': sos_call, 'dmr_id': dmr_id, 'time': time, 'message':message}
+        with open(emergency_sos_file, 'w') as sos_file:
+                sos_file.write(str(sos_info))
+                sos_file.close()
+        logger.info('Saved SOS.')
+    else:
+        pass
 def send_app_request(url, message, source_id):
     #url = url + '/app'
     #Load current AUTH token list
