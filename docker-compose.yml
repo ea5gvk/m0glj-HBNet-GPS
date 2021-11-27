@@ -1,0 +1,49 @@
+version: '3'
+services:
+  hbnet_web_service:
+    container_name: hbnet_web_service
+    hostname: web_service
+    image: kf7eel/hbnet_web_service:latest
+    build: 
+        dockerfile: ./Dockerfile
+        context: ./web
+    ports:
+      # Port outside container:Port inside container
+      - 8082:80
+      - 8083:443
+    volumes:
+       # Path to config.py
+       - ./hbnet/web/config.py:/opt/hbnet_web/config.py
+       # Persist SQLIte data
+       - ./hbnet/web/data:/opt/hbnet_web/data:rw
+       # NGINX logs
+       - ./hbnet/log/web_service:/var/log/nginx:rw
+       # Path to custon logo
+#       - /path/to/logo.png:/opt/hbnet_web/static/HBnet.png
+    networks:
+      - hbnet_internal
+
+  hbnet_data_gateway:
+    container_name: hbnet_data_gateway
+    image: kf7eel/hbnet_data_gateway:latest
+    hostname: data_gateway
+    build:
+        dockerfile: ./Dockerfile.data_gateway
+        context: .
+    volumes:
+       # Persistent data
+       - ./hbnet/data/data_gateway:/opt/hbnet_data_gateway/data:rw
+       # Log file
+       - ./hbnet/log/data_gateway:/tmp/log:rw
+    depends_on:
+      - "hbnet_web_service"
+    networks:
+      - hbnet_internal
+    restart: always
+
+
+
+networks:
+    hbnet_internal:
+        name: hbnet_internal
+        driver: bridge   

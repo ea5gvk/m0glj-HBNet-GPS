@@ -1,0 +1,40 @@
+# HBNet Data Gateway Dockerfile 
+FROM debian:11
+MAINTAINER Eric Craw "kf7eel@qsl.net"
+WORKDIR /opt/hbnet_data_gateway
+
+RUN useradd -ms /bin/bash hbnet
+
+RUN mkdir -p /opt/hbnet_data_gateway/config/
+
+#COPY . .
+
+COPY data_gateway_config.py .
+COPY config.py .
+COPY bridge.py .
+COPY const.py .
+COPY hblink.py .
+COPY log.py .
+COPY reporting_const.py .
+COPY requirements.txt .
+COPY LICENSE.txt .
+COPY data_gateway.py .
+COPY docker/data_gateway/data_gateway.cfg ./config/
+#Install Python3.9 and dependencies
+RUN apt-get -y update; apt-get -y upgrade; apt-get -y install --no-install-recommends python3.9-dev python3-pip python3.9 build-essential net-tools iputils-ping; apt-get clean; rm -rf /var/lib/apt/lists/*
+
+RUN chown -R hbnet:hbnet /opt/hbnet_data_gateway/
+
+# Switch user and install dependencies
+USER hbnet
+
+
+#Upgrade PIP
+RUN python3.9 -m pip install --upgrade pip
+
+#Install from requirements.txt
+RUN python3.9 -m pip install --no-cache-dir -r requirements.txt
+
+#ENTRYPOINT ["/home/hbnet_web/.local/bin/supervisord"]
+
+CMD sleep 10s; python3.9 /opt/hbnet_data_gateway/data_gateway.py -c config/data_gateway.cfg
