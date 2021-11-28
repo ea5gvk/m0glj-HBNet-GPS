@@ -306,7 +306,7 @@ def build_config(_config_file):
                     CONFIG['SYSTEMS'].update({section: {
                         'MODE': config.get(section, 'MODE'),
                         'ENABLED': config.getboolean(section, 'ENABLED'),
-                        'USE_USER_MAN': config.getboolean(section, 'USE_USER_MAN'),
+##                        'USE_USER_MAN': config.getboolean(section, 'USE_USER_MAN'),
                         'REPEAT': config.getboolean(section, 'REPEAT'),
                         'MAX_PEERS': config.getint(section, 'MAX_PEERS'),
                         'IP': gethostbyname(config.get(section, 'IP')),

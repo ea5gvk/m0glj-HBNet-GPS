@@ -1897,29 +1897,30 @@ if __name__ == '__main__':
             with open(user_settings_file, 'w') as user_dict_file:
                 user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]}")
                 user_dict_file.close()
-        # Check to see if dashboard files exist
-        if Path(loc_file).is_file():
-            pass
-        else:
-            Path(loc_file).touch()
-            with open(loc_file, 'w') as user_loc_file:
-                user_loc_file.write("[]")
-                user_loc_file.close()
-        if Path(bb_file).is_file():
-            pass
-        else:
-            Path(bb_file).touch()
-            with open(bb_file, 'w') as user_bb_file:
-                user_bb_file.write("[]")
-                user_bb_file.close()
-                
-        if Path(sms_file).is_file():
-            pass
-        else:
-            Path(sms_file).touch()
-            with open(sms_file, 'w') as user_sms_file:
-                user_sms_file.write("[]")
-                user_sms_file.close()
+        if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+            # Check to see if dashboard files exist
+            if Path(loc_file).is_file():
+                pass
+            else:
+                Path(loc_file).touch()
+                with open(loc_file, 'w') as user_loc_file:
+                    user_loc_file.write("[]")
+                    user_loc_file.close()
+            if Path(bb_file).is_file():
+                pass
+            else:
+                Path(bb_file).touch()
+                with open(bb_file, 'w') as user_bb_file:
+                    user_bb_file.write("[]")
+                    user_bb_file.close()
+                    
+            if Path(sms_file).is_file():
+                pass
+            else:
+                Path(sms_file).touch()
+                with open(sms_file, 'w') as user_sms_file:
+                    user_sms_file.write("[]")
+                    user_sms_file.close()
 ##        try:
 ##            Path('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/').mkdir(parents=True, exist_ok=True)
 ##            logger.info('Created que directory')
