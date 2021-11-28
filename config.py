@@ -308,7 +308,7 @@ def build_config(_config_file):
                         'SUB_ACL': config.get(section, 'SUB_ACL'),
                         'TG1_ACL': config.get(section, 'TGID_ACL'),
                         'TG2_ACL': 'PERMIT:ALL',
-                        'USE_ENCRYPTION': config.getboolean(section, 'USE_ENCRYPTION'),
+                        'ENCRYPT_ALL_TRAFFIC': config.getboolean(section, 'ENCRYPT_ALL_TRAFFIC'),
                         'ENCRYPTION_KEY': bytes(config.get(section, 'ENCRYPTION_KEY'), 'utf-8'),
                         'OTHER_OPTIONS': config.get(section, 'OTHER_OPTIONS'),
                     }})

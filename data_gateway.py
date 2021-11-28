@@ -366,7 +366,7 @@ def download_config(CONFIG_FILE, cli_file):
                     corrected_config['SYSTEMS'][i]['BOTH_SLOTS'] = iterate_config[i]['BOTH_SLOTS']
                     corrected_config['SYSTEMS'][i]['TARGET_SOCK'] = (gethostbyname(iterate_config[i]['TARGET_IP']), iterate_config[i]['TARGET_PORT'])
                     corrected_config['SYSTEMS'][i]['ENCRYPTION_KEY'] = bytes(iterate_config[i]['ENCRYPTION_KEY'], 'utf-8')
-                    corrected_config['SYSTEMS'][i]['USE_ENCRYPTION'] = iterate_config[i]['USE_ENCRYPTION']
+                    corrected_config['SYSTEMS'][i]['ENCRYPT_ALL_TRAFFIC'] = iterate_config[i]['ENCRYPT_ALL_TRAFFIC']
                     
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
@@ -1702,20 +1702,21 @@ def rule_timer_loop():
         del UNIT_MAP[unit]
 
     logger.debug('Removed unit(s) %s from UNIT_MAP', remove_list)
-    ping(CONFIG)
-    send_unit_table(CONFIG, UNIT_MAP)
-    send_que = send_sms_que_req(CONFIG)
-    print(UNIT_MAP)
-    try:
-        for i in send_que:
-            try:
-                send_sms(False, i['rcv_id'], 9, 9, 'unit',  i['msg'])
-            except Exception as e:
-                logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
-                logger.info(e)
-    except Exception as e:
-        logger.error('Send que error')
-        logger.error(e)
+    if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
+        ping(CONFIG)
+        send_unit_table(CONFIG, UNIT_MAP)
+        send_que = send_sms_que_req(CONFIG)
+        print(UNIT_MAP)
+        try:
+            for i in send_que:
+                try:
+                    send_sms(False, i['rcv_id'], 9, 9, 'unit',  i['msg'])
+                except Exception as e:
+                    logger.info('Error sending SMS in que to ' + str(i['rcv_id']) + ' - ' + i['msg'])
+                    logger.info(e)
+        except Exception as e:
+            logger.error('Send que error')
+            logger.error(e)
 
 
     

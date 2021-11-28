@@ -3848,7 +3848,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                         'SUB_ACL': obp.sub_acl,
                         'TG1_ACL': obp.tg_acl,
                         'TG2_ACL': 'PERMIT:ALL',
-                        'USE_ENCRYPTION': obp.obp_encryption,
+                        'ENCRYPT_ALL_TRAFFIC': obp.obp_encryption,
                         'ENCRYPTION_KEY': obp.encryption_key,
                         'OTHER_OPTIONS': obp.other_options
                     }})

@@ -169,7 +169,7 @@ class OPENBRIDGE(DatagramProtocol):
             _packet = b''.join([_packet[:11], self._config['NETWORK_ID'], _packet[15:]])
             #_packet += hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest()
             _packet = b''.join([_packet, (hmac_new(self._config['PASSPHRASE'],_packet,sha1).digest())])
-            if self._config['USE_ENCRYPTION'] == True or _packet[:4] == EOBP:
+            if self._config['ENCRYPT_ALL_TRAFFIC'] == True or _packet[:4] == EOBP:
                 _enc_pkt = encrypt_packet(self._config['ENCRYPTION_KEY'], _packet)
                 _packet = b'EOBP' + _enc_pkt
             self.transport.write(_packet, (self._config['TARGET_IP'], self._config['TARGET_PORT']))

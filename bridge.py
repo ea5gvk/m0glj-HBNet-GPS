@@ -222,7 +222,7 @@ def download_config(L_CONFIG_FILE, cli_file):
                     corrected_config['SYSTEMS'][i]['BOTH_SLOTS'] = iterate_config[i]['BOTH_SLOTS']
                     corrected_config['SYSTEMS'][i]['TARGET_SOCK'] = (gethostbyname(iterate_config[i]['TARGET_IP']), iterate_config[i]['TARGET_PORT'])
                     corrected_config['SYSTEMS'][i]['ENCRYPTION_KEY'] = bytes(iterate_config[i]['ENCRYPTION_KEY'], 'utf-8')
-                    corrected_config['SYSTEMS'][i]['USE_ENCRYPTION'] = iterate_config[i]['USE_ENCRYPTION']
+                    corrected_config['SYSTEMS'][i]['ENCRYPT_ALL_TRAFFIC'] = iterate_config[i]['ENCRYPT_ALL_TRAFFIC']
                     
 
             if iterate_config[i]['MODE'] == 'PEER' or iterate_config[i]['MODE'] == 'XLXPEER':
