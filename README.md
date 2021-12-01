@@ -1,4 +1,6 @@
-### This project has morphed into HBNet. It is still under heavy development and not ready for production. You can see it [here](https://github.com/kf7eel/hblink3/tree/hbnet). The example/development server can be found at [https://demo.hbnet.xyz](https://demo.hbnet.xyz).
+# This GPS/APRS gateway project has morphed into HBNet. It is still under heavy development and not ready for production. You can see it [here](https://github.com/kf7eel/hblink3/tree/hbnet). This branch will be retired soon.
+
+---
 
 # GPS/Data Application
 
