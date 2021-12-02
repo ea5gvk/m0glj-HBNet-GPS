@@ -74,6 +74,8 @@ from socket import gethostbyname
 
 from setproctitle import setproctitle
 
+import copy
+
 
 
 
@@ -449,29 +451,104 @@ def mirror_traffic(_data):
                     
 
 
+# Add PROXY instances to UNIT
+def gen_proxy_unit(UNIT):
+    NEW_UNIT = copy.deepcopy(UNIT)
+    for u in UNIT:
+        if u == LOCAL_CONFIG['SYSTEMS'][u]['MODE'] == 'PROXY':
+            _prox_n = LOCAL_CONFIG['SYSTEMS'][u]['INTERNAL_PORT_STOP'] - LOCAL_CONFIG['SYSTEMS'][u]['INTERNAL_PORT_START']
+            _count_n = 0
+            while _count_n < _prox_n:
+                if _count_n == 0:
+                    NEW_UNIT.append(u + '-0')
+
+                else:
+                    NEW_UNIT.append(u + '-' + str(_count_n))
+                _count_n = _count_n + 1
+            NEW_UNIT.remove(u)
+           
+    return NEW_UNIT
+
 # Import Bridging rules
 # Note: A stanza *must* exist for any MASTER or CLIENT configured in the main
 # configuration file and listed as "active". It can be empty,
 # but it has to exist.
 def make_bridges(_rules):
-    # Convert integer GROUP ID numbers from the config into hex strings
-    # we need to send in the actual data packets.
+    _new_rules = copy.deepcopy(_rules)
+##    print(CONFIG['SYSTEMS'])
+##    print(LOCAL_CONFIG['SYSTEMS'])
     for _bridge in _rules:
         for _system in _rules[_bridge]:
+            if LOCAL_CONFIG['SYSTEMS'][_system['SYSTEM']]['MODE'] == 'PROXY': 
+##                print(_system['SYSTEM'])
+                for _sys in CONFIG['SYSTEMS']:
+##                    print(sys)
+####                    print(_system['SYSTEM'])
+##                    print(re.sub('-.*','', sys))
+##                    print(sys)
+##                    print(_rules[_bridge])
+                    if re.sub('-.*','', _sys) == _system['SYSTEM']:
+##                        print('prox')
+                        for prx in _rules[_bridge]:
+##                            print(prx)
+                            if prx['SYSTEM'] == _system['SYSTEM']:
+##                                print('system')
+                                
+                        
+##                        print(_rules[_bridge])
+                                _new_rules[_bridge].append({'SYSTEM':_sys, 'TS': prx['TS'], 'TGID': prx['TGID'], 'ACTIVE': prx['ACTIVE'], 'TIMEOUT': prx['TIMEOUT'], 'TO_TYPE': prx['TO_TYPE'], 'ON': prx['ON'], 'OFF': prx['OFF'], 'RESET': prx['RESET']})
+##                    print(_rules[_bridge])
+    for _orig in _new_rules[_bridge]:
+
+##                        print((_orig))
+        if _orig['SYSTEM'] == _system['SYSTEM']:
+##            print(_orig['SYSTEM'])
+##            print(_system['SYSTEM'])
+##            print('matcvh')
+##            _orig.clear()
+            _new_rules[_bridge].remove(_orig)
+##                _new_rules[_bridge][0]['SYSTEM'] = 'NEW'
+##                print(_bridge)
+    print()
+##    print((_rules))
+##    print((_new_rules))
+                                        
+    # Convert integer GROUP ID numbers from the config into hex strings
+    # we need to send in the actual data packets.
+    for _bridge in _new_rules:
+        for _system in _new_rules[_bridge]:
+##            print(_new_rules[_bridge])
+
+##            print(_system['SYSTEM'])
+##            print(_new_rules[_bridge])
+##            print('---')
+##            print(_new_rules[_bridge])
+##            print()
+##            print(_rules[_bridge])
+##            print('---')
+            
+##            print(_new_rules[_bridge])
+##            print(type(_system))
             if _system['SYSTEM'] not in CONFIG['SYSTEMS']:
                 sys.exit('ERROR: Conference bridge "{}" references a system named "{}" that is not enabled in the main configuration'.format(_bridge, _system['SYSTEM']))
 
             _system['TGID']       = bytes_3(_system['TGID'])
             for i, e in enumerate(_system['ON']):
-                _system['ON'][i]  = bytes_3(_system['ON'][i])
+                if type(_system['ON'][i]) == bytes:
+                    pass
+                else:
+                    _system['ON'][i]  = bytes_3(_system['ON'][i])
             for i, e in enumerate(_system['OFF']):
-                _system['OFF'][i] = bytes_3(_system['OFF'][i])
+                if type(_system['OFF'][i]) == bytes:
+                    pass
+                else:
+                    _system['OFF'][i] = bytes_3(_system['OFF'][i])
             _system['TIMEOUT']    = _system['TIMEOUT']*60
             if _system['ACTIVE'] == True:
                 _system['TIMER']  = time() + _system['TIMEOUT']
             else:
                 _system['TIMER']  = time()
-    return _rules
+    return _new_rules
 
 def ten_loop_func():
     logger.info('10 minute loop')
@@ -1642,7 +1719,7 @@ if __name__ == '__main__':
             # Build the routing rules file
             BRIDGES = make_bridges(rules_module.BRIDGES)
             # Get rule parameter for private calls
-            UNIT = rules_module.UNIT
+            UNIT = gen_proxy_unit(rules_module.UNIT)
             unit_flood_time = rules_module.FLOOD_TIMEOUT
 
     else:
@@ -1659,7 +1736,7 @@ if __name__ == '__main__':
         # Build the routing rules file
         BRIDGES = make_bridges(rules_module.BRIDGES)
         # Get rule parameter for private calls
-        UNIT = rules_module.UNIT
+        UNIT = gen_proxy_unit(rules_module.UNIT)
         unit_flood_time = rules_module.FLOOD_TIMEOUT
 
     for system in CONFIG['SYSTEMS']:
