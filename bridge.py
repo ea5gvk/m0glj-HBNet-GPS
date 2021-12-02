@@ -475,60 +475,24 @@ def gen_proxy_unit(UNIT):
 # but it has to exist.
 def make_bridges(_rules):
     _new_rules = copy.deepcopy(_rules)
-##    print(CONFIG['SYSTEMS'])
-##    print(LOCAL_CONFIG['SYSTEMS'])
     for _bridge in _rules:
         for _system in _rules[_bridge]:
             if LOCAL_CONFIG['SYSTEMS'][_system['SYSTEM']]['MODE'] == 'PROXY': 
-##                print(_system['SYSTEM'])
                 for _sys in CONFIG['SYSTEMS']:
-##                    print(sys)
-####                    print(_system['SYSTEM'])
-##                    print(re.sub('-.*','', sys))
-##                    print(sys)
-##                    print(_rules[_bridge])
+
                     if re.sub('-.*','', _sys) == _system['SYSTEM']:
-##                        print('prox')
                         for prx in _rules[_bridge]:
-##                            print(prx)
                             if prx['SYSTEM'] == _system['SYSTEM']:
-##                                print('system')
-                                
-                        
-##                        print(_rules[_bridge])
                                 _new_rules[_bridge].append({'SYSTEM':_sys, 'TS': prx['TS'], 'TGID': prx['TGID'], 'ACTIVE': prx['ACTIVE'], 'TIMEOUT': prx['TIMEOUT'], 'TO_TYPE': prx['TO_TYPE'], 'ON': prx['ON'], 'OFF': prx['OFF'], 'RESET': prx['RESET']})
-##                    print(_rules[_bridge])
     for _orig in _new_rules[_bridge]:
 
-##                        print((_orig))
         if _orig['SYSTEM'] == _system['SYSTEM']:
-##            print(_orig['SYSTEM'])
-##            print(_system['SYSTEM'])
-##            print('matcvh')
-##            _orig.clear()
             _new_rules[_bridge].remove(_orig)
-##                _new_rules[_bridge][0]['SYSTEM'] = 'NEW'
-##                print(_bridge)
-    print()
-##    print((_rules))
-##    print((_new_rules))
-                                        
+                                     
     # Convert integer GROUP ID numbers from the config into hex strings
     # we need to send in the actual data packets.
     for _bridge in _new_rules:
         for _system in _new_rules[_bridge]:
-##            print(_new_rules[_bridge])
-
-##            print(_system['SYSTEM'])
-##            print(_new_rules[_bridge])
-##            print('---')
-##            print(_new_rules[_bridge])
-##            print()
-##            print(_rules[_bridge])
-##            print('---')
-            
-##            print(_new_rules[_bridge])
-##            print(type(_system))
             if _system['SYSTEM'] not in CONFIG['SYSTEMS']:
                 sys.exit('ERROR: Conference bridge "{}" references a system named "{}" that is not enabled in the main configuration'.format(_bridge, _system['SYSTEM']))
 
