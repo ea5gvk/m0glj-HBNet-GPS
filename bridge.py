@@ -475,18 +475,19 @@ def gen_proxy_unit(UNIT):
 # but it has to exist.
 def make_bridges(_rules):
     _new_rules = copy.deepcopy(_rules)
-    for _bridge in _rules:
-        for _system in _rules[_bridge]:
-            if LOCAL_CONFIG['SYSTEMS'][_system['SYSTEM']]['MODE'] == 'PROXY': 
-                for _sys in CONFIG['SYSTEMS']:
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
+        for _bridge in _rules:
+            for _system in _rules[_bridge]:
+                if LOCAL_CONFIG['SYSTEMS'][_system['SYSTEM']]['MODE'] == 'PROXY': 
+                    for _sys in CONFIG['SYSTEMS']:
 
-                    if re.sub('-.*','', _sys) == _system['SYSTEM']:
-                        for prx in _rules[_bridge]:
-                            if prx['SYSTEM'] == _system['SYSTEM']:
-                                _new_rules[_bridge].append({'SYSTEM':_sys, 'TS': prx['TS'], 'TGID': prx['TGID'], 'ACTIVE': prx['ACTIVE'], 'TIMEOUT': prx['TIMEOUT'], 'TO_TYPE': prx['TO_TYPE'], 'ON': prx['ON'], 'OFF': prx['OFF'], 'RESET': prx['RESET']})
-        for _orig in _new_rules[_bridge]:
-            if _orig['SYSTEM'] in LOCAL_CONFIG['SYSTEMS'] and LOCAL_CONFIG['SYSTEMS'][_orig['SYSTEM']]['MODE'] == 'PROXY':
-                _new_rules[_bridge].remove(_orig)
+                        if re.sub('-.*','', _sys) == _system['SYSTEM']:
+                            for prx in _rules[_bridge]:
+                                if prx['SYSTEM'] == _system['SYSTEM']:
+                                    _new_rules[_bridge].append({'SYSTEM':_sys, 'TS': prx['TS'], 'TGID': prx['TGID'], 'ACTIVE': prx['ACTIVE'], 'TIMEOUT': prx['TIMEOUT'], 'TO_TYPE': prx['TO_TYPE'], 'ON': prx['ON'], 'OFF': prx['OFF'], 'RESET': prx['RESET']})
+            for _orig in _new_rules[_bridge]:
+                if _orig['SYSTEM'] in LOCAL_CONFIG['SYSTEMS'] and LOCAL_CONFIG['SYSTEMS'][_orig['SYSTEM']]['MODE'] == 'PROXY':
+                    _new_rules[_bridge].remove(_orig)
                                      
     # Convert integer GROUP ID numbers from the config into hex strings
     # we need to send in the actual data packets.
