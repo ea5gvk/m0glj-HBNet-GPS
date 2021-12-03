@@ -484,10 +484,9 @@ def make_bridges(_rules):
                         for prx in _rules[_bridge]:
                             if prx['SYSTEM'] == _system['SYSTEM']:
                                 _new_rules[_bridge].append({'SYSTEM':_sys, 'TS': prx['TS'], 'TGID': prx['TGID'], 'ACTIVE': prx['ACTIVE'], 'TIMEOUT': prx['TIMEOUT'], 'TO_TYPE': prx['TO_TYPE'], 'ON': prx['ON'], 'OFF': prx['OFF'], 'RESET': prx['RESET']})
-    for _orig in _new_rules[_bridge]:
-
-        if _orig['SYSTEM'] == _system['SYSTEM']:
-            _new_rules[_bridge].remove(_orig)
+        for _orig in _new_rules[_bridge]:
+            if _orig['SYSTEM'] in LOCAL_CONFIG['SYSTEMS'] and LOCAL_CONFIG['SYSTEMS'][_orig['SYSTEM']]['MODE'] == 'PROXY':
+                _new_rules[_bridge].remove(_orig)
                                      
     # Convert integer GROUP ID numbers from the config into hex strings
     # we need to send in the actual data packets.
