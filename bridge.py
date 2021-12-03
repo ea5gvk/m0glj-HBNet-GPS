@@ -1670,8 +1670,9 @@ if __name__ == '__main__':
             # Get rule parameter for private calls
             UNIT = remote_config[0]
             unit_flood_time = CONFIG['OTHER']['UNIT_TIME']
-        except:
+        except Exception as e:
             logger.error('Control server unreachable or other error. Using local config.')
+            logger.error(e)
             spec = importlib.util.spec_from_file_location("module.name", cli_args.RULES_FILE)
             rules_module = importlib.util.module_from_spec(spec)
             try:
