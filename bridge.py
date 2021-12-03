@@ -455,7 +455,7 @@ def mirror_traffic(_data):
 def gen_proxy_unit(UNIT):
     NEW_UNIT = copy.deepcopy(UNIT)
     for u in UNIT:
-        if u == LOCAL_CONFIG['SYSTEMS'][u]['MODE'] == 'PROXY':
+        if LOCAL_CONFIG['SYSTEMS'][u]['MODE'] == 'PROXY':
             _prox_n = LOCAL_CONFIG['SYSTEMS'][u]['INTERNAL_PORT_STOP'] - LOCAL_CONFIG['SYSTEMS'][u]['INTERNAL_PORT_START']
             _count_n = 0
             while _count_n < _prox_n:
@@ -466,7 +466,7 @@ def gen_proxy_unit(UNIT):
                     NEW_UNIT.append(u + '-' + str(_count_n))
                 _count_n = _count_n + 1
             NEW_UNIT.remove(u)
-           
+##    print(NEW_UNIT)
     return NEW_UNIT
 
 # Import Bridging rules
