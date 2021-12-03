@@ -1853,7 +1853,6 @@ if __name__ == '__main__':
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
         CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
 
-
     data_id_str = str('[' + CONFIG['DATA_CONFIG']['DATA_DMR_ID'] + ']')
     data_id = ast.literal_eval(data_id_str)
     

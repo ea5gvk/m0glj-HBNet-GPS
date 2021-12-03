@@ -9,13 +9,13 @@ services:
         context: ./web
     ports:
       # Port outside container:Port inside container
-      - 8082:80
+      - 8084:80
       - 8083:443
     volumes:
        # Path to config.py
-       - ./hbnet/web/config.py:/opt/hbnet_web/config.py
+       - ./hbnet/web_service/config.py:/opt/hbnet_web/config.py
        # Persist SQLIte data
-       - ./hbnet/web/data:/opt/hbnet_web/data:rw
+       - ./hbnet/web_service/data:/opt/hbnet_web/data:rw
        # NGINX logs
        - ./hbnet/log/web_service:/var/log/nginx:rw
        # Path to custon logo
@@ -31,15 +31,46 @@ services:
         dockerfile: ./Dockerfile.data_gateway
         context: .
     volumes:
+      - ./hbnet/data_gateway/data_gateway.cfg:/opt/hbnet_data_gateway/config/data_gateway.cfg
        # Persistent data
-       - ./hbnet/data/data_gateway:/opt/hbnet_data_gateway/data:rw
-       # Log file
-       - ./hbnet/log/data_gateway:/tmp/log:rw
+#       - ./hb_data/data/data_gateway:/opt/hbnet_data_gateway/data:rw
+##       # Log file
+##       - ./hbnet/log/data_gateway:/opt/hbnet_data_gateway/log:rw
     depends_on:
       - "hbnet_web_service"
     networks:
       - hbnet_internal
     restart: always
+
+  hbnet:
+    container_name: hbnet
+    image: kf7eel/hbnet:latest
+    hostname: hbnet
+    build:
+        dockerfile: ./Dockerfile.hbnet
+        context: .
+    ports:
+      # Port outside container:Port inside container
+      # Port for clients
+      - 62032:62032/udp
+      - 62033:62033/udp
+      # Reporting port for hbmon
+      - 4321:4321
+    volumes:
+      # HBNet Configuration file location
+      - ./hbnet/hbnet/hbnet.cfg:/opt/hbnet/config/hbnet.cfg
+      # HBNet rules location
+      - ./hbnet/hbnet/rules.py:/opt/hbnet/config/rules.py
+       # Persistent data
+#       - ./hb_data/data/hbnet:/opt/hbnet/data:rw
+ ##      # Log file
+ ##      - ./hbnet/log/hbnet:/opt/hbnet/log:rw
+    depends_on:
+      - "hbnet_web_service"
+    networks:
+      - hbnet_internal
+    restart: always
+
 
 
 

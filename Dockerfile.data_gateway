@@ -23,6 +23,8 @@ COPY docker/data_gateway/data_gateway.cfg ./config/
 #Install Python3.9 and dependencies
 RUN apt-get -y update; apt-get -y upgrade; apt-get -y install --no-install-recommends python3.9-dev python3-pip python3.9 build-essential net-tools iputils-ping; apt-get clean; rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /opt/hbnet_data_gateway/log/
+
 RUN chown -R hbnet:hbnet /opt/hbnet_data_gateway/
 
 # Switch user and install dependencies

@@ -1,3 +1,4 @@
+
 '''
 Settings for HBNet Web Server.
 '''
@@ -13,7 +14,7 @@ db_location = 'sqlite:////opt/hbnet_web/data/hbnet.sqlite'
 
 
 # Title of the HBNet Web Service/DMR network
-title = 'HBNet Web Service (Docker)'
+title = 'HBNet Web Service (Docker, Unconfigured)'
 # Port to run server
 hws_port = 8080
 # IP to run server on
@@ -21,7 +22,7 @@ hws_host = '127.0.0.1'
 # Publicly accessible URL of the web server. THIS IS REQUIRED AND MUST BE CORRECT.
 url = 'http://localhost:8080'
 # Replace below with some random string such as an SHA256
-secret_key = 'SUPER SECRET LONG KEY'
+secret_key = '123456789123456789123456789123456789123456789123456789'
 
 # Timezone to show time stamps in. Stored in DB as UTC. Offset in hours.
 hbnet_tz = -1
@@ -89,3 +90,5 @@ USER_ENABLE_CONFIRM_EMAIL = True
 USER_ENABLE_REGISTER = True
 USER_AUTO_LOGIN_AFTER_CONFIRM = False
 USER_SHOW_USERNAME_DOES_NOT_EXIST = True
+
+

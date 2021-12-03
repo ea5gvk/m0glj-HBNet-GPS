@@ -6,6 +6,9 @@ WORKDIR /opt/hbnet
 RUN useradd -ms /bin/bash hbnet
 
 RUN mkdir -p /opt/hbnet/config/
+RUN mkdir -p /opt/hbnet/log/
+RUN chown -R hbnet:hbnet /opt/hbnet/log/
+
 
 #COPY . .
 
@@ -20,6 +23,7 @@ COPY LICENSE.txt .
 COPY data_gateway.py .
 COPY docker/hbnet/hbnet.cfg ./config/
 COPY docker/hbnet/rules.py ./config/
+COPY hotspot_proxy_v2.py .
 #Install Python3.9 and dependencies
 RUN apt-get -y update; apt-get -y upgrade; apt-get -y install --no-install-recommends python3.9-dev python3-pip python3.9 build-essential net-tools iputils-ping; apt-get clean; rm -rf /var/lib/apt/lists/*
 
@@ -37,4 +41,4 @@ RUN python3.9 -m pip install --no-cache-dir -r requirements.txt
 
 #ENTRYPOINT ["/home/hbnet_web/.local/bin/supervisord"]
 
-CMD sleep 10s; python3.9 /opt/hbnet/bridge.py -c config/hbnet.cfg -r config/rules.py
+CMD sleep 5s; python3.9 /opt/hbnet/bridge.py -c config/hbnet.cfg -r config/rules.py
