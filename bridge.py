@@ -280,11 +280,11 @@ def download_config(L_CONFIG_FILE, cli_file):
                 }})
             corrected_config['SYSTEMS'][i]['USE_ACL'] = iterate_config[i]['USE_ACL']
             corrected_config['SYSTEMS'][i]['SUB_ACL'] = config.acl_build(iterate_config[i]['SUB_ACL'], 16776415)
-
         return corrected_config
     # For exception, write blank dict
-    except requests.ConnectionError:
-        logger.error('Config server unreachable, defaulting to local config')
+    except Exception as e:
+        logger.error('Config server unreachable or other error')
+        logger.error(e)
         return config.build_config(cli_file)
 
     
@@ -473,9 +473,10 @@ def gen_proxy_unit(UNIT):
 # Note: A stanza *must* exist for any MASTER or CLIENT configured in the main
 # configuration file and listed as "active". It can be empty,
 # but it has to exist.
-def make_bridges(_rules):
+def make_bridges(_rules, _web_serv_status):
     _new_rules = copy.deepcopy(_rules)
-    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False:
+##    print(LOCAL_CONFIG)
+    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == False or _web_serv_status == False:
         for _bridge in _rules:
             for _system in _rules[_bridge]:
                 if LOCAL_CONFIG['SYSTEMS'][_system['SYSTEM']]['MODE'] == 'PROXY': 
@@ -1667,7 +1668,7 @@ if __name__ == '__main__':
         try:
             remote_config = download_rules(LOCAL_CONFIG, cli_args.CONFIG_FILE)
             # Build the routing rules file
-            BRIDGES = make_bridges(remote_config[1]) #make_bridges(rules_module.BRIDGES)
+            BRIDGES = make_bridges(remote_config[1], True) #make_bridges(rules_module.BRIDGES)
             # Get rule parameter for private calls
             UNIT = remote_config[0]
             unit_flood_time = CONFIG['OTHER']['UNIT_TIME']
@@ -1682,7 +1683,7 @@ if __name__ == '__main__':
             except (ImportError, FileNotFoundError):
                 sys.exit('(ROUTER) TERMINATING: Routing bridges file not found or invalid: {}'.format(cli_args.RULES_FILE))
             # Build the routing rules file
-            BRIDGES = make_bridges(rules_module.BRIDGES)
+            BRIDGES = make_bridges(rules_module.BRIDGES, False)
             # Get rule parameter for private calls
             UNIT = gen_proxy_unit(rules_module.UNIT)
             unit_flood_time = rules_module.FLOOD_TIMEOUT
@@ -1699,7 +1700,7 @@ if __name__ == '__main__':
 ##        print('--------')
 ##        print(rules_module.BRIDGES)
         # Build the routing rules file
-        BRIDGES = make_bridges(rules_module.BRIDGES)
+        BRIDGES = make_bridges(rules_module.BRIDGES, False)
         # Get rule parameter for private calls
         UNIT = gen_proxy_unit(rules_module.UNIT)
         unit_flood_time = rules_module.FLOOD_TIMEOUT
@@ -1734,7 +1735,7 @@ if __name__ == '__main__':
     ten_loop.addErrback(loopingErrHandle)
 
     logger.info('UNIT calls will be bridged to: ' + str(UNIT))
-    
+##    print(CONFIG)
 ##    # Download burn list
 ##    if LOCAL_CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
 ##        with open(CONFIG['WEB_SERVICE']['BURN_FILE'], 'w') as f:
