@@ -1,0 +1,85 @@
+{% extends 'flask_user/_public_base.html' %}
+{% block content %}
+  <p>&nbsp;</p>
+
+<p style="text-align: center;"><em>Page automatically reloads every 2 minutes.</em></p>
+
+
+<div class="row">
+  <div class="col-sm-6">
+  <p>&nbsp;</p>
+
+  <h4>Bulletin Board</h4>
+<table data-toggle="table" data-pagination="true">
+  <thead>
+    <tr>
+      <th>Callsign</th>
+      <th>Bulletin</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{bull_content}}
+  </tbody>
+  </table>
+  </div>
+  <div class="col-sm-6">
+  <p>&nbsp;</p>
+
+    <h4>Last Known Location</h4>
+<table data-toggle="table" data-pagination="true">
+  <thead>
+    <tr>
+      <th>Callsign</th>
+      <th>Lat/Lon</th>
+    </tr>
+  </thead>
+  <tbody>
+{{ll_content}}
+
+  </tbody>
+  </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+  <p>&nbsp;</p>
+  <h4>SMS Log</h4>
+
+<table data-toggle="table" data-pagination="true" >
+  <thead>
+    <tr>
+      <th>Sender</th>
+      <th>Receiver</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+{{sms_log}}
+  </tbody>
+  </table>
+
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+  <p>&nbsp;</p>
+<h4>Social Status</h4>
+
+<table data-toggle="table" data-pagination="true" >
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Post</th>
+    </tr>
+  </thead>
+  <tbody>
+{{ss_all}}
+  </tbody>
+  </table>
+
+  </div>
+</div>
+
+
+<p>&nbsp;</p>
+{% endblock %}

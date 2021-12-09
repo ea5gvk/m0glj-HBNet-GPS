@@ -782,28 +782,31 @@ def hbnet_web_service():
     # The Home page is accessible to anyone
     @app.route('/')
     def home_page():
-        home_text = Misc.query.filter_by(field_1='home_page').first()
-        #content = Markup('<strong>Index</strong>')
-        try:
-            l_news = News.query.order_by(News.time.desc()).first()
-            content = '''
+        if mode == 'FULL':
+            home_text = Misc.query.filter_by(field_1='home_page').first()
+            #content = Markup('<strong>Index</strong>')
+            try:
+                l_news = News.query.order_by(News.time.desc()).first()
+                content = '''
 
-<div class="card">
-  <div class="card-body">
-    <h4 class="card-title"><a href="news/''' + str(l_news.id) + '''">''' + l_news.subject + '''</h4></a>
-    <hr />
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title"><a href="news/''' + str(l_news.id) + '''">''' + l_news.subject + '''</h4></a>
+        <hr />
+            &nbsp;
+        <p style="text-align: center;">''' + l_news.date + '''</p>
+        <hr />
         &nbsp;
-    <p style="text-align: center;">''' + l_news.date + '''</p>
-    <hr />
-    &nbsp;
-    <p class="card-text">''' + l_news.text + '''</p>
-    <p style="text-align: center;"></p>
-</div>
-</div>
-    '''
-        except:
-            content = ''
-        return render_template('index.html', news = Markup(content), content_block = Markup(home_text.field_2))
+        <p class="card-text">''' + l_news.text + '''</p>
+        <p style="text-align: center;"></p>
+    </div>
+    </div>
+        '''
+            except:
+                content = ''
+            return render_template('index.html', news = Markup(content), content_block = Markup(home_text.field_2))
+        else:
+            return redirect('/data_overview') 
 
     @app.route('/tos')
     def tos_page():
@@ -820,6 +823,7 @@ def hbnet_web_service():
         try:
             first_loc = False
             g = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).filter_by(callsign=call_ssid).all()
+            f_map = folium.Map(location=center_map, zoom_start=10)
             for i in g:
                 print(first_loc)
                 lat = i.lat
@@ -834,8 +838,9 @@ def hbnet_web_service():
                     lon = -lon
                 if 'W' not in i.lon:
                     lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
-                f_map = folium.Map(location=[lat, lon], zoom_start=10)
                 if first_loc == False:
+                    print('first')
+                    f_map = folium.Map(location=[lat, lon], zoom_start=10)
                     folium.Marker([lat, lon], popup="""<i>
                     <table style="width: 150px;">
                     <tbody>
@@ -854,9 +859,10 @@ def hbnet_web_service():
                     </tbody>
                     </table>
                     </i>
-                    """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
+                    """, icon=folium.Icon(color="green", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
                     first_loc = True
                 if first_loc == True:
+                    print('subsequent')
                     marker_cluster = MarkerCluster().add_to(f_map)
                     folium.CircleMarker([lat, lon], popup="""<i>
                     <table style="width: 150px;">
@@ -7055,6 +7061,54 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         
         return render_template('flask_user_layout.html', markup_content = Markup(content))
 
+
+    @app.route('/data_overview')
+    def data_overview():
+
+        dev_loc = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).limit(200).all()
+        bbl = BulletinBoard.query.order_by(BulletinBoard.time.desc()).limit(20).all()
+        ss_all = Social.query.order_by(Social.time.desc()).limit(20).all()
+        smsl = SMSLog.query.order_by(SMSLog.time.desc()).limit(30).all()
+        sms_l = ''
+        ss_log = ''
+        dev_content = ''
+        bb_content = ''
+        dev_lst = []
+        for i in dev_loc:
+            if i.callsign not in dev_lst:
+                dev_lst.append(i.callsign)
+                dev_content = dev_content + '''
+    <tr>
+    <td style="text-align: center;"><p><a href="/map_gps/''' + i.callsign + ''' "target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong></button></a></p> \n ''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''</td>
+    <td style="text-align: center;">''' + i.lat + '''\n''' + i.lon + '''</td>
+    </tr>
+'''
+        for b in bbl:
+            bb_content = bb_content + '''
+    <tr>
+      <td><p style="text-align: center;"><strong>''' + b.callsign + '''</strong></p> \n <p style="text-align: center;">''' + str(i.dmr_id) + '''</p></td>
+      <td>''' + b.bulletin + '''</td>
+    </tr>
+'''
+        for sms in smsl:
+            sms_l = sms_l + '''
+<tr>
+      <td><p style="text-align: center;">''' + sms.snd_callsign + '''</p></td>
+      <td><p style="text-align: center;">''' + sms.rcv_callsign + '''</p></td>
+      <td>''' + sms.message + '''</td>
+    </tr>
+
+'''
+        for ss in ss_all:
+            ss_log = ss_log + '''<tr>
+      <td><p style="text-align: center;"><strong>''' + ss.callsign + '''<strong></p> \n <p style="text-align: center;"><a href="/ss/''' + str(ss.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></p></td>
+      <td><p style="text-align: center;">''' + ss.message + '''</p></td>
+      </tr>
+'''
+            
+
+        return render_template('data_overview.html', ll_content = Markup(dev_content), bull_content = Markup(bb_content), sms_log = Markup(sms_l), ss_all = Markup(ss_log))
+
     
     @app.route('/aprs')
     def data_dash():
@@ -7068,7 +7122,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
                 dev_lst.append(i.callsign)
                 content = content + '''
     <tr>
-    <td style="text-align: center;"><a href="https://hbnet.xyz"target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong></button></a></td>
+    <td style="text-align: center;"><a href="/map_gps/''' + i.callsign + ''' "target="_blank"><button type="button" class="btn btn-primary"><strong>''' + i.callsign + '''</strong></button></a></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lat + '''&nbsp;</strong></td>
     <td style="text-align: center;"><strong>&nbsp;''' + i.lon + '''&nbsp;</strong></td>
     <td style="text-align: center;">&nbsp;''' + str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''&nbsp;</td>
