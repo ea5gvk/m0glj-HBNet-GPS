@@ -885,6 +885,10 @@ def hbnet_web_service():
                     </i>
                     """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
         for l in peer_l:
+##            print(time.time() - l.time().total_seconds() > 3600 )
+##            print(datetime.datetime.now() - timedelta(days = 2))
+##            if datetime.datetime.now() - timedelta(days = 2) > timedelta(days = 2):
+##                print('greater')
 ##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
 ##<div class="panel panel-default">
 ##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
@@ -3257,6 +3261,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             _peer_loc = PeerLoc.query.filter_by(dmr_id=_dmr_id).first()
             db.session.delete(_peer_loc)
             db.session.commit()
+            print('deleted peer location')
         except:
             print('Peer not in DB')
             pass
