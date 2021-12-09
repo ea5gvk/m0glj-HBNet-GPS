@@ -578,7 +578,7 @@ def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
         pass
 
 def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time, system_name):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
             send_sms_log(CONFIG, snd_call, rcv_call, sms, rcv_dmr_id, snd_dmr_id, system_name)
         else:
@@ -596,7 +596,7 @@ def dashboard_sms_write(snd_call, rcv_call, rcv_dmr_id, snd_dmr_id, sms, time, s
 
 
 def mailbox_write(call, dmr_id, time, message, recipient):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         #try:
         print(call)
         print()
@@ -964,39 +964,40 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##            if call_type == 'vcsbk':
 ##                send_sms(False, 9, 9, 9, 'group', 'API not enabled. Contact server admin.')
 
-##    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
-##        #Example SMS text: @ARMDS A-This is a test.
-##        s = ' '
-##        aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
-##        aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
-##        logger.info(aprs_msg)
-##        logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
-##        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
-##        if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
-##            ssid = user_settings[int_id(_rf_src)][1]['ssid']
-##        else:
-##            ssid = user_ssid
-##        try:
-##            if user_settings[int_id(_rf_src)][5]['APRS'] == True:
-##                aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
-##                logger.info(aprs_msg_pkt)
-##                try:
-##                    aprslib.parse(aprs_msg_pkt)
-##                    aprs_send(aprs_msg_pkt)
-##                    #logger.info('Packet sent.')
-##                except Exception as error_exception:
-##                    logger.info('Error uploading MSG packet.')
-##                    logger.info(error_exception)
-##                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
-##            else:
-##                if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+    elif '@' in parse_sms[0][0:1] and 'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
+        print(parse_sms[0][0:1])
+        #Example SMS text: @ARMDS A-This is a test.
+        s = ' '
+        aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
+        aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
+        logger.info(aprs_msg)
+        logger.info('APRS message to ' + aprs_dest.upper() + '. Message: ' + aprs_msg)
+        user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
+        if int_id(_rf_src) in user_settings and user_settings[int_id(_rf_src)][1]['ssid'] != '':
+            ssid = user_settings[int_id(_rf_src)][1]['ssid']
+        else:
+            ssid = user_ssid
+        try:
+            if user_settings[int_id(_rf_src)][5]['APRS'] == True:
+                aprs_msg_pkt = str(get_alias(int_id(_rf_src), subscriber_ids)) + '-' + str(ssid) + '>APHBL3,TCPIP*::' + str(aprs_dest).ljust(9).upper() + ':' + aprs_msg[0:73]
+                logger.info(aprs_msg_pkt)
+                try:
+                    aprslib.parse(aprs_msg_pkt)
+                    aprs_send(aprs_msg_pkt)
+                    #logger.info('Packet sent.')
+                except Exception as error_exception:
+                    logger.info('Error uploading MSG packet.')
+                    logger.info(error_exception)
+                    logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
+            else:
+                if call_type == 'unit':
+                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##                if call_type == 'vcsbk':
 ##                    send_sms(False, 9, 9, 9, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
-##                
-##        except Exception as e:
-##            if call_type == 'unit':
-##                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
+                
+        except Exception as e:
+            if call_type == 'unit':
+                    send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 ##            if call_type == 'vcsbk':
 ##                send_sms(False, 9, 9, 9, 'group',  'APRS Messaging must be enabled. Send command "@APRS ON" or use dashboard to enable.')
 
@@ -1333,6 +1334,7 @@ def send_sms(csbk, to_id, from_id, peer_id, call_type, msg):
 ##        logger.info(e)
 
 def aprs_process(packet):
+    print(aprslib.parse(packet))
     try:
         if 'addresse' in aprslib.parse(packet):
             #print(aprslib.parse(packet))
@@ -1349,7 +1351,7 @@ def aprs_process(packet):
                         ssid = user_ssid
                     if recipient in i[1][0]['call'] and i[1][5]['APRS'] == True and recipient_ssid in ssid:
                         logger.info(aprslib.parse(packet)['from'])
-                        mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), aprslib.parse(packet)['message_text'], recipient)
+                        mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), 'From APRS-IS: ' + aprslib.parse(packet)['message_text'], aprslib.parse(packet)['from'])
                         send_sms(False, sms_id, 9, 9, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
                         try:
                             if 'msgNo' in aprslib.parse(packet):
@@ -1849,6 +1851,8 @@ if __name__ == '__main__':
       
     # Call the external routine to build the configuration dictionary
     CONFIG = data_gateway_config.build_config(cli_args.CONFIG_FILE)
+    LOCAL_CONFIG = data_gateway_config.build_config(cli_args.CONFIG_FILE)
+
 
     if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED']:
         CONFIG = download_config(CONFIG, cli_args.CONFIG_FILE)
