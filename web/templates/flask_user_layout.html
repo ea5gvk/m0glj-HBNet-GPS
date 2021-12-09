@@ -48,8 +48,10 @@
       <li class="nav-item">
         <a class="nav-link" href="{{url}}/"><i class="bi bi-house-fill"></i> Home </a>
       </li>
+    {% if global_config['mode'] == 'FULL' %}
       <li class="nav-item">
         <a class="nav-link" href="{{url}}/talkgroups"><i class="bi bi-card-list"></i> Talkgroups </a>
+    {% endif %}
     <li class="nav-item">
         <a class="nav-link" href="{{url}}/map"><i class="bi bi-map"></i> Map </a>
       </li>
@@ -95,17 +97,22 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="mmdvm_admin">
             <li><a class="dropdown-item" href="{{url}}/manage_servers">Manage Servers</a></li>
+        {% if global_config['mode'] == 'FULL' %}
             <li><a class="dropdown-item" href="{{url}}/manage_peers">Manage Peers</a></li>
             <li><a class="dropdown-item" href="{{url}}/manage_masters">Manage Masters</a></li>
             <li><a class="dropdown-item" href="{{url}}/manage_rules">Manage Rules</a></li>
       <li><hr class="dropdown-divider"></li>
+    {% endif %}
+
             <li><a class="dropdown-item" href="{{url}}/add_user">Add User</a></li>
             <li><a class="dropdown-item" href="{{url}}/list_users">Manage Users</a></li>
             <li><a class="dropdown-item" href="{{url}}/approve_users">Waiting Approval</a></li>
       <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{url}}/manage_news">Manage News</a></li>
             <li><a class="dropdown-item" href="{{url}}/misc_settings">Misc Options</a></li>
+    {% if global_config['mode'] == 'FULL' %}
             <li><a class="dropdown-item" href="{{url}}/auth_log">Authorization Log</a></li>
+    {% endif %}
             <a class="dropdown-item" href="{{url}}/all_mail/{{ current_user.username or current_user.email }}">Manage Mail</a>
 
 
@@ -125,8 +132,9 @@
           <ul class="dropdown-menu" aria-labelledby="features_menu">
             <li><a class="dropdown-item" href="{{url}}/mail/{{ current_user.username or current_user.email }}"><i class="bi bi-mailbox"></i> Mailbox </a></li>
             <li><a class="dropdown-item" href="{{url}}/discussion"><i class="bi bi-chat-right-quote"></i> Discussion </a></li>
+    {% if global_config['mode'] == 'FULL' %}
             <li><a class="dropdown-item" href="{{url}}/generate_passphrase"><i class="bi bi-info-square"></i> Server(s) </a></li>
-
+    {% endif %}
           </ul>
         </li>
 

@@ -648,7 +648,7 @@ def hbnet_web_service():
             field_2 = '''<div class="panel panel-default">
   <div class="panel-heading" style="text-align: center;"><h4>Terms of Use</h4></div>
   <div class="panel-body">
-  <p>By using <strong>''' + title + '''</strong>, you agree not to do anything malicious. You agree to use the system with respect and courtesy to others. Please operate with the laws of your country.</p>
+  <p>By using <strong>''' + title + '''</strong>, you agree not to do anything malicious. You agree to use the system with respect and courtesy to others. Please operate within the laws of your country.</p>
   
   </div>
 </div>''',
@@ -657,7 +657,7 @@ def hbnet_web_service():
         db.session.add(tos_entry_add)
         home_entry_add = Misc(
             field_1 = 'home_page',
-            field_2 = '<p>Welcome to <strong>' + title + '</strong></p>.',
+            field_2 = '<p>Welcome to <strong>' + title + '</strong>.</p>',
             time = datetime.datetime.utcnow()
             )
         db.session.add(home_entry_add)
@@ -763,6 +763,12 @@ def hbnet_web_service():
         edit_user.city = str(ast.literal_eval(get_ids(callsign))[3])
 
         db.session.commit()
+
+    # Use this to pass variables into Jinja2 templates
+    @app.context_processor
+    def global_template_config():
+        return dict(global_config={'mode': mode})
+
 
     # The Home page is accessible to anyone
     @app.route('/')
@@ -886,51 +892,52 @@ def hbnet_web_service():
                     </table>
                     </i>
                     """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
-        for l in peer_l:
-##            print(time.time() - l.time().total_seconds() > 3600 )
-##            print(datetime.datetime.now() - timedelta(days = 2))
-##            if datetime.datetime.now() - timedelta(days = 2) > timedelta(days = 2):
-##                print('greater')
-##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
-##<div class="panel panel-default">
-##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
-##  <div class="panel-body">
-##  ''' + l[1][5] + '''
-##  <hr />
-##  ''' + l[1][1] + ''', ''' + l[1][2] + '''
-##  <hr />
-##  ''' + l[1][3] + '''
-##  <hr />
-##  ''' + l[1][4] + '''
-##  <hr />
-##  ''' + l[1][6] + '''
-##    </div>
-##</div>
-##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
+        if mode == 'FULL':            
+            for l in peer_l:
+    ##            print(time.time() - l.time().total_seconds() > 3600 )
+    ##            print(datetime.datetime.now() - timedelta(days = 2))
+    ##            if datetime.datetime.now() - timedelta(days = 2) > timedelta(days = 2):
+    ##                print('greater')
+    ##            folium.Marker([float(l[1][1]), float(l[1][2])], popup='''
+    ##<div class="panel panel-default">
+    ##  <div class="panel-heading" style="text-align: center;"><h4>''' + l[1][0] + '''</h4></div>
+    ##  <div class="panel-body">
+    ##  ''' + l[1][5] + '''
+    ##  <hr />
+    ##  ''' + l[1][1] + ''', ''' + l[1][2] + '''
+    ##  <hr />
+    ##  ''' + l[1][3] + '''
+    ##  <hr />
+    ##  ''' + l[1][4] + '''
+    ##  <hr />
+    ##  ''' + l[1][6] + '''
+    ##    </div>
+    ##</div>
+    ##         ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l[1][0] + '</strong>').add_to(f_map)
 
-            folium.Marker([float(l.lat), float(l.lon)], popup='''
-<table style="width: 100px; height: 100px;">
-<tbody>
-<tr>
-<td>
-<table>
-<tbody>
-<tr>
-<td>
-<p><h4><a href="''' + url + '/map_info/' + str(l.dmr_id) + '''" target="_blank" rel="noopener"><strong>''' + l.callsign + '''</strong></a></h4></p>
-</td>
-</tr>
-<tr>
-<td>''' + l.loc + '''</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</tbody>
-</table>
+                folium.Marker([float(l.lat), float(l.lon)], popup='''
+    <table style="width: 100px; height: 100px;">
+    <tbody>
+    <tr>
+    <td>
+    <table>
+    <tbody>
+    <tr>
+    <td>
+    <p><h4><a href="''' + url + '/map_info/' + str(l.dmr_id) + '''" target="_blank" rel="noopener"><strong>''' + l.callsign + '''</strong></a></h4></p>
+    </td>
+    </tr>
+    <tr>
+    <td>''' + l.loc + '''</td>
+    </tr>
+    </tbody>
+    </table>
+    </td>
+    </tr>
+    </tbody>
+    </table>
 
-''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l.callsign + '</strong>').add_to(f_map)
+    ''', icon=folium.Icon(color="red", icon="record"), tooltip='<strong>' + l.callsign + '</strong>').add_to(f_map)
         content = f_map._repr_html_()
        
         return render_template('map.html', markup_content = Markup(content))
