@@ -1127,7 +1127,7 @@ def hbnet_web_service():
 <h2 style="text-align: center;"><a href="update_ids?callsign=''' + current_user.username + '''">Yes, update my information.</a></h2>
 
 '''
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        return render_template('generic.html', markup_content = Markup(content))
 
 
     @app.route('/email_user', methods=['POST', 'GET'])
