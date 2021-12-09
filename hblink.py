@@ -397,7 +397,11 @@ class HBSYSTEM(DatagramProtocol):
         'software': re.sub("b'|'|\s\s+", '', str(soft))
         }
         json_object = json.dumps(peer_loc_conf, indent = 4)
+        print()
+        print()
         print(json_object)
+        print()
+        print()
         try:
             req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
         #    resp = json.loads(req.text)
@@ -470,6 +474,7 @@ class HBSYSTEM(DatagramProtocol):
         for peer in remove_list:
             logger.info('(%s) Peer %s (%s) has timed out and is being removed', self._system, self._peers[peer]['CALLSIGN'], self._peers[peer]['RADIO_ID'])
             self.send_peer_loc(self._peers[peer]['RADIO_ID'], self._peers[peer]['CALLSIGN'], '*', '*', '*', '*', '*', '*')
+            logger.info('Sent map erase command')
             # Remove any timed out peers from the configuration
             del self._CONFIG['SYSTEMS'][self._system]['PEERS'][peer]
 
