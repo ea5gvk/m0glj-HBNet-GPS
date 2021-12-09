@@ -1346,6 +1346,7 @@ def aprs_process(packet):
                 user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
                 for i in user_settings.items():
                     sms_id = i[0]
+                    print(sms_id)
                     ssid = i[1][1]['ssid']
                     if i[1][1]['ssid'] == '':
                         ssid = user_ssid
@@ -1353,10 +1354,15 @@ def aprs_process(packet):
                         logger.info(aprslib.parse(packet)['from'])
                         mailbox_write(re.sub('-.*','', aprslib.parse(packet)['addresse']), aprslib.parse(packet)['from'], time(), 'From APRS-IS: ' + aprslib.parse(packet)['message_text'], aprslib.parse(packet)['from'])
                         send_sms(False, sms_id, 9, 9, 'unit', str('APRS / ' + str(aprslib.parse(packet)['from']) + ': ' + aprslib.parse(packet)['message_text']))
+##                        print(UNIT_MAP[bytes_3(sms_id)][1])
+##                        print(type(UNIT_MAP[bytes_3(sms_id)][1]))
+##                        print(float(datetime.datetime.utcnow().strftime('%s')) - UNIT_MAP[bytes_3(sms_id)][1])
+##
+##                        if float(datetime.datetime.utcnow().strftime('%s')) - UNIT_MAP[bytes_3(sms_id)][1] < 60:
                         try:
                             if 'msgNo' in aprslib.parse(packet):
                                 #sleep(1)
-
+##                                print(UNIT_MAP)
                                 # Write function to check UNIT_MAP and see if X amount of time has passed, if time passed, no ACK. This will prevent multiple gateways from
                                 # ACKing. time of 24hrs?
                                 logger.info(str(aprslib.parse(packet)['addresse']) + '>APHBL3,TCPIP*:' + ':' + str(aprslib.parse(packet)['from'].ljust(9)) +':ack' + str(aprslib.parse(packet)['msgNo']))

@@ -7112,7 +7112,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 '''
         for ss in ss_all:
             ss_log = ss_log + '''<tr>
-      <td><p style="text-align: center;"><strong>''' + ss.callsign + '''<strong></p> \n <p style="text-align: center;"><a href="/ss/''' + str(ss.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(i.dmr_id) + '''</button></a></p></td>
+      <td><p style="text-align: center;"><strong>''' + ss.callsign + '''<strong></p> \n <p style="text-align: center;"><a href="/ss/''' + str(ss.dmr_id) + '''"><button type="button" class="btn btn-warning">''' + str(ss.dmr_id) + '''</button></a></p></td>
       <td><p style="text-align: center;">''' + ss.message + '''</p></td>
       </tr>
 '''
