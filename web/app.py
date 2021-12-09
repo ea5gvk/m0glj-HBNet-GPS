@@ -767,7 +767,14 @@ def hbnet_web_service():
     # Use this to pass variables into Jinja2 templates
     @app.context_processor
     def global_template_config():
-        return dict(global_config={'mode': mode})
+        messages_waiting = 0
+        if current_user.is_authenticated == True:
+            mail_all = MailBox.query.filter_by(rcv_callsign=str(current_user.username).upper()).all()
+            messages_waiting = 0
+            for i in mail_all:
+                messages_waiting = messages_waiting + 1
+            
+        return dict(global_config={'mode': mode, 'messages': messages_waiting})
 
 
     # The Home page is accessible to anyone
