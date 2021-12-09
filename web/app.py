@@ -41,6 +41,8 @@ from flask_mail import Message, Mail
 from socket import gethostbyname
 import re
 import folium
+from folium.plugins import MarkerCluster
+
 ##from pytz import timezone
 from datetime import timedelta
 
@@ -774,7 +776,7 @@ def hbnet_web_service():
             for i in mail_all:
                 messages_waiting = messages_waiting + 1
             
-        return dict(global_config={'mode': mode, 'messages': messages_waiting})
+        return dict(global_config={'mode': mode, 'messages': messages_waiting, 'registration_enabled': USER_ENABLE_REGISTER})
 
 
     # The Home page is accessible to anyone
@@ -808,7 +810,77 @@ def hbnet_web_service():
         tos_text = Misc.query.filter_by(field_1='terms_of_service').first()
         content = tos_text.field_2
         
-        return render_template('flask_user_layout.html', markup_content = Markup(content))
+        return render_template('generic.html', markup_content = Markup(content))
+
+
+    @app.route('/map_gps/<call_ssid>')
+##    @login_required
+    def all_gps(call_ssid):
+        content = '' 
+        try:
+            first_loc = False
+            g = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).filter_by(callsign=call_ssid).all()
+            for i in g:
+                print(first_loc)
+                lat = i.lat
+                lon = i.lon
+                if 'S' in i.lat:
+                    lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lat)))
+                    lat = -lat
+                if 'S' not in i.lat:
+                    lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lat)))
+                if 'W' in i.lon:
+                    lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
+                    lon = -lon
+                if 'W' not in i.lon:
+                    lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
+                f_map = folium.Map(location=[lat, lon], zoom_start=10)
+                if first_loc == False:
+                    folium.Marker([lat, lon], popup="""<i>
+                    <table style="width: 150px;">
+                    <tbody>
+                    <tr>
+                    <td style="text-align: center;">Last Location:</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><strong>"""+ str(i.comment) +"""</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><em>"""+ str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</em></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </i>
+                    """, icon=folium.Icon(color="blue", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
+                    first_loc = True
+                if first_loc == True:
+                    marker_cluster = MarkerCluster().add_to(f_map)
+                    folium.CircleMarker([lat, lon], popup="""<i>
+                    <table style="width: 150px;">
+                    <tbody>
+                    <tr>
+                    <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><em>"""+ str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</em></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </i>
+                    """, tooltip='<strong>' + i.callsign + '</strong>', fill=True, fill_color="#3186cc", radius=4).add_to(marker_cluster)
+            content = f_map._repr_html_()
+
+        except Exception as e:
+            content = '<h5>Callsign not found or other error.</h5>/n' + str(e)
+            
+        return render_template('generic.html', markup_content = Markup(content))
+
+
+
+
 
     @app.route('/map_info/<dmr_id>')
 ##    @login_required
@@ -817,42 +889,68 @@ def hbnet_web_service():
             l = PeerLoc.query.filter_by(dmr_id=dmr_id).first()
 
             content = '''
-    <table border="1">
-    <tbody>
-    <tr>
-    <td>&nbsp;<strong><h4>''' + l.callsign + '''</strong></h4>&nbsp;</td>
-    </tr>
-    </tbody>
-    </table>
-    <table border="1">
-    <tbody>
-    <tr>
-    <td style="width: 64.4667px;"><strong>DMR ID:</strong></td>
-    <td>&nbsp;''' + str(l.dmr_id) + '''&nbsp;</td>
-    </tr>
-    <tr>
-    <td style="width: 64.4667px;"><strong>Location:</strong></td>
-    <td>&nbsp;''' + l.loc + '''&nbsp;</td>
-    </tr>
-    <tr>
-    <td style="width: 64.4667px;"><strong>Lat, Lon:</strong></td>
-    <td>&nbsp;''' + l.lat + ''', ''' + l.lon + '''&nbsp;</td>
-    </tr>
-    <tr>
-    <td style="width: 64.4667px;"><strong>Description:</strong></td>
-    <td>&nbsp;''' + l.comment + '''&nbsp;</td>
-    </tr>
-    <tr>
-    <td style="width: 64.4667px;"><p><strong>URL:</strong></p>
+        <div class="card text-center">
+  <div class="card-header">
+    <strong>''' + l.callsign + '''</strong> (''' +  str(l.dmr_id) + ''')
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">Peer Information</h5>
+    <p class="card-text">
+
+ <div class="table-responsive-sm table-borderless">
+  <table class="table">
+      <tr>
+    <td>
+<strong>Description:</strong>
     </td>
-    <td><a href="''' + l.url + '''">&nbsp;''' + l.url + '''&nbsp;</a></td>
+    <td>
+''' + l.comment + '''
+    </td>   
     </tr>
     <tr>
-    <td style="width: 64.4667px;"><strong>Device:</strong></td>
-    <td>&nbsp;''' + l.software + '''&nbsp;</td>
+    <td>
+<strong>Device:</strong>
+    </td>
+    <td>
+''' + l.software + '''
+    </td>   
     </tr>
-    </tbody>
-    </table>
+    <tr>
+    <td>
+<strong>Location:</strong>
+    </td>
+    <td>
+''' + l.loc + '''
+    </td>   
+    </tr>
+    <tr>
+    <td>
+<strong>Coordinates:</strong>
+    </td>
+    <td>
+''' + l.lat + ''', ''' + l.lon + '''
+   </td>   
+    </tr>
+
+    <tr>
+    <td>
+<strong>URL:</strong>
+    </td>
+    <td>
+<a href="''' + l.url + '''">&nbsp;''' + l.url + '''&nbsp;</a>
+    </td>   
+    </tr>
+    
+  </table>
+</div> 
+
+    </p>
+<!--    <a href="#" class="btn btn-primary">Go somewhere</a> -->
+  </div>
+  <div class="card-footer text-muted">
+    Last login: ''' + str((l.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + '''
+  </div>
+</div>
     '''
         except:
             content = 'No peer found.'
@@ -890,10 +988,13 @@ def hbnet_web_service():
                     <td style="text-align: center;">Last Location:</td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><strong>"""+ str(i.callsign) +"""</strong></td>
+                    <td style="text-align: center;"><strong><a href="/map_gps/"""+ str(i.callsign) +"""" target="_blank" rel="noopener">"""+ str(i.callsign) +"""</a></strong></td>
                     </tr>
                     <tr>
-                    <td style="text-align: center;"><em>"""+ str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) +"""</em></td>
+                    <td style="text-align: center;"><strong>"""+ str(i.comment) +"""</strong></td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;"><em>"""+ str((i.time + timedelta(hours=hbnet_tz)).strftime(time_format)) + """</em></td>
                     </tr>
                     </tbody>
                     </table>

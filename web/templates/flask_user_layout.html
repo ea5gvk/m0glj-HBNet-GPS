@@ -83,9 +83,11 @@
         <li class="nav-item">
         <a class="nav-link" href="{{ url_for('user.login') }}"><i class="bi bi-door-open"></i> Sign In </a>
       </li>
+    {% if global_config['registration_enabled'] == True %}
     <li class="nav-item">
         <a class="nav-link" href="{{ url_for('user.register') }}"><i class="bi bi-person-plus"></i> Register </a>
       </li>
+    {% endif %}
       {% endif %}
     
     {% if call_or_get(current_user.is_authenticated) %}

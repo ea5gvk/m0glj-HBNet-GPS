@@ -2,6 +2,9 @@
 {% block content %}
 
 <p>&nbsp;</p>
+
+{% if global_config['mode'] == 'FULL' %}
+
  <div class="well">Map of connected peers and GPS locations. <br />
  To diasble map plotting for your hotspot or repeater, see the <strong>MMDVM Options</strong> section in <a href="/help"><strong>Help</strong></a>.
 <p>&nbsp;</p>
@@ -15,6 +18,8 @@
 </tr>
 </tbody>
 </table>
+
+{% endif %}
  
 <div class="row" >
   {{markup_content}}
