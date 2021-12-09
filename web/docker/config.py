@@ -21,7 +21,15 @@ hws_host = '127.0.0.1'
 # Publicly accessible URL of the web server. THIS IS REQUIRED AND MUST BE CORRECT.
 url = 'http://localhost:8080'
 # Replace below with some random string such as an SHA256
-secret_key = 'SUPER SECRET LONG KEY'
+secret_key = '123456789123456789123456789123456789123456789'
+
+# Mode is used to disable certain features of the web service.
+# This is primarily used to to turn the web service into a generic APRS/SMS dashboard.
+# This gives the ability to have a dashboard with FreeDMR or HBLink, without the unecessary features of HBNet.
+# Options are:
+# FULL - Normal HBNet web service
+# DASH_ONLY - To be used with FreeDMR or HBLink
+mode = 'FULL'
 
 # Timezone to show time stamps in. Stored in DB as UTC. Offset in hours.
 hbnet_tz = -1
