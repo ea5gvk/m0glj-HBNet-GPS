@@ -2986,6 +2986,9 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         tg_list = ''
         for m in m_list:
             br = BridgeRules.query.filter_by(server=server).filter_by(system_name=m.name).all()
+            m_passphrase = m.passphrase
+            if m.enable_um == True:
+                m_passphrase = '''**Generated Passphrase**'''
             print(br)
 ##            for t in br:
 ##                print(t.tg)
@@ -3010,7 +3013,7 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
 <td style="text-align: center;">
 <div class="card">
   <div class="card-body">
-Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(m.port) + '''</strong>
+Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(m.port) + '''</strong>  -  Passphrase: <strong>''' + m_passphrase + '''</strong>
   </div>
 </div>
 </td>
@@ -3038,6 +3041,10 @@ Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
             
         for p in p_list:
             br = BridgeRules.query.filter_by(server=server).filter_by(system_name=p.name).all()
+            print(p.enable_um)
+            p_passphrase = p.passphrase
+            if p.enable_um == True:
+                p_passphrase = '''**Generated Passphrase**'''
             for b in br:
                 bl = BridgeList.query.filter_by(bridge_name=b.bridge_name).first()
 ##                print(bl.bridge_name)
@@ -3057,7 +3064,7 @@ Name: <strong>''' + m.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <td style="text-align: center;">
 <div class="card">
   <div class="card-body">
-Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(p.external_port) + '''</strong>
+Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(p.external_port) + '''</strong>  -  Passphrase: <strong>''' + p_passphrase + '''</strong>
   </div>
 </div>
 </td>
