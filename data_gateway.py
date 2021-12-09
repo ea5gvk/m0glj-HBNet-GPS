@@ -529,7 +529,7 @@ def aprs_send(packet):
         logger.info('Packet sent to APRS-IS.')
 
 def dashboard_loc_write(call, lat, lon, time, comment, dmr_id):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
             send_dash_loc(CONFIG, call, lat, lon, time, comment, dmr_id)
         else:
@@ -560,7 +560,7 @@ def dashboard_loc_write(call, lat, lon, time, comment, dmr_id):
         pass
     
 def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
             send_bb(CONFIG, call, dmr_id, bulletin, system_name)
         else:
@@ -616,7 +616,7 @@ def mailbox_write(call, dmr_id, time, message, recipient):
         pass
 
 def mailbox_delete(dmr_id):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         mail_file = ast.literal_eval(os.popen('cat ' + the_mailbox_file).read())
         call = str(get_alias((dmr_id), subscriber_ids))
         new_data = []
@@ -632,7 +632,7 @@ def mailbox_delete(dmr_id):
 
 
 def sos_write(dmr_id, time, message):
-    if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         user_settings = ast.literal_eval(os.popen('cat ' + user_settings_file).read())
         print(user_settings)
         try:
@@ -861,11 +861,11 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##            logger.info(error_exception)
 ##            logger.info(str(traceback.extract_tb(error_exception.__traceback__)))
     
-    elif '*SOS' in sms or '@NOTICE' in sms:
-        sos_write(int_id(_rf_src), time(), sms)
-    elif '*REM SOS' == sms:
-        os.remove(emergency_sos_file)
-        logger.info('Removing SOS or Notice')
+##    elif '*SOS' in sms or '@NOTICE' in sms:
+##        sos_write(int_id(_rf_src), time(), sms)
+##    elif '*REM SOS' == sms:
+##        os.remove(emergency_sos_file)
+##        logger.info('Removing SOS or Notice')
         
     elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
         message = re.sub('^@|.* M-|','',sms)
@@ -1907,30 +1907,30 @@ if __name__ == '__main__':
             with open(user_settings_file, 'w') as user_dict_file:
                 user_dict_file.write("{1: [{'call': 'N0CALL'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]}")
                 user_dict_file.close()
-        if CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
-            # Check to see if dashboard files exist
-            if Path(loc_file).is_file():
-                pass
-            else:
-                Path(loc_file).touch()
-                with open(loc_file, 'w') as user_loc_file:
-                    user_loc_file.write("[]")
-                    user_loc_file.close()
-            if Path(bb_file).is_file():
-                pass
-            else:
-                Path(bb_file).touch()
-                with open(bb_file, 'w') as user_bb_file:
-                    user_bb_file.write("[]")
-                    user_bb_file.close()
-                    
-            if Path(sms_file).is_file():
-                pass
-            else:
-                Path(sms_file).touch()
-                with open(sms_file, 'w') as user_sms_file:
-                    user_sms_file.write("[]")
-                    user_sms_file.close()
+##        if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+##            # Check to see if dashboard files exist
+##            if Path(loc_file).is_file():
+##                pass
+##            else:
+##                Path(loc_file).touch()
+##                with open(loc_file, 'w') as user_loc_file:
+##                    user_loc_file.write("[]")
+##                    user_loc_file.close()
+##            if Path(bb_file).is_file():
+##                pass
+##            else:
+##                Path(bb_file).touch()
+##                with open(bb_file, 'w') as user_bb_file:
+##                    user_bb_file.write("[]")
+##                    user_bb_file.close()
+##                    
+##            if Path(sms_file).is_file():
+##                pass
+##            else:
+##                Path(sms_file).touch()
+##                with open(sms_file, 'w') as user_sms_file:
+##                    user_sms_file.write("[]")
+##                    user_sms_file.close()
 ##        try:
 ##            Path('/tmp/.hblink_data_que_' + str(CONFIG['DATA_CONFIG']['APRS_LOGIN_CALL']).upper() + '/').mkdir(parents=True, exist_ok=True)
 ##            logger.info('Created que directory')
