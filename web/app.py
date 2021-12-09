@@ -7097,7 +7097,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
         for b in bbl:
             bb_content = bb_content + '''
     <tr>
-      <td><p style="text-align: center;"><strong>''' + b.callsign + '''</strong></p> \n <p style="text-align: center;">''' + str(i.dmr_id) + '''</p></td>
+      <td><p style="text-align: center;"><strong>''' + b.callsign + '''</strong></p> \n <p style="text-align: center;">''' + str(b.dmr_id) + '''</p></td>
       <td>''' + b.bulletin + '''</td>
     </tr>
 '''
