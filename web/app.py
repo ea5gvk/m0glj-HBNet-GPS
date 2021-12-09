@@ -823,7 +823,20 @@ def hbnet_web_service():
         try:
             first_loc = False
             g = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).filter_by(callsign=call_ssid).all()
-            f_map = folium.Map(location=center_map, zoom_start=10)
+##            g_1 = GPS_LocLog.query.order_by(GPS_LocLog.time.desc()).filter_by(callsign=call_ssid).first()
+##            lon = g_1.lat
+##            lat = g_1.lat
+##            if 'S' in g_1.lat:
+##                lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', g_1.lat)))
+##                lat = -lat
+##            if 'S' not in g_1.lat:
+##                lat = aprs_to_latlon(float(re.sub('[A-Za-z]','', g_1.lat)))
+##            if 'W' in g_1.lon:
+##                lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', g_1.lon)))
+##                lon = -lon
+##            if 'W' not in g_1.lon:
+##                lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', g_1.lon)))
+##            f_map = folium.Map(location=[lat, lon], zoom_start=10)
             for i in g:
                 print(first_loc)
                 lat = i.lat
@@ -839,7 +852,6 @@ def hbnet_web_service():
                 if 'W' not in i.lon:
                     lon = aprs_to_latlon(float(re.sub('[A-Za-z]','', i.lon)))
                 if first_loc == False:
-                    print('first')
                     f_map = folium.Map(location=[lat, lon], zoom_start=10)
                     folium.Marker([lat, lon], popup="""<i>
                     <table style="width: 150px;">
@@ -862,7 +874,6 @@ def hbnet_web_service():
                     """, icon=folium.Icon(color="green", icon="record"), tooltip='<strong>' + i.callsign + '</strong>').add_to(f_map)
                     first_loc = True
                 if first_loc == True:
-                    print('subsequent')
                     marker_cluster = MarkerCluster().add_to(f_map)
                     folium.CircleMarker([lat, lon], popup="""<i>
                     <table style="width: 150px;">
@@ -880,7 +891,7 @@ def hbnet_web_service():
             content = f_map._repr_html_()
 
         except Exception as e:
-            content = '<h5>Callsign not found or other error.</h5>/n' + str(e)
+            content = '<h5>Callsign not found or other error.</h5>'
             
         return render_template('generic.html', markup_content = Markup(content))
 
