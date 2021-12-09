@@ -1022,6 +1022,7 @@ class routerHBP(HBSYSTEM):
     def __init__(self, _name, _config, _report):
         HBSYSTEM.__init__(self, _name, _config, _report)
 ##        print(_config)
+##        print(HBSYSTEM.dat_test(self))
         self.name = _name
 
         # list of self._targets for unit (subscriber, private) calls

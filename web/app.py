@@ -703,8 +703,10 @@ def hbnet_web_service():
                     aprs_dict[i[0]] = aprs_settings[i[0]]
                     del aprs_settings[i[0]]
                     misc_edit_field_1('unregistered_aprs', str(aprs_settings), '', '', 0, 0, 0, 0, False, False)
+                if i[0] not in aprs_settings:
+                    aprs_dict[i[0]] = [{'call': str(user.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
             except Exception as e:
-                aprs_dict[i[0]] = """[{'call': '""" + str(user.username).upper() + """'}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]"""
+                aprs_dict[i[0]] = [{'call': str(user.username).upper()}, {'ssid': ''}, {'icon': ''}, {'comment': ''}, {'pin': ''}, {'APRS': False}]
                 print(e)
         
         edit_user.aprs = str(aprs_dict)
@@ -1155,7 +1157,7 @@ def hbnet_web_service():
             mail.send(msg)
             content = '<p style="text-align: center;"><strong>Sent email to: ' + u.email + '</strong></p>'
         else:
-            content = '''<p style="text-align: center;"><strong>Find user in "List Users", then click on the email link.'</strong></p>'''
+            content = '''<p style="text-align: center;"><strong>Find user in "List Users", then click on the email link.</strong></p>'''
         return render_template('flask_user_layout.html', markup_content = Markup(content))
         
         

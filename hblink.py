@@ -498,6 +498,10 @@ class HBSYSTEM(DatagramProtocol):
             logger.debug('(%s) RPTPING Sent to Master. Total Sent: %s, Total Missed: %s, Currently Outstanding: %s', self._system, self._stats['PINGS_SENT'], self._stats['PINGS_SENT'] - self._stats['PINGS_ACKD'], self._stats['NUM_OUTSTANDING'])
             self._stats['PINGS_SENT'] += 1
             self._stats['PING_OUTSTANDING'] = True
+            
+    # Experimental function to return data from hblink.py into bridge.py
+    def dat_test(self):
+        return self._peers
 
     def send_peers(self, _packet):
         for _peer in self._peers:
