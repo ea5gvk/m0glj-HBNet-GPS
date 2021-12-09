@@ -2430,6 +2430,18 @@ TG #: <strong> ''' + str(tg_d.tg) + '''</strong>
         response = Response(gen_csv, mimetype="text/csv")
         return response
 
+    @app.route('/export_rules/<server>.py')
+    @roles_required('Admin')
+    @login_required
+    def rule_export(server):
+##        response = generate_rules(server)
+        s = ServerList.query.filter_by(name=server).first()
+        rules = '''BRIDGES = ''' + str(generate_rules(server)[1]) + '''
+UNIT = ''' + str(generate_rules(server)[0]) + '''
+FLOOD_TIMEOUT = ''' + str(s.unit_time)
+        response = Response(rules, mimetype="text/plain")
+        return response
+
     @app.route('/hbnet_tg_anytone.csv')
 ##    @login_required
     def anytone_tg_csv():
@@ -4495,6 +4507,8 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
 <p style="text-align: center;"><strong><a href="manage_servers?delete_server=''' + str(s.name) + '''">Delete server</a></strong></p>
 
 <p style="text-align: center;"><strong><a href="/import_rules/''' + str(s.name) + '''">Import Rules</a></strong></p>
+
+<p style="text-align: center;"><strong><a href="/export_rules/''' + str(s.name) + '''.py">Export Rules</a></strong></p>
 
 <p style="text-align: center;"><strong><a href="/data_wizard/''' + str(s.name) + '''">Add options for Data Gateway</a></strong></p>
 
@@ -7099,7 +7113,7 @@ Name: <strong>''' + p.name + '''</strong>&nbsp; -&nbsp; Port: <strong>''' + str(
     ##                try:
 ##                    print(get_peer_configs(hblink_req['get_config']))
 
-                    print(masters_get(hblink_req['get_config']))
+##                    print(masters_get(hblink_req['get_config']))
                     response = jsonify(
                             config=server_get(hblink_req['get_config']),
                             peers=get_peer_configs(hblink_req['get_config']),
