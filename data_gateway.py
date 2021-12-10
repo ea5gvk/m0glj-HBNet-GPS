@@ -809,19 +809,19 @@ def process_sms(_rf_src, sms, call_type, system_name):
         post = s.join(parse_sms[1:])
         send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
     # Offload some commands onto the HBNet web service
-    elif '*RSS' in parse_sms[0].upper() or '*RBB' in parse_sms[0].upper() or '*RMB' in parse_sms[0].upper():
+    elif '*RSS' in parse_sms[0] or '*RBB' in parse_sms[0] or '*RMB' in parse_sms[0]:
         send_sms_cmd(CONFIG, int_id(_rf_src), sms)
     # Tiny Page query
     elif '?' in parse_sms[0]:
         send_sms_cmd(CONFIG, int_id(_rf_src), sms)
     
-    elif parse_sms[0].upper() == 'ID':
+    elif parse_sms[0] == 'ID':
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
             send_sms(False, int_id(_rf_src), 9, 9, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
         if call_type == 'vcsbk':
             send_sms(False, 9, 9, 9, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
-    elif parse_sms[0].upper() == 'TEST':
+    elif parse_sms[0] == 'TEST':
         logger.info('It works!')
         if call_type == 'unit':
             send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'It works')
@@ -829,20 +829,20 @@ def process_sms(_rf_src, sms, call_type, system_name):
             send_sms(False, 9, 9, 9, 'group',  'It works')
 
     # APRS settings
-    elif '*ICON' in parse_sms[0].upper():
+    elif '*ICON' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*ICON| ','',sms), call_type)
-    elif '*SSID' in parse_sms[0].upper():
+    elif '*SSID' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*SSID| ','',sms), call_type)
-    elif '*COM' in parse_sms[0].upper():
+    elif '*COM' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*COM |\*COM','',sms), call_type)
-    elif '*PIN' in parse_sms[0].upper():
+    elif '*PIN' in parse_sms[0]:
         user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), int(re.sub('\*PIN |\*PIN','',sms)), call_type)    
     # Write blank entry to cause APRS receive to look for packets for this station.
-    elif '*APRS ON' in sms.upper() or '*APRS on' in sms.upper():
+    elif '*APRS ON' in sms or '*APRS on' in sms:
         user_setting_write(int_id(_rf_src), 'APRS ON', True, call_type)
-    elif '*APRS OFF' in sms.upper() or '*APRS off' in sms.upper():
+    elif '*APRS OFF' in sms or '*APRS off' in sms:
         user_setting_write(int_id(_rf_src), 'APRS OFF', False, call_type)
-    elif '*BB' in parse_sms[0].upper():
+    elif '*BB' in parse_sms[0]:
         dashboard_bb_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), re.sub('\*BB|\*BB ','',sms), system_name)
 
     # Email command, going away
@@ -867,10 +867,10 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##        os.remove(emergency_sos_file)
 ##        logger.info('Removing SOS or Notice')
         
-##    elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
-##        message = re.sub('^@|.* M-|','',sms)
-##        recipient = re.sub('@| M-.*','',sms)
-##        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
+    elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
+        message = re.sub('^@|.* M-|','',sms)
+        recipient = re.sub('@| M-.*','',sms)
+        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
     elif '*REM MAIL' == sms:
         mailbox_delete(_rf_src)
         
@@ -964,7 +964,7 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##            if call_type == 'vcsbk':
 ##                send_sms(False, 9, 9, 9, 'group', 'API not enabled. Contact server admin.')
 
-    elif '@' in parse_sms[0][0:1] and ' ' in parse_sms: #'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
+    elif '@' in parse_sms[0][0:1] and ' ' in sms: #'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
         print(parse_sms[0][0:1])
         #Example SMS text: @ARMDS A-This is a test.
         s = ' '
