@@ -9,8 +9,8 @@ services:
         context: ./web
     ports:
       # Port outside container:Port inside container
-      - 8084:80
-      - 8083:443
+      - 80:80
+      - 443:443
     volumes:
        # Path to config.py
        - ./hbnet/web_service/config.py:/opt/hbnet_web/config.py
@@ -18,8 +18,13 @@ services:
        - ./hbnet/web_service/data:/opt/hbnet_web/data:rw
        # NGINX logs
        - ./hbnet/log/web_service:/var/log/nginx:rw
+       # Path to custom NGINX config for SSL
+       #- ./hbnet/web_service/hbnet_ssl.conf:/etc/nginx/sites-enabled/hbnet.conf
+       # Path to SSL certificates
+       #- ./hbnet/web_service/ssl:/etc/nginx/ssl:ro
+
        # Path to custon logo
-#       - /path/to/logo.png:/opt/hbnet_web/static/HBnet.png
+       #- /path/to/logo.png:/opt/hbnet_web/static/HBnet.png
     networks:
       - hbnet_internal
 
@@ -53,7 +58,6 @@ services:
       # Port outside container:Port inside container
       # Port for clients
       - 62032:62032/udp
-      - 62033:62033/udp
       # Reporting port for hbmon
       - 4321:4321
     volumes:
@@ -77,4 +81,4 @@ services:
 networks:
     hbnet_internal:
         name: hbnet_internal
-        driver: bridge   
+        driver: bridge

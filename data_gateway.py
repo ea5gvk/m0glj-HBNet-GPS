@@ -805,7 +805,7 @@ def process_sms(_rf_src, sms, call_type, system_name):
     parse_sms = sms.split(' ')
     logger.info(parse_sms)
     # Social Status function
-    if '*SS' in parse_sms[0]:
+    if '*SS' == parse_sms[0]:
         s = ' '
         post = s.join(parse_sms[1:])
         send_ss(CONFIG, str(get_alias(int_id(_rf_src), subscriber_ids)), post, int_id(_rf_src))
@@ -831,13 +831,13 @@ def process_sms(_rf_src, sms, call_type, system_name):
 
     # APRS settings
     elif '*ICON' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*ICON| ','',sms), call_type)
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','', parse_sms[0]), parse_sms[1], call_type)
     elif '*SSID' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*SSID| ','',sms), call_type)
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','', parse_sms[0]), parse_sms[1], call_type)
     elif '*COM' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), re.sub('\*COM |\*COM','',sms), call_type)
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','', parse_sms[0]), parse_sms[1], call_type)
     elif '*PIN' in parse_sms[0]:
-        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','',sms), int(re.sub('\*PIN |\*PIN','',sms)), call_type)    
+        user_setting_write(int_id(_rf_src), re.sub(' .*|\*','', parse_sms[0]), int(parse_sms[1]), call_type)    
     # Write blank entry to cause APRS receive to look for packets for this station.
     elif '*APRS ON' in sms or '*APRS on' in sms:
         user_setting_write(int_id(_rf_src), 'APRS ON', True, call_type)
