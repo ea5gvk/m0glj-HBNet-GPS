@@ -191,6 +191,7 @@ def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id, system_name):
         logger.error(e)
 
 def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
+    logger.info('sending')
     user_man_url = CONFIG['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     sms_data = {
@@ -563,6 +564,7 @@ def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
     if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
             send_bb(CONFIG, call, dmr_id, bulletin, system_name)
+            logger.info('sending to dash')
         else:
             #try:
             dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
