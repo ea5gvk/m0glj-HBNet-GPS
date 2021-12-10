@@ -820,14 +820,14 @@ def process_sms(_rf_src, sms, call_type, system_name):
         logger.info(str(get_alias(int_id(_rf_src), subscriber_ids)) + ' - ' + str(int_id(_rf_src)))
         if call_type == 'unit':
             send_sms(False, int_id(_rf_src), 9, 9, 'unit', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
-        if call_type == 'vcsbk':
-            send_sms(False, 9, 9, 9, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
+##        if call_type == 'vcsbk':
+##            send_sms(False, 9, 9, 9, 'group', 'Your DMR ID: ' + str(int_id(_rf_src)) + ' - ' + str(get_alias(int_id(_rf_src), subscriber_ids)))
     elif parse_sms[0] == 'TEST':
         logger.info('It works!')
         if call_type == 'unit':
             send_sms(False, int_id(_rf_src), 9, 9, 'unit',  'It works')
-        if call_type == 'vcsbk':
-            send_sms(False, 9, 9, 9, 'group',  'It works')
+##        if call_type == 'vcsbk':
+##            send_sms(False, 9, 9, 9, 'group',  'It works')
 
     # APRS settings
     elif '*ICON' in parse_sms[0]:
@@ -867,16 +867,19 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##    elif '*REM SOS' == sms:
 ##        os.remove(emergency_sos_file)
 ##        logger.info('Removing SOS or Notice')
+
+    # Note to self, rewrite this command
         
-    elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
-        message = re.sub('^@|.* M-|','',sms)
-        recipient = re.sub('@| M-.*','',sms)
-        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
+##    elif '@' in parse_sms[0][0:1] and 'M-' in parse_sms[1][0:2]:
+##        message = re.sub('^@|.* M-|','',sms)
+##        recipient = re.sub('@| M-.*','',sms)
+##        mailbox_write(get_alias(int_id(_rf_src), subscriber_ids), int_id(_rf_src), time(), message, str(recipient).upper())
     elif '*REM MAIL' == sms:
         mailbox_delete(_rf_src)
         
     elif '*MH' in parse_sms[0]:
-        grid_square = re.sub('*MH ', '', sms)
+        print(parse_sms)
+        grid_square = parse_sms[1]
         if len(grid_square) < 6:
             pass
         else:
@@ -966,8 +969,7 @@ def process_sms(_rf_src, sms, call_type, system_name):
 ##                send_sms(False, 9, 9, 9, 'group', 'API not enabled. Contact server admin.')
 
     elif '@' in parse_sms[0][0:1] and ' ' in sms: #'M-' not in parse_sms[1][0:2] or '@' not in parse_sms[0][1:]:
-        print(parse_sms[0][0:1])
-        #Example SMS text: @ARMDS A-This is a test.
+        #Example SMS text: @ARMDS This is a test.
         s = ' '
         aprs_dest = re.sub('@', '', parse_sms[0])#re.sub('@| A-.*','',sms)
         aprs_msg = s.join(parse_sms[1:])#re.sub('^@|.* A-|','',sms)
@@ -1820,14 +1822,14 @@ class HBP(HBSYSTEM):
             pass
         else:
             PACKET_MATCH[_rf_src] = [_data, time()]
-        try:
-            if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
-                data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
-            else:
-                pass
-        except Exception as e:
-            logger.error('Error, possibly received voice group call.')
-            logger.info(e)
+##        try:
+        if _dtype_vseq in [3,6,7] and _call_type == 'unit' or _call_type == 'group' and _dytpe_vseq == 6 or _call_type == 'vcsbk':
+            data_received(self, _peer_id, _rf_src, _dst_id, _seq, _slot, _call_type, _frame_type, _dtype_vseq, _stream_id, _data)
+        else:
+            pass
+##        except Exception as e:
+##            logger.error('Error, possibly received voice group call.')
+##            logger.info(e)
 ##        pass
 
 
