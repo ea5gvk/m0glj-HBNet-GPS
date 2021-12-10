@@ -191,7 +191,6 @@ def send_sms_log(CONFIG, snd_call, rcv_call, msg, rcv_id, snd_id, system_name):
         logger.error(e)
 
 def send_bb(CONFIG, callsign, dmr_id, bulletin, system_name):
-    logger.info('sending')
     user_man_url = CONFIG['WEB_SERVICE']['URL']
     shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
     sms_data = {
@@ -238,25 +237,26 @@ def send_mb(CONFIG, _dst_callsign, _src_callsign, message, _dst_dmr_id, _src_dmr
 
         
 def send_ss(CONFIG, callsign, message, dmr_id):
-    user_man_url = CONFIG['WEB_SERVICE']['URL']
-    shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
-    sms_data = {
-    'ss_update': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
-    'secret':shared_secret,
-    'callsign': callsign,
-    'message' : message,
-    'dmr_id' : dmr_id,
+    if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
+        user_man_url = CONFIG['WEB_SERVICE']['URL']
+        shared_secret = str(sha256(CONFIG['WEB_SERVICE']['SHARED_SECRET'].encode()).hexdigest())
+        sms_data = {
+        'ss_update': CONFIG['WEB_SERVICE']['THIS_SERVER_NAME'],
+        'secret':shared_secret,
+        'callsign': callsign,
+        'message' : message,
+        'dmr_id' : dmr_id,
 
-    }
-    json_object = json.dumps(sms_data, indent = 4)
-    
-    try:
-        req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
-##        resp = json.loads(req.text)
-##        print(resp)
-##        return resp['rules']
-    except requests.ConnectionError:
-        logger.error('Config server unreachable')
+        }
+        json_object = json.dumps(sms_data, indent = 4)
+        
+        try:
+            req = requests.post(user_man_url, data=json_object, headers={'Content-Type': 'application/json'})
+    ##        resp = json.loads(req.text)
+    ##        print(resp)
+    ##        return resp['rules']
+        except requests.ConnectionError:
+            logger.error('Config server unreachable')
 
 def send_unit_table(CONFIG, _data):
     user_man_url = CONFIG['WEB_SERVICE']['URL']
@@ -564,7 +564,6 @@ def dashboard_bb_write(call, dmr_id, time, bulletin, system_name):
     if LOCAL_CONFIG['DATA_CONFIG']['USE_DASHBOARD'] == True:
         if CONFIG['WEB_SERVICE']['REMOTE_CONFIG_ENABLED'] == True:
             send_bb(CONFIG, call, dmr_id, bulletin, system_name)
-            logger.info('sending to dash')
         else:
             #try:
             dash_bb = ast.literal_eval(os.popen('cat ' + bb_file).read())
