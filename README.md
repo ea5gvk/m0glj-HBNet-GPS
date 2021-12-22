@@ -1,3 +1,5 @@
+## HBNet is still under heavy development. Documentation is being added to the Wiki as I write it, so check perodically to see if there is any new information. V1.0 will be ready in the next few months.
+
 ![ ](https://raw.githubusercontent.com/kf7eel/hblink3/hbnet/HBNet.png  "Logo")
 
 HBNet is a fork of [HBlink3](https://github.com/HBLink-org/hblink3) that extends the functionality of HBLink through several features, making it more of a usable application and less of a framework. HBNet aims to be complete and ready to use application that can be used to build and run a DMR network.
